@@ -2,7 +2,7 @@
  "job": "c53",
  "package": "v5",
  "exam": "X7v5 (spent; ids on the exclusion list)",
- "units_dir": "C:\\Users\\wakil\\Documents\\Codex\\2026-10-20\\r1_wave7\\run_c53_r1w7v5_20261020\\deliverable_unpacked_a1\\results\\r1w7_host_run\\out\\r1w7_out\\units",
+ "units_dir": "Operator-supplied sample units",
  "unit_files": {
   "W7_X7_REAL_CHAT_ON.json": "8377cf8e8d5ab2444d66ce650febe3077e5c3cbd1d138f7f3883d6593a875354",
   "W7_X7_REAL_CHAT_OFF.json": "59885fb809ce975e8bf547e9186d02f4090c74ed44961848abbb481cac211d45",

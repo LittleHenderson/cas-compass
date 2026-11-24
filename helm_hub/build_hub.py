@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """HELM Hub builder: a living, static info hub for HELM, generated from the sources of truth.
 
-Run:  python helm_hub/build_hub.py            (writes helm_hub/site/)
-      python helm_hub/build_hub.py --check    (build, then run the jargon lint, link check and secret scan)
+Run:  python helm_hub/build_hub.py              (repo-only candidate to helm_hub/site/)
+      python helm_hub/build_hub.py --internal ABSOLUTE_EMPTY_DIR
+                                                (private build outside the repository)
 
 Standard library only. No network. Reads the spec sheet, the dictionary, the roadmap and its status
-correction, CHANGELOG.md, the HELM UI README and demo, the X-REAL source pins (all in the repo), plus
-off-repo records under the Codex folder (the AWS ledger totals, the run records, the owner-approval
-headings, the language-map coverage report). Set HELM_HUB_CODEX to point at another Codex folder.
-Missing off-repo files never stop the build: the page says the source was not available.
+correction, CHANGELOG.md, the HELM UI README and demo, and the X-REAL source pins in the repo.
+Only the explicit internal build reads off-repo ledger, run records, approval headings and coverage.
+Set HELM_HUB_CODEX to point the internal build at another Codex folder. Never host the private output.
+The default mode reduces exposure; its output still needs review before any publication.
 
 The build fails (exit 1) when the jargon lint, the link check or the secret scan fails.
 """
@@ -21,11 +22,13 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import time
 from html.parser import HTMLParser
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
+from urllib.parse import unquote
 
 try:
     from zoneinfo import ZoneInfo
@@ -36,6 +39,10 @@ except Exception:  # pragma: no cover - fallback when tz data is missing
 HUB = Path(__file__).resolve().parent
 REPO = HUB.parent
 SITE = HUB / "site"
+PUBLIC_OUTPUT = True
+ASSETS = HUB / "assets"
+CUBE_ASSET_NAME = "helm_cube_concept.svg"
+CUBE_ASSET_SHA256 = "efff3c11d10244ac0435c6fa059d828c356b38af222b8f9b520f78efc584b41c"
 CODEX = Path(os.environ.get("HELM_HUB_CODEX", r"C:\Users\wakil\Documents\Codex"))
 
 SPEC = REPO / "docs" / "CAS_HARNESS_SPEC_SHEET.md"
@@ -61,16 +68,185 @@ FONTS = ("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}")
 EMOJI_RE = re.compile("[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\uFE0F\u200D]")
 MISSING: list[str] = []
+OFF_REPO_SOURCE = "[off-repository path omitted]"
+APPROVAL_SOURCE_LABEL = "[owner approval record; local path omitted]"
+APPROVAL_SOURCE_RE = re.compile(
+    r"(?:(?:[A-Z]:[\\/]|\\\\|/)(?:[^<>\r\n\x60\"']*?[\\/])?)?"
+    r"Documents[\\/]Codex[\\/]\d{4}-\d{2}-\d{2}[\\/]OWNER_APPROVALS_\d{8}\.md\b",
+    re.I,
+)
+LOCAL_SOURCE_PREFIX = (
+    r'(?:file://|[A-Z]:[\\/]|\\\\|~[\\/]|[\\/]?(?:OneDrive|Desktop|Documents|Codex)[\\/]'
+    r'|/(?:Users|home|root|mnt|workspace|tmp|var/tmp)/)'
+)
+LOCAL_SOURCE_RE = re.compile(r'(?<![\w/:\\])' + LOCAL_SOURCE_PREFIX + r'[^<>"\x27\x60\s]*', re.I)
+LOCAL_CODE_RE = re.compile(r'<code>\s*' + LOCAL_SOURCE_PREFIX + r'[^<>\r\n]*</code>', re.I)
+INFRASTRUCTURE_ID_RE = re.compile(
+    r"\b(?:i|ami|vol|snap|sg|vpc|subnet|eni)-(?:[0-9a-f]{17}|[0-9a-f]{8})\b", re.I,
+)
+PRIVATE_BUCKET_RE = re.compile(r"(?<![\w-])(?:[a-z0-9]+-)*(?:bucket|storage|archive|memory|store)-[0-9]{12}(?:-[a-z0-9]+)*\b", re.I)
+# Match a full bucket-shaped label: an optional hyphenated name followed by
+# the provider marker and exactly eight digits. Bound the label to 63 characters.
+RUNPOD_BUCKET_RE = re.compile(
+    r"(?<![\w-])(?=[a-z0-9-]{3,63}(?![\w-]))"
+    r"(?:[a-z0-9]+-)*runpod-(?:bucket-)?[0-9]{8}(?![\w-])", re.I,
+)
+# A Windows project directory may be stored as a hyphenated drive/Users slug.
+# Require its memory subdirectory so ordinary project slugs are not redacted.
+PROJECT_MEMORY_RE = re.compile(
+    r'(?<![\w-])[a-z]-{1,2}users-(?:[a-z0-9_]+-)+[a-z0-9_]+'
+    r'[\\/]memory(?![\w-])(?:[\\/][^<>"\x27\x60\s]*)?', re.I,
+)
+PRIVATE_INFRA_RE = re.compile(
+    r'(?<![\w-])(?:s3://|arn:aws(?:-[a-z0-9-]+)?:)[^<>"\x27\x60\s]+', re.I,
+)
+ACCOUNT_RESOURCE_RE = re.compile(r"(?<![\w-])[a-z][a-z0-9-]{2,}-[0-9]{12}(?:-[a-z0-9]+)*(?![\w-])", re.I)
+PRIVATE_LOCATOR_PATTERNS = (
+    ("local path", LOCAL_SOURCE_RE),
+    ("local approval pointer", APPROVAL_SOURCE_RE),
+    ("cloud resource identifier", INFRASTRUCTURE_ID_RE),
+    ("cloud locator", PRIVATE_INFRA_RE),
+    ("account-bearing resource name", ACCOUNT_RESOURCE_RE),
+    ("named private storage address", PRIVATE_BUCKET_RE),
+    ("RunPod bucket address", RUNPOD_BUCKET_RE),
+    ("project memory locator", PROJECT_MEMORY_RE),
+)
+
+
+def decoded_variants(text: str, *, script: bool = False) -> tuple[str, ...]:
+    values = [text]
+    for _ in range(2):
+        value = unquote(html.unescape(values[-1]))
+        if value == values[-1]:
+            break
+        values.append(value)
+    if script:
+        # Decode only literal escapes, not arbitrary JavaScript.
+        def char(match: re.Match) -> str:
+            return chr(int(match.group(1) or match.group(2), 16))
+        plain = re.sub(r"\\(?:u([a-f0-9]{4})|x([a-f0-9]{2}))", char, values[-1], flags=re.I)
+        values.append(unquote(plain.replace("\\\\", "\\").replace("\\/", "/")))
+    return tuple(values)
+
+
+def locator_kinds(text: str, *, script: bool = False) -> set[str]:
+    variants = decoded_variants(text, script=script)
+    return {kind for kind, pattern in PRIVATE_LOCATOR_PATTERNS if any(pattern.search(v) for v in variants)}
+
+
+class _LocatorChannels(HTMLParser):
+    URL_ATTRS = frozenset(("href", "src", "srcset", "poster", "action", "formaction", "xlink:href", "data", "cite", "background"))
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.in_script = False
+        self.findings: set[str] = set()
+
+    def handle_starttag(self, tag, attrs):
+        self.in_script |= tag == "script"
+        for key, value in attrs:
+            if value and (key in self.URL_ATTRS or key == "style" or key.startswith("on")):
+                self.findings.update(locator_kinds(value, script=key.startswith("on")))
+
+    def handle_endtag(self, tag):
+        if tag == "script":
+            self.in_script = False
+
+    def handle_data(self, data):
+        if self.in_script:
+            self.findings.update(locator_kinds(data, script=True))
+
+
+def private_locator_findings(content: str, *, active_only: bool = False) -> set[str]:
+    parser = _LocatorChannels()
+    parser.feed(content)
+    parser.close()
+    return parser.findings if active_only else parser.findings | locator_kinds(content)
 
 
 def rel(p: Path) -> str:
+    """Render only validated repository-relative paths."""
+    if PureWindowsPath(p).drive and not p.is_absolute():
+        return OFF_REPO_SOURCE
     try:
         return p.resolve().relative_to(REPO).as_posix()
-    except ValueError:
-        return str(p)
+    except (OSError, RuntimeError, ValueError):
+        return OFF_REPO_SOURCE
+
+
+def private_rel(p: Path) -> str:
+    return OFF_REPO_SOURCE if PUBLIC_OUTPUT else rel(p)
+
+
+def scrub_page(content: str) -> str:
+    content = APPROVAL_SOURCE_RE.sub(APPROVAL_SOURCE_LABEL, EMAIL_RE.sub("[e-mail removed]", content))
+    if PUBLIC_OUTPUT:
+        content = LOCAL_CODE_RE.sub(f"<code>{OFF_REPO_SOURCE}</code>", content)
+        content = LOCAL_SOURCE_RE.sub(OFF_REPO_SOURCE, content)
+        content = INFRASTRUCTURE_ID_RE.sub("[infrastructure identifier omitted]", content)
+        content = PRIVATE_BUCKET_RE.sub("[private storage address omitted]", content)
+        content = RUNPOD_BUCKET_RE.sub("[private storage address omitted]", content)
+        content = PROJECT_MEMORY_RE.sub("[private project memory locator omitted]", content)
+        content = PRIVATE_INFRA_RE.sub("[private cloud locator omitted]", content)
+        content = ACCOUNT_RESOURCE_RE.sub("[account-bearing resource omitted]", content)
+    return content
+
+
+DEMO_DATA_RE = re.compile(r"(<script>\s*window\.HELM_DEMO\s*=\s*)(.*?)(</script\s*>)", re.S)
+
+
+def scrub_demo_provenance(content: str) -> str:
+    """Remove local provenance from the exact inert JSON portion of the recorded demo."""
+    def one(match: re.Match) -> str:
+        raw = match[2]
+        try:
+            data, end = json.JSONDecoder().raw_decode(raw)
+        except json.JSONDecodeError:
+            return match[0]
+        if not isinstance(data, dict) or raw[end:].strip() not in ("", ";"):
+            return match[0]  # not a lone JSON assignment; the shared script gate still applies
+        changed = False
+
+        def visit(value):
+            nonlocal changed
+            if isinstance(value, dict):
+                for key, item in value.items():
+                    if key in ("brain_dir", "source") and isinstance(item, str) and locator_kinds(item) == {"local path"}:
+                        value[key] = OFF_REPO_SOURCE
+                        changed = True
+                    else:
+                        visit(item)
+            elif isinstance(value, list):
+                for item in value:
+                    visit(item)
+
+        visit(data)
+        if not changed:
+            return match[0]
+        # Escape '<' so the reserialized JSON cannot close its containing script.
+        body = json.dumps(data, ensure_ascii=True, separators=(",", ":")).replace("<", r"\u003c")
+        return match[1] + body + raw[end:] + match[3]
+    return DEMO_DATA_RE.sub(one, content)
+
+
+def prepare_site_page(name: str, content: str) -> str:
+    if PUBLIC_OUTPUT and name == "demo.html":
+        content = scrub_demo_provenance(content)
+    # Reject active references instead of substituting a placeholder into a URL or script.
+    problems = private_locator_findings(content, active_only=True) if PUBLIC_OUTPUT else set()
+    if problems:
+        raise SystemExit(f"BUILD STOP: {name}: private locator in URL, style or script ({', '.join(sorted(problems))}); values withheld.")
+    content = scrub_page(content)
+    problems = private_locator_findings(content) if PUBLIC_OUTPUT else set()
+    if problems:
+        raise SystemExit(f"BUILD STOP: {name}: unredacted private locator ({', '.join(sorted(problems))}); values withheld.")
+    return content
 
 
 def read(p: Path) -> str:
+    if PUBLIC_OUTPUT and rel(p) == OFF_REPO_SOURCE:
+        MISSING.append(OFF_REPO_SOURCE)
+        return ""
     try:
         t = p.read_text(encoding="utf-8", errors="replace")
     except OSError:
@@ -80,6 +256,8 @@ def read(p: Path) -> str:
 
 
 def sha256_file(p: Path) -> str:
+    if PUBLIC_OUTPUT and rel(p) == OFF_REPO_SOURCE:
+        return "unavailable"
     try:
         return hashlib.sha256(p.read_bytes()).hexdigest()
     except OSError:
@@ -257,6 +435,8 @@ def canonical_quote(entries: list[dict], term: str) -> str:
 # Off-repo records
 # --------------------------------------------------------------------------------------------
 def ledger_totals() -> dict:
+    if PUBLIC_OUTPUT:
+        return {}
     t = read(LEDGER)
     if not t:
         return {}
@@ -269,13 +449,15 @@ def ledger_totals() -> dict:
 
 
 def run_records() -> list[dict]:
+    if PUBLIC_OUTPUT:
+        return []
     out = []
     files = []
     for d in RUN_DIRS:
         if d.exists():
             files += sorted(d.rglob("RUN_RESULT_*.md"))
         else:
-            MISSING.append(str(d))
+            MISSING.append(rel(d))
     for f in files:
         t = read(f)
         if not t:
@@ -297,6 +479,8 @@ def run_records() -> list[dict]:
 
 
 def approval_headings() -> list[tuple[str, str]]:
+    if PUBLIC_OUTPUT:
+        return []
     t = read(APPROVALS)
     out = []
     for ln in t.splitlines():
@@ -431,7 +615,11 @@ def dot(c: str) -> str:
 # kind: scored | packet | rule | audit ; color: key of COLORS
 # --------------------------------------------------------------------------------------------
 CUR: dict[str, tuple[str, str, str, str]] = {
+    "7.125": ("packet", "partial", "Cubes and memory, designed and built behind a switch that is OFF by default. NEWEST (follow-up 18, 2026-10-22): the TEACH-2 exam package is sealed with the retrained translator inside it (0 USD; not drawn, not run). Every check from a fresh copy passed. Building it found and fixed, before any exam data, two mark contradictions (flagged for the owner), four checking defects from an independent review, and two HELM defects (a question about January was answered with September's fact; a table answer from a forgotten line was called exact). On practice lines every safety gate holds, but the cube memory does not yet beat today's memory (C1) or halve the bytes (S-SPACE), so the honest forecast is NO_GAIN. Before that (follow-up 17, 2026-10-22): the CUBE TRAIN run (job c57, 1.26 USD) retrained HELM's CTT translator, in four copies on one cloud graphics card, to read a line into a cube. The frozen reader's word is TRAIN_READY: every gate held when recomputed by hand. On 357 AI-written test lines, the three main copies agreeing gave 5 wrong (1.40%, limit 2%) and 21 unanswered; on 2,000 machine-made lines, 0 wrong; no invented words; the old CAS skills were kept (largest drop 0.0005). It means only that these copies may be put into the cube exam package; it is not a claim that HELM reads people. Negatives kept: any one copy alone was wrong 13 to 17 times of 357, over the limit; the small twin 35 times; the perfect machine-made score is the training generator's own kind of line. Before that (follow-up 16): the CUBE TRAIN package was sealed. Before that (follow-up 12, 2026-10-22): HELM now has its own direct cloud client, built only from Python's standard library: it keeps one connection open to the private bucket and signs every request itself, in a way that matches all three of the cloud provider's published worked examples. Timed live with made-up lines: a cloud question went from 2.65 seconds to 0.21 seconds, and building the test chat from 77.6 seconds to 4.7, every answer exact; what one client wrote, the other read back unchanged. The live HELM still sends nothing to the cloud until the owner says so. 489 HELM tests pass. Before that (follow-up 11): HELM now remembers for 60 seconds that the cloud answered, so it does not ask again before every cloud read; it never remembers a no, and it forgets at the first failed call. Timed live on the real bucket with made-up lines: a cloud question went from 3.46 to 2.66 seconds, every answer exact, and building the test chat needed 2 reachability checks instead of 22. A cloud question still takes about 2.7 seconds (three calls). 478 HELM tests pass. Before that (follow-up 10): the cloud search now fetches all of a conversation's folded rows from the cloud in one call instead of one call each, and still checks every one. Timed live on the real bucket with made-up lines: 4.16 seconds per question before, 3.54 after, with every answer exact. A cloud question still takes about 3.5 seconds (four calls of about 0.83 seconds). 473 HELM tests pass. Before that (follow-up 9): when a question finds nothing on the device and HELM is online, the Eye now also searches the folded rows stored in the cloud, checking each one, and keeps nothing it read. On the test chat, old lines found exactly by their own words went from 1 of 30 to 30 of 30. The cost is time: about 9 cloud reads per question, estimated at about 10 seconds on the real bucket (an estimate from the earlier live test, not a measurement). Offline, those rare words still cannot be found. 467 HELM tests pass. Before that (follow-up 8): each memory capsule now keeps the clue words of every line it holds, not only its first lines, so any old line can be found by its own words. At the owner's 53,370-byte limit, an 8,000-line chat stays under the limit (48,743 bytes) and 30 of 30 sampled old lines came back exact (before: 1 of 30). The cost: bigger rows push small limits (4,000 bytes) over, and once the folded rows are in the cloud, rare words past each row's 48-word cap cannot be found (HELM then says it does not know, never a wrong line). 462 HELM tests pass. Before that (follow-up 7): the Eye now folds old index rows together, 8 into 1, and then 8 of those into 1, level upon level, each folded row keeping at most 48 clue words; the folded rows themselves go to the device's folder (then the cloud), and a question that misses the kept words searches the folder. An 8,000-line chat stays under the owner's 53,370-byte limit (it would be 100,721 bytes without folding; it ends at 52,429), and old memories still come back exact (20 of 20 sampled). The floor grows by about 3,500 bytes per level and each level covers 8 times more, so 53,370 bytes holds for about 14 levels; a small 4,000-byte limit is below the floor once two levels exist. 453 HELM tests pass. Before that (follow-up 6): when memory is still too full, the Eye now moves the oldest capsules out of working memory to the device's folder (and later to the cloud), keeping only a small index row of clue words; a question that matches the index fetches that one capsule back and checks it against its receipt before answering. A 300-line chat now fits a 3,000-byte limit (7,145 down to 2,830 bytes), but a 600-line chat at 4,000 still goes over (26,034 down to 10,870 bytes), because the index also grows with the chat. 440 HELM tests pass. Before that (follow-up 5): the Eye now runs the memory capsules. It stores only what cannot be rebuilt (the clue words, the CAS digits, the fingerprint of the original, the bound cubes, the weight and the receipt), rebuilds everything else every time a capsule is used, and refuses to use a capsule whose rebuild does not match its receipt. One capsule went from 812 to 281 bytes; working memory now stays under the limit for 200 lines at a 4,000-byte limit (3,955 bytes) and for 2,000 lines at the owner's 53,370 bytes (48,745 bytes), but a 600-line chat at 4,000 still goes over (26,126 bytes), because capsules still pile up. 429 HELM tests pass. Before that (follow-up 4): HELM now keeps every line word for word until its working memory reaches 53,370 bytes (the owner's number), then folds the oldest lines into one CAS capsule per batch, and when the device's own folder of original lines passes 50 MB the oldest originals move to a private, encrypted, versioned storage folder on Amazon's cloud that nothing deletes (helm-cold-memory-807562639912-usw2). With Wi-Fi, HELM fetches them back and checks their fingerprint before calling a memory exact; without it HELM says its full notes are stored away and never claims exact. A live test moved 7 made-up originals and fetched them back. Measured, and not hidden: the capsules stay in working memory and are nearly as big as the lines they replace, so memory still grows past the limit (11,165 bytes against a 4,000 limit after 200 lines); keeping under the limit needs the owner's next design choice. 414 HELM tests pass. A fact the person teaches is kept only when two readers agree twice in at most three rounds: HELM's trained translator between English and CAS symbols proposes a reading, and the brain side checks it and says it back. If they never agree, HELM keeps the person's words and asks. The first build made its own kind of cube and its own reader; the owner pointed out that a cube system already existed. The work was redone on it, the Cube Node Schema v0.1: every named thing is a cube with six sides (what it is, its context, an analogy or metaphor, a mapping, its parts, how the parts fit), and a fact is an edge between two cubes that records what the two have in common. Answers go through the schema's three questions: what does it hold, what do two things share, how are two things related. A side nobody taught stays marked unknown and is never invented. 41 tests; all 395 HELM tests pass. Measured: fading old memories into CAS records costs space on short sentences instead of saving it (53,370 bytes against 2,450 for keeping every line). LESSON FOR WHOEVER COMES NEXT: before any cube or node work, read Cube_Node_Schema_v0.1 and the code where HELM keeps its facts as cubes; never build a second parser or a second kind of cube.", "Nothing licensed; built, not validated. Tests use a stand-in reader, not the trained translator, which still needs retraining on this kind of fact (owner line CUBE TRAIN at 3 USD, not yet typed)."),
+    "7.121": ("scored", "null", "The memory-compaction exam (TEACH-1) ran once on the laptop: 16 made-up worlds (hive yards and bus lines), 512 teaching lines written by three AI companies and checked by the other two, seven ways of remembering. Every honesty and integrity check held: 4,029 memory answers were labelled correctly and nothing was invented. The word is INCONCLUSIVE, because the never-forget arm gave 7 answers the frozen scorer counts wrong: in each, HELM quoted the person's own correction (\"eight; I said seventeen before\") and the scorer read the old number as a wrong value. Compaction recalled 148 more answers than today's memory and lost none against never forgetting on clean notes, but tied a plain text note. The taught facts never became cubes.", "INCONCLUSIVE; nothing licensed. The scoring of quoted corrections is the owner's ruling before any rerun."),
+    "7.115": ("packet", "null", "Memory compaction, from design to a sealed exam: when HELM's working memory fills, old turns are packed into small CAS capsules with clue words, a pointer to a safe copy and a receipt; a question fetches the original first and asks a refresh question only when the copy is gone; a rebuilt memory is never called exact. Built behind a switch that is OFF by default; the exam TEACH-1 was built, sealed and later run (7.121).", "Built, not validated; nothing licensed."),
     "7.122": ("scored", "partial", "The Unity Eye acting inside the live HELM loop, behind a switch that is OFF by default, took its sealed exam (200 made-up worlds, 7 ways of running, seeded by the owner's own line). Every safety check held. Acting beat holding: on 320 damaged questions the concert Eye gave 240 right answers, asked on 80 where nothing could be rebuilt, and was never wrong, while HELM with no Eye was wrong on all 320. A rule that keeps backup copies was fooled 80 times by a bad lesson the Eye caught. But a plain rule with no Eye, rebuild from the user's words before every answer, did exactly as well as the Eye on every answer.", "EYE_ACT_EARNED_KEEP and CONCERT_ACT_EARNED_KEEP for this test only, on made-up worlds; built, not validated. The Eye's acting stays NOT LICENSED and the switch stays OFF until the owner rules."),
+    "7.124": ("packet", "null", "U1c, a design only: a fresh retest of the Unity Eye acting. U1b already ran on 2026-10-15 and earned both keep words, but its practice worlds were picked by the builder and its rules were set after U1's numbers, so it could be a lucky pick. U1c keeps U1b's program exactly and changes only the worlds, which come from a secret the owner locks in before any code and reveals after the package is sealed, so nobody can steer them. It runs on one AWS machine after first proving, on U1b's own inputs, that the move to Linux changes no answer. An optional fair rival, a plain rule with the eye's own repair routines but no eye readings, asks whether the eye's sight beats a simple rule. Expected cost about 0.36 USD. Nothing frozen, nothing run; it waits for the owner's answers.", "Nothing; a design. U1b's words stand for U1b only, and the eye's acting stays NOT LICENSED."),
     "7.120": ("packet", "null", "Two design answers to the owner, nothing built or run. First: who should decide when HELM looks deeper into a problem? An exact arithmetic rule at the gate, not the Eye; the owner's own decoupling stop already does this and earned its keep on made-up worlds (7.69). The Eye's right job is to check that rule from outside, and later, with a new ruling, to ask for more depth but never less. In today's live chat there is no depth choice to make, so a decider there would measure nothing. Second: the HELM Cube, a concept for HELM's final home: a 64 mm black cube that looks the same on all six faces when off, light along all twelve edges, a magnetic charge face found by feel, hidden cameras, microphones and depth sensors on every face, and everything feeding HELM.", "Nothing; designs only. The Eye's acting stays NOT LICENSED; the cube is a concept with no part bought or measured."),
     "7.119": ("scored", "failed", "Wave 7 ran a sixth time (job c56) with the reader fix of 7.117 in and a fresh exam. Every instrument check and every must-hold check held, though the instrument's code does not do what its written rule says (see below). This time the chat got every one of the 64 dialogues right, with none wrong and none left unsure (the fifth round got 2 wrong), and the copy with small talk mixed in read the same. On the real recipes it got 93 right and none wrong, and asked on 15. But two marks failed. On one recipe the book line ended with a loose 'or', so the reader tied a 'ran out' sentence to the next line and the brain stored a wrong amount; a wrong stored amount fails the safety mark. On another recipe one book line held two amounts, the lessons never taught the second, and HELM asked; the ask was honest, but the frozen rule does not accept it, so the honesty mark failed. Both faults happen the same way without the chat layer, so they belong to the reader and brain, not the chat. The instrument's own written rule says that second recipe's question should have been left unscored, but its code scores it. That rule was written by this project's operator, and its code never did what the text said: the mistake is the builder's. The conflict is left for the owner to decide, and this round is not re-scored. By the frozen words this reads HARMED. 0.02 USD.", "Nothing. A recorded failure of the safety mark and the honesty mark with every instrument check and hard gate held; the chat stays NOT LICENSED. Every dialogue right is a fact about this one draw, not a license. The next fix, proposed only: a line ending in a loose 'or' is one ingredient with an alternative, and a 'ran out' sentence that could fit two lines must ask, never guess."),
     "7.118": ("packet", "null", "Wave 7, the sixth round's packet, frozen and fingerprinted again as v9 with exactly three changes on v8: HELM is cut at the merged reader fix of 7.117 (a sentence shaped like a stated fact about an ingredient HELM does not hold now makes it ask and hold its answer; plural and spelling forms of a held name are found; a measure phrase such as \"a dash of pepper\" after a comma is its own line), the ids of the fifth round's exam can never be drawn again, and the number ranges for the exam draw are fresh; the line the owner would sign, CHAT WAVE 6 at 1 USD, is proposed only. The machine's own test list of 12 files was run from the frozen copy (280 tests, OK). On the builder's practice dialogues the chat gets 63 of 64 right with 0 wrong and asks on 1, exactly as v8 did, because none of the practice dialogues has the shapes the fifth round got wrong; the loop driven directly 59 right, 0 wrong; real recipes unchanged; every mark true. Not launched.", "No claim from the packet itself; the practice numbers are facts about practice data, not a result, and they cannot show the fix works."),
@@ -440,6 +628,9 @@ CUR: dict[str, tuple[str, str, str, str]] = {
     "7.116": ("scored", "failed", "Wave 7 ran a fifth time (job c55) with the reader fix in and a fresh exam. The instrument was clean again, and the asking mark that failed twice before now holds: every one of the chat's 13 asks on real recipes had an accepted reason. On the dialogues the chat went from 44 right and 20 unscored to 62 right of 64, reading the stated faces and purposes. But it answered twice where it should have applied a stated fact or asked, because the sentence named the ingredient by a word the brain had not learned, and one lesson on the real recipes was wrong. A wrong answer fails the safety mark, so by the frozen words this reads HARMED. 0.02 USD.", "Nothing. A recorded failure of the safety mark with a clean instrument; the chat stays NOT LICENSED. The next fix: a face-shaped sentence about a thing the brain does not hold must ask, never be treated as small talk."),
     "7.110": ("packet", "null", "The talk packet, a design only: how HELM would hold a normal conversation. Three layers: the transformer ear, retrained so it can say \"nothing to save\" on purpose and asked only where HELM's own reader cannot read a line, with its three copies voting and a question before anything is used; the recipe brain, untouched; and the voice guarding every reply (no notation, no recipe words on a greeting, exact amounts, an honest \"I don't know\"). The exam was first designed to be typed by four named people; on the owner's word of 2026-10-21 (amendment A-TALK-1) the owner writes no turns and reviews only, every exam turn is written by AI models of at least three families and keyed by a different family, and a pass could only ever say \"AI-written turns\", never \"human-written\" (ceiling LLM_WRITTEN_ONLY). Off-topic turns get a rule: react in one line, keep what was said, ask about what HELM knows, never an opinion or an untold fact. Part M adds a trained mouth (the same translator run CAS to English) that may choose words, never facts, scored against today's templated voice. A 30-line keyword rule is the cheap rival the ear must beat. Two owner lines on record, TALK TRAIN at 3 USD and TALK EXAM at 1 USD, each bound to a package not yet built. Nothing built, nothing trained, nothing run.", "Nothing; a design. Every part keeps its standing; the ear's earlier words (no gain on real sentences; harmed on machine-written ones) stand."),
     "7.107": ("packet", "null", "Wave 7, round 4: the one test that failed on job c53's machine was traced by program to a stored fingerprint of the loop's records that carried the licensed brain's folder path; reporting the machine's path on the laptop reproduces the machine's value exactly, so HELM's answers never differed. A second builder made the test pins machine-neutral (the folder and the two receipts that depend on it are cut out before hashing; a hygiene test guards the class); the first attempt was shown insufficient by diff and replaced. The chat wave packet v6 is frozen and fingerprinted on that code, and its freeze step now runs exactly the machine's own test list with the machine's own command (245 tests, OK); not launched; waits for the owner's line CHAT WAVE 4 at 1 USD. Practice numbers equal v5's exactly.", "No claim from the packet itself; the test fix is built and checked on the laptop, not yet on a machine."),
+    "7.128": ("scored", "failed", "The mouth: HELM's own translator taught to write every reply itself, under a lock that lets it write only everyday words or words from its input (never a new name, number or month). 3,029 lessons written by three AI companies and checked by two others; trained on a rented cloud computer (job c59, 1.29 USD). The scoring rule fixed before the run says HARMED: on one practice line the mouth wrote the allowed number \"40\" twice and a joining step glued them into \"4040\" (the safety check caught it; never spoken). The template stood in on 41 of 1,076 exam replies (mark 1 in 1,000), only 67 % of fact replies read back as the same fact (mark 95 %), and 59 of 100 inputs got three wordings (mark 100). Held: the ear's gates and old skill. Blind AI raters preferred the mouth's line on 682 of 989 pairs: fact replies about 9 in 10, off-topic chat only 7 of 177.", "Nothing licensed; the mouth stays off. A negative kept: fact sentences sound natural, chat lines often break, and the safety check does not notice broken English."),
+    "7.127": ("audit", "null", "The talk layer, built behind two switches that are OFF by default: small talk gets one short line and saves nothing; questions about HELM get a truthful line; an off-topic line gets a one-line reaction, is kept word for word, and gets one question built from the person's own word; a question nobody taught gets \"I don't know that. Nobody has told me about it.\"; with the second switch, HELM asks about a thing it holds (\"You told me we have 12 cups of flour. Is that still right?\") and a yes confirms it. Every talk reply is checked for HELM's inner notation, recipe words, opinions and length. On the builder's own 21 sample lines, with the switch off 17 replies were robotic and 18 carried recipe words; with it on, none did. 21 new tests; HELM's suites pass. Nothing trained, no exam run; 0 USD.", "Built, not validated. The wording is templates; the talk exam and the ear-and-mouth training are future, separate steps."),
+    "7.126": ("packet", "null", "The ear and mouth training design, on paper only: confirmed cubes plus machine-made practice sentences become lessons for the ear (English to CAS) and for the mouth (CAS to English), in one translator with two direction tags. The mouth may choose words, never facts. Labels never come from the hand-written reader alone. A tone tag and asking from what HELM knows are part of the design. Nothing built, trained or run; 0 USD.", "Nothing; a design. Every part is PROPOSED."),
     "7.24": ("scored", "partial", "The first recipe brain, put in the transformer's slot, passed the transformer's own 16-world exam and beat it by one world. A plain lookup table tied it, so the recipe arithmetic got no credit.", "PASS on that exam. Not that recipe math earned its keep."),
     "7.25": ("scored", "weak", "Harder exams. Task A passed, but the transformer passed too. Task B tripped the reader's own instrument rule, so the overall reading is NOT_PASS.", "Nothing new may be said."),
     "7.26": ("scored", "strong", "Clean rerun of Task B: only the recipe mechanism passed. The first exam where composing recipes earned credit.", "Composition credit on these made-up worlds. Not learned composition."),
@@ -869,7 +1060,7 @@ def load() -> dict:
         "dict": dict_t, "entries": entries,
         "road": read(ROAD), "corr": read(CORR), "chlog": read(CHLOG),
         "ui_readme": read(UI_README), "ledger": ledger_totals(), "runs": run_records(),
-        "approvals": approval_headings(), "coverage": read(COVERAGE),
+        "approvals": approval_headings(), "coverage": "" if PUBLIC_OUTPUT else read(COVERAGE),
         "xr_prereg": read(XR_PREREG), "xr_sources": read(XR_SOURCES),
     }
 
@@ -974,7 +1165,7 @@ are a reading aid only. The words in grey boxes are the record's own words. {T('
 <h2>Where to go next</h2>
 <div class="grid">
 <div class="card"><a href="thinking.html">How HELM thinks</a><br><span class="muted small">Recipes, asking, receipts and the Eye, with the precise definitions.</span></div>
-<div class="card"><a href="files.html#start">Next agent: start here</a><br><span class="muted small">Every file and folder with its full path, and the rules to read first. Then read the owner's <a href="roadmap.html#intent">statement of intent for whoever comes after</a> (2026-10-21): the transformer mouth trained on the 40 elements; intended, nothing built.</span></div>
+<div class="card"><a href="files.html#start">Start here</a><br><span class="muted small">Find project references and the owner's <a href="roadmap.html#intent">statement of intent for whoever comes after</a> (2026-10-21): the transformer mouth trained on the 40 elements; intended, nothing built. Also see the <a href="roadmap.html#picture">plan for teaching HELM a picture it does not know</a> (2026-10-22): intended, nothing built.</span></div>
 <div class="card"><a href="build.html">The build, animated</a><br><span class="muted small">One turn as wired today, and the intended next wiring.</span></div>
 <div class="card"><a href="architecture.html">Architecture</a><br><span class="muted small">Every part, its parameter count, and what HELM is not.</span></div>
 <div class="card"><a href="results.html">Results scorecard</a><br><span class="muted small">Every result, negatives included.</span></div>
@@ -986,7 +1177,7 @@ are a reading aid only. The words in grey boxes are the record's own words. {T('
 """
     return page("index.html", "HELM Hub", "HELM, in one screen", lede, body, [
         "`docs/CAS_HARNESS_SPEC_SHEET.md` §7.24, §7.47, §7.56, §7.65, §7.71, §7.77, §7.78, §7.81, §7.82, §7.87, §7.89, §7.90 (section counts computed from §7.24 onward)",
-        f"`{rel(LEDGER)}` (totals only)",
+        f"`{private_rel(LEDGER)}` (totals only)",
         "Owner's color scale: `docs/reference/CAS_HELM_DICTIONARY.md`, 'Color marks used in owner reports'",
     ], description="What HELM is, in one screen, with today's status.")
 
@@ -1053,8 +1244,10 @@ def p_chat(S: dict) -> str:
     c54_in_spec = "7.108" in secs
     if c54_in_spec:
         need(S, "7.108", "CHAT_WAVE_NO_GAIN", "PASS", "91 of 94")
-    c54_file = read(C54_RESULT)
-    c54_src = "`" + str(C54_RESULT) + "`" + (" and spec sheet §7.108" if c54_in_spec else " (spec sheet §7.108 is on PR #431, not yet on this branch; the next rebuild after it lands checks the row against it)")
+    c54_file = "" if PUBLIC_OUTPUT else read(C54_RESULT)
+    c54_src = ("Repository spec sheet §7.108" if c54_in_spec else "Off-repository run record omitted; spec sheet section not in this checkout") if PUBLIC_OUTPUT else (
+        "`" + str(C54_RESULT) + "`" + (" and spec sheet §7.108" if c54_in_spec else " (spec sheet §7.108 is on PR #431, not yet on this branch; the next rebuild after it lands checks the row against it)")
+    )
     c54_note = "" if c54_file else " That file was not available on this machine when the page was built; the row carries the coordinator's verified facts of 2026-10-21."
 
     D = chat_samples()
@@ -1310,7 +1503,7 @@ Each part below sits behind a switch, so tests can turn one part off and see wha
 <tr><td><strong>English reader</strong><br><code>helm_english_in.py</code></td><td>Restates plain kitchen sentences in the checked form, or asks.</td><td>0 (a written program with word lists)</td><td>{T('ENGINEERED-NOT-VALIDATED')}. On fresh real sentences: 0 wrong facts after the fix, but not yet useful ({slink('7.87')}).</td></tr>
 <tr><td><strong>Voice</strong><br><code>helm_voice.py</code></td><td>Turns the brain's receipt into one to three plain sentences, then reads its own numbers back.</td><td>0</td><td>EARNED_KEEP; works together with the reader (SYNERGY) ({slink('7.72')}).</td></tr>
 <tr><td><strong>{T('CCE')} skin</strong></td><td>The strict English form that converts to CAS and back exactly.</td><td>0 (deterministic parser and renderer)</td><td>NEUTRAL by construction: switching it off changes no answer.</td></tr>
-<tr><td><strong>{T('cube store', 'Cube store')}</strong></td><td>Where facts live; an unknown side is reported unknown, never filled.</td><td>0</td><td>EARNED_KEEP in wave 3.</td></tr>
+<tr><td><strong>{T('cube store', 'Cube store')}</strong></td><td>Where facts live, built on the Cube Node Schema v0.1: every thing is a cube with six sides (what it is, its context, an analogy or metaphor, a mapping, its parts, how the parts fit), and an edge between two cubes records what the two have in common. Three questions run over it: what does it hold, what do two things share, how are two things related. An unknown side is reported unknown, never filled. Taught conversation facts land here as cubes and edges only behind the OFF-by-default switch HELM_CUBE_OSC ({slink('7.125')}).</td><td>0</td><td>EARNED_KEEP in wave 3.</td></tr>
 <tr><td><strong>{T('triad', 'Triad')}</strong><br><code>helm_triad.py</code></td><td>Purpose, Wisdom and Power on each ingredient; the weakest face sets how much counts.</td><td>"0 learned parameters"; stored values ceiling 28 ({slink('7.62')})</td><td>Built, default off; EARNED_KEEP in wave 3.</td></tr>
 <tr><td><strong>{T('cascade', 'Cascade')}</strong></td><td>Goes down into sub-problems. The owner's decoupling stop decides when to stop; a fuse at depth 12 is the hard limit.</td><td>0</td><td>DECOUPLING_EARNED: 203 descents against 609 for the old fixed cap ({slink('7.69')}).</td></tr>
 <tr><td><strong>{T('Unity Eye')}: scan</strong></td><td>Read-only self-check of memory and records; holds back an answer that would use a damaged record.</td><td>0</td><td>EYE_SCAN_EARNED_KEEP, built not validated ({slink('7.77')}).</td></tr>
@@ -1349,7 +1542,7 @@ with each Noetic, {T('Domain')} and {T('Register')}. "CTT" is the transformer ea
         "`docs/CAS_HARNESS_SPEC_SHEET.md` §7.24, §7.47, §7.50, §7.51, §7.56, §7.62, §7.64, §7.65, §7.69, §7.72, §7.77, §7.78, §7.80, §7.82, §7.83, §7.87, §7.89, §7.90",
         "`docs/reference/CAS_HELM_DICTIONARY.md` (Cube store, Cascade, Voice, Drive loop, Triad, CCE, Restart fallback)",
         "`CHANGELOG.md` entry '2026-10-18 PDT - FIXES C AND D'",
-        f"`{rel(COVERAGE)}` section 1, 'Headline numbers' (copied)",
+        f"`{private_rel(COVERAGE)}` section 1, 'Headline numbers' (copied)",
     ], description="Every HELM part, its learned parameter count, and what HELM is not.")
 
 
@@ -1417,16 +1610,16 @@ labelled LLM_WRITTEN, while its answer keys came from the frozen rules (owner qu
         "`docs/CAS_HARNESS_SPEC_SHEET.md` §7.44, §7.77, §7.78, §7.79, §7.82, §7.90",
         "`docs/working/xreal/SOURCES_PINNED.json` (groups, licences, hashes computed by the build)",
         "`docs/working/xreal/PREREGISTRATION_X_REAL.md` section 1 (table copied)",
-        f"`{rel(COVERAGE)}` (SDG seed count)",
-        f"`{rel(CODEX / '2026-10-19' / 'r1_wave5' / 'run_c40_r1w5_20261019' / 'RUN_RESULT_R1W5_C40.md')}` (operator never opened the exam)",
-        f"`{rel(APPROVALS)}` (heading 'Owner question (2026-10-19)'; headings only)",
+        f"`{private_rel(COVERAGE)}` (SDG seed count)",
+        f"`{private_rel(CODEX / '2026-10-19' / 'r1_wave5' / 'run_c40_r1w5_20261019' / 'RUN_RESULT_R1W5_C40.md')}` (operator never opened the exam)",
+        f"`{private_rel(APPROVALS)}` (heading 'Owner question (2026-10-19)'; headings only)",
         "`helm_ui/README.md` (session logs)",
     ], description="Generators, pinned public sources, custody and the outside-material rule.")
 
 
 def p_compute(S: dict) -> str:
-    L = S["ledger"]
-    runs = S["runs"]
+    L = {} if PUBLIC_OUTPUT else S["ledger"]
+    runs = [] if PUBLIC_OUTPUT else S["runs"]
     rrows = "".join(
         f"<tr><td>{esc(r['date'])}</td><td><code>{esc(r['job'])}</code></td><td>{esc(r['instance'])}</td>"
         f"<td>{esc(r['charge'])}{' USD' if r['charge'] != 'unavailable' else ''}</td><td>{md(r['title'])}</td>"
@@ -1449,6 +1642,14 @@ def p_compute(S: dict) -> str:
             f"<dt>Unreserved</dt><dd>{L.get('unreserved_usd')} USD</dd>"
             f"<dt>Ledger stamp</dt><dd><code>{esc(str(L.get('utc')))}</code></dd>"
             f"<dt>Last job in the ledger</dt><dd><code>{esc(', '.join(L.get('last_jobs') or []))}</code></dd></dl>") if L else "<p>Ledger not available on this machine.</p>"
+    run_details = (
+        "<p>Local run records and the private ledger are omitted from this build. The table below uses the repository record only.</p>"
+        if PUBLIC_OUTPUT else f"""
+<p>Each row is read from a run record file. Instance names are {T('AWS')} machine types: "m6i" and "t3" are ordinary processors; "g5" carries a {T('GPU')}.</p>
+<div class="tablewrap"><table><thead><tr><th>Date</th><th>Job</th><th>Machine</th><th>Charge</th><th>Run record title</th><th>File</th></tr></thead><tbody>{rrows or '<tr><td colspan="6">No run records found on this machine.</td></tr>'}</tbody></table></div>
+<p class="small">Sum of the charges listed above: <strong>{total:.2f} USD</strong> (computed by this build from the rows; the ledger total above is the authority).</p>
+"""
+    )
     lede = "What HELM's tests have cost, where they ran, and the rules for which computer does what."
     body = f"""
 <h2>The budget</h2>
@@ -1458,9 +1659,7 @@ Charges below are list prices worked out from how long each rented machine ran, 
 The account's cost report gives daily totals only, so one run's charge cannot be separated from other machines on the same day ({slink('7.47')}).</p></div>
 
 <h2>Paid runs on 2026-10-18 to 2026-10-20 (from the run records)</h2>
-<p>Each row is read from a run record file. Instance names are {T('AWS')} machine types: "m6i" and "t3" are ordinary processors; "g5" carries a {T('GPU')}.</p>
-<div class="tablewrap"><table><thead><tr><th>Date</th><th>Job</th><th>Machine</th><th>Charge</th><th>Run record title</th><th>File</th></tr></thead><tbody>{rrows or '<tr><td colspan="6">No run records found on this machine.</td></tr>'}</tbody></table></div>
-<p class="small">Sum of the charges listed above: <strong>{total:.2f} USD</strong> (computed by this build from the rows; the ledger total above is the authority).</p>
+{run_details}
 
 <h2>Every HELM record in the spec sheet with a job or a cost</h2>
 <div class="tablewrap"><table><thead><tr><th>Record</th><th>Date</th><th>Job</th><th>Cost as written</th><th>Plain meaning</th></tr></thead><tbody>{''.join(srows)}</tbody></table></div>
@@ -1475,7 +1674,7 @@ The account's cost report gives daily totals only, so one run's charge cannot be
 </ul>
 """
     return page("compute.html", "HELM Compute Costs", "Compute and cost", lede, body, [
-        f"`{rel(LEDGER)}` (totals only: ceiling, allocation, unreserved, stamp, last job)",
+        f"`{private_rel(LEDGER)}` (totals only: ceiling, allocation, unreserved, stamp, last job)",
         "Run records: " + ", ".join(f"`{rel(r['file'])}`" for r in runs),
         "`docs/CAS_HARNESS_SPEC_SHEET.md` §7.24 to the latest section (headings: job ids and costs), §7.47, §7.53, §7.55, §7.67, §7.82",
         "`CLAUDE.md` (compute escalation ladder; GPU-first rule)",
@@ -1669,7 +1868,7 @@ for 2026-10-18 to 2026-10-21 (headings only; dates are Pacific). They name parts
 """
     return page("safety.html", "HELM Safety Record", "Safety and honesty", lede, body, [
         "`docs/CAS_HARNESS_SPEC_SHEET.md` §7.34, §7.43, §7.47, §7.50, §7.53, §7.71, §7.77, §7.78, §7.79, §7.80, §7.81, §7.85, §7.87, §7.90",
-        f"`{rel(APPROVALS)}` (section headings only; no addresses or keys)",
+        f"`{private_rel(APPROVALS)}` (section headings only; no addresses or keys)",
         "`CLAUDE.md` (research governance: a failed hard gate is a FAILURE; Claude is not the research governor)",
         "`docs/reference/CAS_HELM_DICTIONARY.md` (Hard gate)",
     ], description="Hard gates, the never-writes rule, refusal, the write audit, and plain findings.")
@@ -1703,6 +1902,18 @@ def p_roadmap(S: dict) -> str:
     need(S, "7.24", "recipe")
     need(S, "7.56", "CANONICAL BRAIN POINTER")
     need(S, "7.60", "ENGINEERED-NOT-VALIDATED")
+    need(S, "7.120", "VACUOUS", "HELM Cube")
+    need(S, "7.122", "HELM_EYE_ACT", "NOT LICENSED")
+    need(S, "7.55", "HORIZON")
+    need(S, "7.69", "DECOUPLING_EARNED")
+    _cube = CUBE_ASSET_NAME
+    if S.get("cube_asset") is not None:
+        CUBE_SLOT = (f'<figure class="small"><img src="{_cube}" alt="Concept drawing of the HELM Cube: a matte black cube whose twelve edges glow, '
+                     'beside a front view to scale: a 64 mm cube inside a 67 mm tennis ball" style="max-width:100%;height:auto">'
+                     '<figcaption>Concept drawing (2026-10-22), not a product photo. Light on all twelve edges, invisible when off, '
+                     'per the owner\'s ruling of 2026-10-21; 64 mm target. Nothing is built.</figcaption></figure>')
+    else:
+        CUBE_SLOT = '<p class="small muted">(Slot for the concept drawing <code>helm_cube_concept.svg</code>; not yet in <code>helm_hub/assets/</code>.)</p>'
     # (meaning, what exists today, what would have to be built and tested)
     talk = [
         ("Ordinary phrasing understood",
@@ -1711,7 +1922,7 @@ def p_roadmap(S: dict) -> str:
          "Retrain the ear so it can say \"nothing to save\" on purpose; score reader and ear on a fresh exam of conversational turns the builder never sees."),
         ("\"Nothing to save\" small talk",
          "On \"hi\", \"thanks\", \"how are you\", HELM says something short and saves nothing: no stock row, no fact.",
-         "The chat already drops small talk without saving on the scored runs (0 lost to small talk in c54, {s7108}), but on templates, not on sentences people wrote. The ear has no \"nothing\" output yet ({s7110}).",
+         "The chat already drops small talk without saving on the scored runs (0 lost to small talk in c54, {s7108}), but on templates, not on sentences people wrote. Built since, behind a switch that is off by default: the talk layer answers small talk with one short line and saves nothing ({s7127}). The ear has no \"nothing\" output yet ({s7110}).",
          "The new \"nothing to save\" output in the ear; a hard check that nothing was saved on such turns (the packet's HG12); the mark U3, at least 46 of 48."),
         ("The mouth",
          "No recipe talk on a turn that is not about recipes; every amount exact; \"I don't know\" said when HELM does not know; what was saved said back.",
@@ -1719,11 +1930,11 @@ def p_roadmap(S: dict) -> str:
          "Extend the guard to every reply; a published list of recipe words that may not appear on a non-recipe turn; marks S1 to S4."),
         ("Off-topic talk, answered like a person who does not know the subject",
          "When the person talks about something outside the kitchen, HELM reacts in one line, keeps what was said word for word, and asks one question about it. It never makes up an opinion, and never states a fact it was not told.",
-         "Nothing. Today an off-topic line is dropped without a save and the reply is reported, not scored ({s7110}). The owner ruled on 2026-10-21 that HELM may comment like a normal person would; the coordinator's reading, accepted: like a person who does NOT know the subject. The rule is written as amendment A-TALK-1 (mouth rule M10).",
+         "Built, not scored: behind the switch HELM_TALK (off by default), an off-topic line gets a one-line reaction, is kept word for word, and gets one question built from the person's own word, with no opinion and no untold fact; on the builder's own sample lines every check held ({s7127}). The rule is amendment A-TALK-1's mouth rule M10 (the owner ruled on 2026-10-21 that HELM may comment like a normal person who does NOT know the subject). No exam has scored it ({s7110}).",
          "Build the react / keep / ask templates; marks O1 (0 invented facts), O2 (0 opinions), O3 (a question back on at least 14 of 16), scored by a key written by a different model family than the turn's writer."),
         ("HELM asks about what it does know",
          "Whatever the person brings up, HELM asks a question about the part it already holds something on: a fact saved earlier, an ingredient it has a recipe for, a thing said earlier in the session.",
-         "HELM asks today only when a recipe step is missing something (its CLARIFY asks; {s7087}). Asking about a person's subject from what HELM holds is not built.",
+         "HELM asks when a recipe step is missing something (its CLARIFY asks; {s7087}). Built since, behind a second switch (off by default): when a person mentions a thing HELM holds, it asks \"You told me ... Is that still right?\" and a yes confirms that fact ({s7127}). Not scored on an exam.",
          "A rule that looks up the person's words against the stored records and builds one question from them, using only the person's own words and HELM's stored names; scored as part of O3 first, then as its own mark."),
         ("HELM remembers the answers and reasons over them",
          "What the person answers is kept, and the next turn can use it: the memory holds it, the brain can count with it.",
@@ -1759,9 +1970,18 @@ def p_roadmap(S: dict) -> str:
          "The small watcher that looks over HELM would also watch teaching, compaction and refresh: it reports what it sees and whispers a hint, and it never writes a memory, a fact or a reply itself.",
          "The {eye} scan and pairing earned keep words on made-up worlds only: found 88 of 88 planted faults with 0 Eye writes ({s7077}), and the Eye-paired idle work resolved 70.18% of a backlog with 0 Eye writes ({s7078}). The Eye acting on the recipe brain read INCONCLUSIVE in both readings, and Eye acting stays NOT LICENSED ({s7038}). The Eye is not wired to the live chat.",
          "First a written rule for what \"correctly applied\" means here (report and whisper only; 0 Eye writes as a must-hold check); then the Eye wired to the teaching, compaction and refresh paths behind a switch, default off; an exam against the same paths with the Eye off, scored on items lost, wrong memories accepted, and 0 Eye writes."),
+        ("Thinking deeper on demand: a depth governor in the RPM gate, the Eye as advisor only",
+         "When a matter needs more thought, HELM goes one level deeper only for a written, checkable reason the gate can see (a missing prerequisite, an unread clause, an untaught line), never because the person did not say something, and never past a ceiling. The Eye may whisper \"worth going deeper\" or \"this is looping\"; it never sets the depth.",
+         "The depth ruling of record is HORIZON = 12, with canon's 5 kept on the record ({s7055}); the D/W/P engine and the repair performer are built, not validated ({s7048}); the live loop starts at depth 0 and a REPAIR opens one child per gap ({s7120}, where a decider in today's live chat reads VACUOUS). The owner's decoupling stop earned its word on made-up worlds only ({s7069}). The {eye} acting stays NOT LICENSED ({s7038}); EYE-ACT-1 was built behind a switch that is off by default and scored on made-up worlds; acting stays NOT LICENSED ({s7122}).",
+         "The governor written as a rule before any code: go deeper only on REPAIR or UNDETERMINED with a reason a child repair can address; a hard ceiling; a per-turn budget; a no-progress stop; a receipt for every descent; the Eye's whisper counted as one input at most. Then an exam the builder never sees, with items needing depth 1, 2 or 3 and items needing none, against three cheap baselines (always depth 1, always the deepest, depth = number of missing prerequisites), scored on right answers, wrong answers (must be 0), wasted descents and asks."),
+        ("The HELM Cube: the eventual hardware form",
+         "HELM's final home: a black cube from palm size (55 mm) to tennis-ball size (about 67 mm), no buttons, no visible holes, one light strip that shows listening, thinking, speech cadence, asking and privacy, shake to wake, taps to control, Qi2 wireless charging only, cameras, microphones and sound on all six faces behind dark glass and micro-perforations, and a companion app.",
+         "A concept only. The v0.1 concept spec, its research and the owner's 2026-10-21 rulings (a plain black box the same on every face; light on all twelve edges, the middle band withdrawn) are on the record ({s7120}) and on the <a href=\"device.html\">HELM Cube page</a>; the v1 concept spec of 2026-10-22 is <code>docs/working/helm_cube_device_v1/HELM_CUBE_DEVICE_SPEC_V1.md</code>. No part is bought, built or measured.",
+         "First a 3D-printed shell with a dev board (an ESP32-S3 or a small Linux board) running HELM's chat, to test the light language and the tap grammar; then custom electronics only on the owner's money line. Hard parts to solve: heat and density in a 55 to 67 mm cube, camera windows that read as solid black, a hidden service pad because there is no port, sound leaking between faces, and drops on a corner.",
+         CUBE_SLOT),
     ]
     intent_path = REPO / "docs/working/helm_talk_design_v1/INTENT_MOUTH_TRANSFORMER_20261021.md"
-    if not intent_path.exists():
+    if (PUBLIC_OUTPUT and rel(intent_path) == OFF_REPO_SOURCE) or not intent_path.is_file():
         raise SystemExit("BUILD STOP: the statement of intent file is missing: " + rel(intent_path))
     intent_raw = intent_path.read_bytes()
     INTENT_SHA = hashlib.sha256(intent_raw).hexdigest()
@@ -1775,10 +1995,30 @@ def p_roadmap(S: dict) -> str:
         else:
             intent_parts.append(f"<p>{md(para)}</p>")
     intent_html = "".join(intent_parts)
-    S_ = {"s7049": slink("7.49"), "s7060": slink("7.60"), "s7087": slink("7.87"), "s7090": slink("7.90"), "s7108": slink("7.108"),
+    # the picture-teaching plan of 2026-10-22, rendered in full (numbered lines become a list)
+    pic_path = REPO / "docs/working/helm_eye_sense_teaching_v1/PLAN_TEACH_A_PICTURE_V1.md"
+    if (PUBLIC_OUTPUT and rel(pic_path) == OFF_REPO_SOURCE) or not pic_path.is_file():
+        raise SystemExit("BUILD STOP: the picture-teaching plan file is missing: " + rel(pic_path))
+    pic_raw = pic_path.read_bytes()
+    PIC_SHA = hashlib.sha256(pic_raw).hexdigest()
+    pic_parts = []
+    for para in re.split(r"\n\s*\n", pic_raw.decode("utf-8").replace("\r\n", "\n").strip()):
+        para = para.strip()
+        lines = para.split("\n")
+        if para == "---":
+            pic_parts.append("<hr>")
+        elif para.startswith("# "):
+            pic_parts.append(f"<p><strong>{esc(para[2:])}</strong></p>")
+        elif all(re.match(r"\d+\. ", x) for x in lines):
+            pic_parts.append("<ol>" + "".join(f"<li>{md(re.sub(r'^\d+\. ', '', x))}</li>" for x in lines) + "</ol>")
+        else:
+            pic_parts.append(f"<p>{md(para)}</p>")
+    pic_html = "".join(pic_parts)
+    S_ = {"s7127": slink("7.127"), "s7049": slink("7.49"), "s7060": slink("7.60"), "s7087": slink("7.87"), "s7090": slink("7.90"), "s7108": slink("7.108"),
           "s7109": slink("7.109"), "s7110": slink("7.110"), "s7111": slink("7.111"),
           "s7031": slink("7.31"), "s7038": slink("7.38"), "s7048": slink("7.48"), "s7077": slink("7.77"), "s7078": slink("7.78"),
           "s7098": slink("7.98"), "s7024": slink("7.24"), "s7056": slink("7.56"),
+          "s7055": slink("7.55"), "s7069": slink("7.69"), "s7120": slink("7.120"), "s7122": slink("7.122"),
           "noetic": T("Noetic", "Noetics"), "domain": T("Domain", "level"), "register": T("Register"),
           "roundtrip": T("round trip"), "receipt": T("receipt"), "cubestore": T("cube store"), "eye": T("Unity Eye")}
     trows = "".join(
@@ -1818,6 +2058,14 @@ PARTICULARS OF THAT MEMORY FOR BETTER RECALL NEXT TIME ALSO USE THE EYE IN THESE
 <code>Documents\\Codex\\2026-10-18\\OWNER_APPROVALS_20261018.md</code> under the heading "Owner words (2026-10-21 09:42 PDT, operator session,
 verbatim; a STATEMENT OF INTENT, not an approval and not a launch order)". Nothing in it is built; nothing is licensed; the Eye's acting
 stays NOT LICENSED ({slink('7.38')}).</p></blockquote>
+<p>Items 14 and 15 come from a third statement, typed on 2026-10-22. It is a <strong>statement of intent, not an approval</strong>:
+it approves no money, no hardware order, no build and no claim. Two words in it, said plainly first: "RPM depth" means how many levels down
+HELM's {T('RPM Gate')} may go to check prerequisites; "the Eye" is the {T('Unity Eye')}, the small watcher that reports and never writes.
+The owner's words, verbatim:</p>
+<blockquote class="verbatim" id="cube-words"><p>"WHAT IF WE LET THE EYE OR SOME OTHER REASONING PART DETERMINE IF MORE RPM DEPTH WAS NEEDED/NECESSARY ON A GIVEN MATTER? HOW WOULD THAT WORK AND COULD THAT WORK? ALSO I WANT TO CREATE A HARDWARE DEVICE FOR THE EVENTUAL FINAL FORM FACTOR OF HELM LIKE A BLACK CUBE WITH A GLOWING, PULSATING LIGHT STRIP TO DENOTE SPEECH CADENCE, LISTENING AND VARIOUS OTHER LIKELY MODES ETC. CONNECTS TO WIFI W/ BLUETOOTH OF COURSE NO BUTTONS JUST A SHAKE TO WAKE AND TAPS TO CONNECT, CONTROL OTHER DEVICES(DIFFERENT NUMBERS OF TAPS FOR VARIOUS FUNCTIONS), QI SUPERCHARGING ONLY, HAS A COMPANION APP OF COURSE THE SMALLER THE CUBE THE BETTER ACCEPTABLE SIZES ARE ANYWHERE FROM PALM SIZE TO TENNIS BALL SIZE CAMERAS SPEAKERS AND MICROPHONES ON ALL SIX SIDES BUT VISIBLE NOWHERE ONCE WRITTEN UP OF COURSE ADD TO HELM HUB GET CLAUDE DESIGN TO DRAW IT UP."</p>
+<p class="small">The owner, 2026-10-22; recorded in <code>Documents\\Codex\\2026-10-18\\OWNER_APPROVALS_20261018.md</code> as a STATEMENT OF INTENT,
+not an approval. The written answer to both questions is the concept spec <code>docs/working/helm_cube_device_v1/HELM_CUBE_DEVICE_SPEC_V1.md</code>
+(a copy is in <code>Documents\\Codex\\2026-10-22\\helm_cube_device_v1\\</code>). INTENDED / NOT A PRESENT CAPABILITY / NOTHING LICENSED.</p></blockquote>
 <div class="tablewrap"><table><thead><tr><th>Piece</th><th>Plain meaning</th><th>What exists today</th><th>What would have to be built and tested</th></tr></thead><tbody>{trows}</tbody></table></div>
 <p><strong>How each piece gets added, in order.</strong> <em>Taught:</em> a labelled data stratum (today's exam turns are written by AI models
 of at least three families, labelled LLM_WRITTEN, never by the owner, who reviews only; amendment A-TALK-1, {slink('7.110')}).
@@ -1833,6 +2081,15 @@ models that take over this build after the ones writing today. It is the file
 and word for word below; nothing in it is a result. It names the {T('CTT')} and the {T('receipt', 'receipt')} tags; the one safety rule it
 sets is that the mouth may choose words, never facts.</p>
 <blockquote class="verbatim">{intent_html}</blockquote>
+
+<h2 id="picture">Intended: teaching HELM a picture it does not know (2026-10-22)</h2>
+<p><strong>INTENDED / NOTHING BUILT / NOTHING LICENSED.</strong> HELM has no eye-sense (a picture reader) today. The owner asked for this plan
+to be drawn and kept here, and said it may not be the next piece of work. The owner's words, verbatim, typed with a side-chat answer pasted beneath them:</p>
+<blockquote class="verbatim"><p>"we may not work on this next but draw a plan for it and add it to HELM HUB"</p>
+<p class="small">The owner, 2026-10-22, operator session. The plan is the file
+<code>docs/working/helm_eye_sense_teaching_v1/PLAN_TEACH_A_PICTURE_V1.md</code> (sha256 <code>{PIC_SHA}</code>), shown in full below.
+It approves no package, no spend and no claim; every stage in it is a separate owner decision.</p></blockquote>
+<blockquote class="verbatim">{pic_html}</blockquote>
 
 <h2 id="chat">"Can I chat with it?"</h2>
 <div class="card">
@@ -1853,6 +2110,7 @@ The status correction of 2026-10-18 added an honest column, copied here.</p>
     return page("roadmap.html", "HELM Roadmap", "Roadmap", lede, body, [
         "`docs/working/HELM_CAPABILITIES_ROADMAP_STATUS_CORRECTION_20261018.md` (milestone table, copied)",
         "`docs/working/HELM_CAPABILITIES_ROADMAP_AND_DEVELOPMENTAL_STAGES.md` §2.4, §2.5, §2.7, §2.8, §2.9 (plans)",
+        "`docs/working/helm_eye_sense_teaching_v1/PLAN_TEACH_A_PICTURE_V1.md` (the picture-teaching plan, in full)",
         "`docs/CAS_HARNESS_SPEC_SHEET.md` §7.31, §7.38, §7.47, §7.48, §7.49, §7.55, §7.56, §7.64, §7.69, §7.77, §7.78, §7.83, §7.87, §7.89, §7.90, §7.98, §7.108, §7.110, §9.9",
         "`helm_ui/README.md` ('Wired vs not wired')",
         "Items 10 to 13: the owner's statements of intent of 2026-10-21 09:42 and 09:50 PDT in `Documents\\Codex\\2026-10-18\\OWNER_APPROVALS_20261018.md`",
@@ -2290,8 +2548,8 @@ The moving dot is an illustration, not a measurement.</p>
     return page("build.html", "HELM Build Animated", "The build, animated", lede, body, [
         "`docs/CAS_HARNESS_SPEC_SHEET.md` §7.47, §7.56, §7.64, §7.69, §7.72, §7.77, §7.78, §7.82, §7.87, §7.89, §7.90, §7.91 (statuses and numbers)",
         "`docs/working/HELM_CAPABILITIES_ROADMAP_STATUS_CORRECTION_20261018.md` (planned / partly backed labels for the domains)",
-        f"`{rel(CODEX / '2026-10-19' / 'ctt2_design_v1' / 'ACCEPTANCE_RULE.md')}` and `{rel(CODEX / '2026-10-19' / 'ctt2r' / 'PREREGISTRATION_CTT2R.md')}` (three seeds must agree; ask by default)",
-        f"`{rel(CODEX / '2026-10-19' / 'cas_token_transformer_design_v1' / 'ARCHITECTURE.md')}` (the ear and the hard boundary)",
+        f"`{private_rel(CODEX / '2026-10-19' / 'ctt2_design_v1' / 'ACCEPTANCE_RULE.md')}` and `{private_rel(CODEX / '2026-10-19' / 'ctt2r' / 'PREREGISTRATION_CTT2R.md')}` (three seeds must agree; ask by default)",
+        f"`{private_rel(CODEX / '2026-10-19' / 'cas_token_transformer_design_v1' / 'ARCHITECTURE.md')}` (the ear and the hard boundary)",
         "`helm_ui/README.md` ('Wired vs not wired': the Eye and the drive loop are not wired to the live chat)",
     ], words=True, description="One HELM turn, animated: today's wiring and the intended next wiring, colored by recorded status.")
 
@@ -2616,7 +2874,37 @@ def p_device(S: dict) -> str:
     ], words=True, words_open=False, description="A concept for HELM's final home: a plain black cube with no buttons. Design only.")
 
 
+PUBLIC_REFERENCES = (
+    ("docs/CAS_HARNESS_SPEC_SHEET.md", "Research record and claim limits"),
+    ("docs/reference/CAS_HELM_DICTIONARY.md", "Definitions and notation"),
+    ("CHANGELOG.md", "Repository changes"),
+    ("helm_ui/README.md", "How the local HELM interface works"),
+    ("helm_hub/build_hub.py", "Static page generator"),
+)
+
+
+def p_public_files() -> str:
+    rows = []
+    for name, purpose in PUBLIC_REFERENCES:
+        path = REPO / name
+        if rel(path) != name:
+            continue
+        digest = sha256_file(path)
+        rows.append(f"<tr><td><code>{esc(name)}</code></td><td>{esc(purpose)}</td><td><code>{esc(digest)}</code></td></tr>")
+    body = (
+        '<h2 id="start">Start here</h2><p>Review the references below and the '
+        '<a href="roadmap.html#intent">statement of intent</a>.</p>'
+        '<h2 id="repo">Repository references</h2><p>Machine inventories and local evidence addresses are omitted.</p>'
+        '<div class="tablewrap"><table><thead><tr><th>Repository path</th><th>Purpose</th><th>SHA-256</th>'
+        '</tr></thead><tbody>' + "".join(rows) + '</tbody></table></div>'
+    )
+    return page("files.html", "HELM Files Map", "Repository references", f"Selected project references and file {T('hash', 'hashes')}.", body,
+                [], description="Selected repository paths; no local inventory.")
+
+
 def p_files(S: dict) -> str:
+    if PUBLIC_OUTPUT:
+        return p_public_files()
     I = files_inventory()
 
     def table(sec_prefix: str) -> str:
@@ -2687,7 +2975,7 @@ Rows in red are sealed exam folders: do not open them; work with their hashes on
     return page("files.html", "HELM Files Map", "Files and paths: where everything lives", lede, body, [
         "A walk of the repo checkout, the Codex evidence folders 2026-10-14 to 2026-10-19 and the backup drive, done by `helm_hub/build_hub.py` at build time (sizes and sha256 computed; sealed and custody folders never entered)",
         "`CLAUDE.md` and the owner's global rules (the start-here list)",
-        f"`{rel(APPROVALS)}` (standing format order; commit identity)",
+        f"`{private_rel(APPROVALS)}` (standing format order; commit identity)",
     ], words=True, words_open=False, description="Every important file and folder with its full path, size and hash, for the next agent.")
 
 
@@ -2810,7 +3098,7 @@ class _Prohib(HTMLParser):
 
 def check_site(site: Path = SITE) -> dict:
     pages = sorted(site.glob("*.html"))
-    report = {"pages": len(pages), "lint": [], "links": [], "secrets": [], "contract": [], "prohibited": [], "emoji": []}
+    report = {"pages": len(pages), "lint": [], "links": [], "secrets": [], "contract": [], "prohibited": [], "emoji": [], "private_locators": []}
     ids: dict[str, set[str]] = {}
     parsed: dict[str, _Links] = {}
     for p in pages:
@@ -2819,6 +3107,8 @@ def check_site(site: Path = SITE) -> dict:
         lp.feed(t)
         ids[p.name] = lp.ids
         parsed[p.name] = lp
+        if PUBLIC_OUTPUT:
+            report["private_locators"] += [f"{p.name}: {kind}; value withheld" for kind in sorted(private_locator_findings(t))]
         for name, rx in SECRET_RES:
             for m in rx.finditer(t):
                 report["secrets"].append(f"{p.name}: {name}: {m.group(0)[:12]}...")
@@ -2851,12 +3141,18 @@ def check_site(site: Path = SITE) -> dict:
         report["prohibited"] += [f"{p.name}: ...{h}..." for h in pr.hits]
     for name, lp in parsed.items():
         for kind, href in lp.links:
+            if PUBLIC_OUTPUT and locator_kinds(href):
+                continue  # already reported without the URL value
             if href.startswith(("http://", "https://", "mailto:")):
                 if name != "demo.html":
                     report["links"].append(f"{name}: external link {href}")
                 continue
             target, _, anchor = href.partition("#")
             target = target or name
+            if kind == "img" and not target.endswith(".html"):
+                if not (site / target).is_file():
+                    report["links"].append(f"{name}: missing asset {href} (put it in helm_hub/assets/)")
+                continue
             if target not in ids:
                 report["links"].append(f"{name}: broken link {href}")
             elif anchor and anchor not in ids[target]:
@@ -2865,13 +3161,68 @@ def check_site(site: Path = SITE) -> dict:
 
 
 # --------------------------------------------------------------------------------------------
+def read_cube_asset() -> bytes | None:
+    """Stage only the exact reviewed static drawing, never the rest of the asset folder."""
+    path = ASSETS / CUBE_ASSET_NAME
+    expected = f"helm_hub/assets/{CUBE_ASSET_NAME}"
+    if path.is_symlink() or rel(path) != expected:
+        raise SystemExit("BUILD STOP: cube drawing is not at its reviewed repository path.")
+    if not path.exists():
+        return None
+    if not path.is_file():
+        raise SystemExit("BUILD STOP: cube drawing is not a regular file.")
+    data = path.read_bytes()
+    if hashlib.sha256(data).hexdigest() != CUBE_ASSET_SHA256:
+        raise SystemExit("BUILD STOP: cube drawing does not match the reviewed fingerprint.")
+    return data
+
+
+def checked_internal_output(path: Path) -> Path:
+    """Validate an owner-private, empty local destination; the caller must keep it exclusive."""
+    if not path.is_absolute() or ".." in path.parts or str(path).startswith(("\\\\", "//")):
+        raise ValueError("use an absolute local private output directory without traversal")
+    ancestors = (*reversed(path.parents), path)
+    try:
+        for part in ancestors:
+            info = part.lstat()
+            reparse = getattr(info, "st_file_attributes", 0) & stat.FILE_ATTRIBUTE_REPARSE_POINT
+            if stat.S_ISLNK(info.st_mode) or reparse or not stat.S_ISDIR(info.st_mode):
+                raise ValueError("private output cannot use symlinks, reparse points or non-directories")
+        resolved = path.resolve(strict=True)
+        repo = REPO.resolve(strict=True)
+        if resolved.is_relative_to(repo) or repo.is_relative_to(resolved):
+            raise ValueError("private output must be outside and not contain the repository")
+        def present(marker: Path) -> bool:
+            try:
+                marker.lstat()
+            except FileNotFoundError:
+                return False
+            return True
+
+        for part in ancestors:
+            if present(part / ".git"):
+                raise ValueError("private output cannot be inside a Git checkout or ambiguous .git marker")
+            if all(present(part / name) for name in ("HEAD", "objects", "refs")):
+                raise ValueError("private output cannot be inside a recognizable bare Git repository")
+        if hasattr(os, "geteuid"):
+            info = resolved.stat()
+            if info.st_uid != os.geteuid() or stat.S_IMODE(info.st_mode) & 0o077:
+                raise ValueError("private output must be owned by this user and inaccessible to group or others")
+        if next(resolved.iterdir(), None) is not None:
+            raise ValueError("private output directory must be empty")
+        if not os.access(resolved, os.W_OK | os.X_OK):
+            raise ValueError("private output directory must be writable")
+    except (OSError, RuntimeError) as exc:
+        raise ValueError("private output directory could not be checked") from exc
+    return resolved
+
+
 def build() -> dict:
+    if not PUBLIC_OUTPUT:
+        checked_internal_output(SITE)  # Validate before reading private evidence.
     t0 = time.perf_counter()
     S = load()
-    if SITE.exists():
-        for f in SITE.glob("*.html"):
-            f.unlink()
-    SITE.mkdir(parents=True, exist_ok=True)
+    S["cube_asset"] = read_cube_asset()
     pages = {
         "index.html": p_home(S), "thinking.html": p_thinking(S), "architecture.html": p_architecture(S),
         "data.html": p_data(S), "compute.html": p_compute(S), "results.html": p_results(S),
@@ -2879,25 +3230,64 @@ def build() -> dict:
         "glossary.html": p_glossary(S), "changelog.html": p_changelog(S), "run.html": p_run(S), "files.html": p_files(S),
         "chat.html": p_chat(S), "device.html": p_device(S),
     }
-    for name, content in pages.items():
-        content = EMAIL_RE.sub("[e-mail removed]", content)
-        (SITE / name).write_text(content, encoding="utf-8", newline="\n")
-    if UI_DEMO.exists():
-        demo = read(UI_DEMO)
-        (SITE / "demo.html").write_text(demo, encoding="utf-8", newline="\n")
+    if (not PUBLIC_OUTPUT or rel(UI_DEMO) != OFF_REPO_SOURCE) and UI_DEMO.is_file():
+        pages["demo.html"] = read(UI_DEMO)
     else:
         MISSING.append(rel(UI_DEMO))
+    pages = {name: prepare_site_page(name, content) for name, content in pages.items()}
+    if PUBLIC_OUTPUT:
+        for name, content in pages.items():
+            for label, pattern in SECRET_RES:
+                if pattern.search(content):
+                    raise SystemExit(f"BUILD STOP: {name} contains a possible {label}; value withheld.")
+    cube_output = SITE / CUBE_ASSET_NAME
+    if PUBLIC_OUTPUT:
+        if SITE.is_symlink():
+            raise SystemExit("BUILD STOP: refusing a symlink as the output folder.")
+        if S["cube_asset"] is not None and cube_output.is_symlink():
+            raise SystemExit("BUILD STOP: refusing a symlink as the cube output file.")
+        if SITE.exists():
+            for f in SITE.glob("*.html"):
+                f.unlink()
+        SITE.mkdir(parents=True, exist_ok=True)
+        for name, content in pages.items():
+            (SITE / name).write_text(content, encoding="utf-8", newline="\n")
+        if S["cube_asset"] is not None:
+            cube_output.write_bytes(S["cube_asset"])
+    else:
+        # This portable path is for an owner-private directory with no concurrent writers or
+        # renames, not a race-safe boundary. Never remove files or create output directories.
+        checked_internal_output(SITE)
+        for name, content in pages.items():
+            with (SITE / name).open("x", encoding="utf-8", newline="\n") as handle:
+                handle.write(content)
+        if S["cube_asset"] is not None:
+            with cube_output.open("xb") as handle:
+                handle.write(S["cube_asset"])
     sizes = {f.name: f.stat().st_size for f in sorted(SITE.glob("*.html"))}
     return {"seconds": round(time.perf_counter() - t0, 3), "sizes": sizes, "missing": sorted(set(MISSING))}
 
 
 def main(argv: list[str]) -> int:
+    global PUBLIC_OUTPUT, SITE
+    if len(argv) == 2 and argv[0] == "--internal":
+        try:
+            target = checked_internal_output(Path(argv[1]))
+        except ValueError as exc:
+            print(f"BUILD STOP: {exc}.", file=sys.stderr)
+            return 2
+        PUBLIC_OUTPUT, SITE = False, target
+    elif argv in ([], ["--check"]):
+        PUBLIC_OUTPUT, SITE = True, HUB / "site"
+    else:
+        print("Usage: python helm_hub/build_hub.py [--check | --internal ABSOLUTE_EMPTY_DIR]", file=sys.stderr)
+        return 2
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
     info = build()
-    rep = check_site()
+    rep = check_site(SITE)
     total = sum(info["sizes"].values())
     print(f"HELM Hub built in {info['seconds']} s -> {rel(SITE)} ({len(info['sizes'])} pages, {total:,} bytes)")
     for n, s in info["sizes"].items():
@@ -2905,7 +3295,7 @@ def main(argv: list[str]) -> int:
     if info["missing"]:
         print("Sources not available on this machine: " + "; ".join(info["missing"]))
     ok = True
-    for key in ("lint", "links", "secrets", "contract", "prohibited", "emoji"):
+    for key in ("lint", "links", "secrets", "contract", "prohibited", "emoji", "private_locators"):
         items = rep[key]
         print(f"{key:<11} {'PASS' if not items else 'FAIL (' + str(len(items)) + ')'}")
         for it in items[:40]:

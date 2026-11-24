@@ -2,13 +2,14 @@
 """Pull real HELM chat exchanges from the SPENT c53 exam into helm_hub/chat_samples_c53.json.
 
 The hub's "Talking to HELM" page is built from that JSON, so the hub builds on any machine without the
-unit files. Run this script only to refresh the JSON (laptop, 0 USD):
+unit files. Run this script only to refresh the JSON (laptop, 0 USD), with HELM_HUB_UNITS set
+to the local input folder:
 
     python -X utf8 -I helm_hub/make_chat_samples.py
 
 Reads the five unit files of job c53 (package v5, exam X7v5). That exam is spent: its item ids are on the
 exclusion list of every later draw, so showing its lines tunes nothing. The live exam (c54) is never read.
-Set HELM_HUB_UNITS to point at another units folder. Standard library only.
+HELM_HUB_UNITS is required. Its path is not emitted. Standard library only.
 
 Selection is deterministic (file order), so re-running on the same files gives the same JSON byte for byte
 except the generation stamp.
@@ -25,10 +26,7 @@ from pathlib import Path
 
 HUB = Path(__file__).resolve().parent
 OUT = HUB / "chat_samples_c53.json"
-UNITS = Path(os.environ.get(
-    "HELM_HUB_UNITS",
-    r"C:\Users\wakil\Documents\Codex\2026-10-20\r1_wave7\run_c53_r1w7v5_20261020\deliverable_unpacked_a1"
-    r"\results\r1w7_host_run\out\r1w7_out\units"))
+UNITS_DISPLAY = "Operator-supplied sample units"
 FILES = {
     "real_on": "W7_X7_REAL_CHAT_ON.json",
     "real_off": "W7_X7_REAL_CHAT_OFF.json",
@@ -48,9 +46,12 @@ def clean(s: str | None) -> str:
     return EMOJI_RE.sub("", EMAIL_RE.sub("[e-mail removed]", str(s)))
 
 
-def load(key: str) -> tuple[list[dict], str]:
-    p = UNITS / FILES[key]
-    data = p.read_bytes()
+def load(key: str, units: Path) -> tuple[list[dict], str]:
+    p = units / FILES[key]
+    try:
+        data = p.read_bytes()
+    except OSError:
+        raise SystemExit(f"Cannot read required sample input: {FILES[key]}.") from None
     return json.loads(data.decode("utf-8"))["records"], hashlib.sha256(data).hexdigest()
 
 
@@ -88,11 +89,15 @@ def transcript(rec: dict, arm: str, note: str = "") -> dict:
 
 
 def main() -> int:
-    real, h_real = load("real_on")
-    real_off, h_off = load("real_off")
-    conv, h_conv = load("conv_on")
-    noise, h_noise = load("noise_on")
-    _loop, h_loop = load("loop_on")
+    raw_units = os.environ.get("HELM_HUB_UNITS")
+    if not raw_units or not raw_units.strip():
+        raise SystemExit("Set HELM_HUB_UNITS to the local sample input folder.")
+    units = Path(raw_units)
+    real, h_real = load("real_on", units)
+    real_off, h_off = load("real_off", units)
+    conv, h_conv = load("conv_on", units)
+    noise, h_noise = load("noise_on", units)
+    _loop, h_loop = load("loop_on", units)
     off_by_id = {r["id"]: r for r in real_off}
 
     rights = [r for r in real if answered(r)]
@@ -138,7 +143,7 @@ def main() -> int:
     status_counts = Counter(turn_status(t) or "none" for r in real + conv + noise for t in r["turns"])
     out = {
         "job": "c53", "package": "v5", "exam": "X7v5 (spent; ids on the exclusion list)",
-        "units_dir": str(UNITS),
+        "units_dir": UNITS_DISPLAY,
         "unit_files": {FILES[k]: h for k, h in (("real_on", h_real), ("real_off", h_off), ("conv_on", h_conv), ("noise_on", h_noise), ("loop_on", h_loop))},
         "counts": {
             "real_items": len(real), "real_answered_by_status": len(rights), "real_asked_by_status": len(asks),
@@ -157,7 +162,7 @@ def main() -> int:
     }
     OUT.write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8", newline="\n")
     n = sum(len(v) for v in out["samples"].values())
-    print(f"wrote {OUT} ({n} transcripts) from {UNITS}")
+    print(f"wrote {OUT.name} ({n} transcripts) from {UNITS_DISPLAY}")
     for k, v in out["samples"].items():
         print(f"  {k:<14} {len(v)}  " + ", ".join(x["id"] for x in v))
     return 0
