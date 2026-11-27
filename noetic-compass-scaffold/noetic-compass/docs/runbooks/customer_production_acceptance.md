@@ -31,7 +31,7 @@ Production authority is limited to these exact lanes:
 - repository `LittleHenderson/cas-compass`;
 - app origin `https://compass.caslabai.com`;
 - API origin `https://api.caslabai.com`, the AWS-fronted customer-production lane;
-- AWS account `807562639912`, region `us-west-2`: instance `i-0bd0a082507a51ae3`,
+- AWS account `807562639912`, region `us-west-2`: instance `i-0dd650b53f8cb52e7`,
   CloudFront distribution `E1RBLENB7B6YEA`, database `nc-customer-pg`;
 - secret authority `/noetic-compass/customer-production` in AWS Systems Manager
   Parameter Store;
@@ -45,7 +45,7 @@ CI by `scripts/verify_aws_deployment_control.py --offline` and against live reso
 
 The private accounts canary, its service, its branch, and any private-canary
 environment are forbidden from satisfying a public gate. The canary runs on AWS at
-instance `i-02137d196e671b5c1` with zero inbound security-group rules and is reachable
+instance `i-0026b4c0da5d69efe` with zero inbound security-group rules and is reachable
 only through AWS Systems Manager.
 
 ## Superseded: Render lane

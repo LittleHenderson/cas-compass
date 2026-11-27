@@ -18,7 +18,7 @@ from api.main import app
 
 VARS = {
     "NC_DEPLOYMENT_PROVIDER": "aws",
-    "NC_DEPLOYMENT_SERVICE_ID": "i-0bd0a082507a51ae3",
+    "NC_DEPLOYMENT_SERVICE_ID": "i-0dd650b53f8cb52e7",
     "NC_DEPLOYMENT_SERVICE_NAME": "cas-harness-customer-api",
     "NC_DEPLOYMENT_IMAGE_DIGEST": "sha256:" + "a" * 64,
     "NC_DEPLOYMENT_BUILD_ID": "nc-api-image-build:1234",
