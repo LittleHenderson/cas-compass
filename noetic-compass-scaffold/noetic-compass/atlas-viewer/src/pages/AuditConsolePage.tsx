@@ -55,10 +55,12 @@ import {
 } from '../lib/enterpriseScalePlan';
 import {
   ACCENT_AMBER,
-  ACCENT_CYAN,
+  ACCENT_ERROR,
   ACCENT_TEAL,
   COLORS,
+  FONT_DISPLAY,
   FONT_FAMILY,
+  FONT_MONO,
   THEME,
 } from '../lib/designTokens';
 
@@ -434,48 +436,31 @@ function canMergeFleetRun(run: CasHarnessFleetRun | null, isLoading: boolean): b
 
 const headingStyle: CSSProperties = {
   margin: 0,
-  fontSize: 34,
-  lineHeight: 1.1,
-  fontWeight: 750,
-  letterSpacing: 0,
+  fontFamily: FONT_DISPLAY,
+  fontSize: 32,
+  lineHeight: 1.12,
+  fontWeight: 700,
+  letterSpacing: -0.4,
   color: COLORS.textPrimary,
 };
 
 const headingWaveStyle: CSSProperties = {
   ...headingStyle,
-  color: 'transparent',
-  backgroundImage:
-    `linear-gradient(90deg, ${ACCENT_TEAL} 0%, ${ACCENT_CYAN} 50%, ${ACCENT_TEAL} 100%)`,
-  backgroundSize: '280% 100%',
-  backgroundClip: 'text',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  animation: 'cas-heading-wave 4.8s linear infinite',
 };
 
 const headingWaveCss = `
-@keyframes cas-heading-wave {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  100% {
-    background-position: 280% 50%;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .cas-heading-wave {
     animation: none !important;
-    background-position: 50% 50%;
   }
 }
 `;
 
 const eyebrowStyle: CSSProperties = {
   margin: '0 0 10px 0',
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 700,
+  fontWeight: 500,
   letterSpacing: 1.2,
   textTransform: 'uppercase',
   color: ACCENT_TEAL,
@@ -485,14 +470,16 @@ const monikerStyle: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   marginTop: 14,
-  padding: '7px 10px',
-  border: '1px solid rgba(45, 212, 191, 0.30)',
-  borderRadius: 6,
-  background: 'rgba(45, 212, 191, 0.08)',
+  padding: '6px 10px',
+  border: `1px solid ${COLORS.rule}`,
+  borderLeft: `3px solid ${ACCENT_TEAL}`,
+  borderRadius: 2,
+  background: COLORS.stripe,
   color: COLORS.textPrimary,
-  fontSize: 12,
-  fontWeight: 750,
-  letterSpacing: 0.6,
+  fontFamily: FONT_MONO,
+  fontSize: 11.5,
+  fontWeight: 500,
+  letterSpacing: 0.8,
   textTransform: 'uppercase',
 };
 
@@ -508,19 +495,19 @@ const liveWorkerChipBaseStyle: CSSProperties = {
   alignItems: 'center',
   gap: 7,
   alignSelf: 'center',
-  padding: '6px 11px',
-  borderRadius: 999,
-  fontFamily: FONT_FAMILY,
+  padding: '6px 10px',
+  borderRadius: 2,
+  fontFamily: FONT_MONO,
   fontSize: 11.5,
-  fontWeight: 650,
-  letterSpacing: 0.2,
+  fontWeight: 500,
+  letterSpacing: 0.4,
   whiteSpace: 'nowrap',
 };
 
 const liveWorkerDotStyle = (color: string): CSSProperties => ({
-  width: 8,
-  height: 8,
-  borderRadius: 999,
+  width: 7,
+  height: 7,
+  borderRadius: 2,
   background: color,
   flex: '0 0 auto',
 });
@@ -531,10 +518,10 @@ type LiveWorkerChipView = {
 };
 
 // Resolve the honest connection-state presentation for the live-worker chip.
-// Teal ONLY when real Pythia weights are confirmed; amber for reachable-demo
+// Biolume accent ONLY when real Pythia weights are confirmed; amber for reachable-demo
 // AND unreachable (both are "no real audit" states the user must not mistake
-// for a live run); muted/gray for not-configured and the pre-fetch unknown
-// state. Never render teal off anything but confirmed real weights.
+// for a live run); muted for not-configured and the pre-fetch unknown
+// state. Never render accent off anything but confirmed real weights.
 function liveWorkerChipView(
   health: CasHarnessLiveWorkerHealth | null,
 ): LiveWorkerChipView {
@@ -555,11 +542,10 @@ type CommandState = 'active' | 'ready' | 'done' | 'waiting' | 'blocked';
 const commandCenterStyle: CSSProperties = {
   marginTop: 20,
   padding: 18,
-  borderRadius: 8,
-  border: '1px solid rgba(45, 212, 191, 0.34)',
-  background:
-    'linear-gradient(135deg, rgba(45, 212, 191, 0.16), rgba(2, 6, 23, 0.82) 42%, rgba(34, 211, 238, 0.10))',
-  boxShadow: '0 24px 80px rgba(0, 0, 0, 0.28)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.stripe,
+  boxShadow: 'none',
 };
 
 const commandHeaderStyle: CSSProperties = {
@@ -580,33 +566,36 @@ const commandActionsStyle: CSSProperties = {
 
 const commandTitleStyle: CSSProperties = {
   margin: 0,
+  fontFamily: FONT_DISPLAY,
   color: COLORS.textPrimary,
   fontSize: 20,
-  fontWeight: 900,
-  letterSpacing: 0,
+  fontWeight: 700,
+  letterSpacing: -0.2,
 };
 
 const commandSubtitleStyle: CSSProperties = {
   margin: '5px 0 0',
-  color: COLORS.textSecondary,
-  fontSize: 13,
+  fontFamily: FONT_MONO,
+  color: COLORS.textMuted,
+  fontSize: 12,
   lineHeight: 1.45,
+  letterSpacing: 0.4,
 };
 
 const commandActionStyle = (enabled: boolean): CSSProperties => ({
-  minHeight: 42,
+  minHeight: 40,
   padding: '9px 15px',
-  borderRadius: 6,
+  borderRadius: 2,
   border: enabled
-    ? '1px solid rgba(45, 212, 191, 0.56)'
-    : '1px solid rgba(148, 163, 184, 0.24)',
-  background: enabled ? 'rgba(45, 212, 191, 0.16)' : 'rgba(148, 163, 184, 0.06)',
-  color: enabled ? '#ccfbf1' : COLORS.textMuted,
+    ? `1px solid ${ACCENT_TEAL}`
+    : `1px solid ${COLORS.rule}`,
+  background: enabled ? ACCENT_TEAL : COLORS.card,
+  color: enabled ? COLORS.ground : COLORS.textMuted,
   cursor: enabled ? 'pointer' : 'not-allowed',
-  fontFamily: 'inherit',
-  fontSize: 13,
-  fontWeight: 900,
-  letterSpacing: 0.4,
+  fontFamily: FONT_MONO,
+  fontSize: 12,
+  fontWeight: 600,
+  letterSpacing: 0.6,
   textTransform: 'uppercase',
 });
 
@@ -617,79 +606,71 @@ const flowStyle: CSSProperties = {
 };
 
 const stepStyle = (state: CommandState): CSSProperties => ({
-  minHeight: 148,
+  minHeight: 144,
   padding: 15,
-  borderRadius: 8,
+  borderRadius: 2,
   border:
     state === 'done'
-      ? '1px solid rgba(34, 197, 94, 0.46)'
+      ? `1px solid ${ACCENT_TEAL}`
       : state === 'active' || state === 'ready'
-        ? '1px solid rgba(45, 212, 191, 0.56)'
+        ? `1px solid ${COLORS.borderInk}`
         : state === 'blocked'
-          ? '1px solid rgba(251, 191, 36, 0.42)'
-          : '1px solid rgba(148, 163, 184, 0.20)',
+          ? `1px dashed ${ACCENT_AMBER}`
+          : `1px solid ${COLORS.rule}`,
   background:
-    state === 'done'
-      ? 'linear-gradient(180deg, rgba(34, 197, 94, 0.13), rgba(255, 255, 255, 0.025))'
-      : state === 'active' || state === 'ready'
-        ? 'linear-gradient(180deg, rgba(45, 212, 191, 0.16), rgba(255, 255, 255, 0.03))'
-        : state === 'blocked'
-          ? 'linear-gradient(180deg, rgba(251, 191, 36, 0.12), rgba(255, 255, 255, 0.025))'
-          : 'rgba(2, 6, 23, 0.38)',
-  boxShadow:
-    state === 'active' || state === 'ready'
-      ? '0 0 0 1px rgba(45, 212, 191, 0.10), 0 16px 42px rgba(45, 212, 191, 0.08)'
-      : 'none',
+    state === 'done' || state === 'active' || state === 'ready'
+      ? COLORS.card
+      : COLORS.ground,
+  boxShadow: 'none',
 });
 
 const stepNumberStyle: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: 34,
-  height: 34,
-  borderRadius: 6,
-  border: '1px solid rgba(45, 212, 191, 0.40)',
-  color: '#ccfbf1',
-  background: 'rgba(45, 212, 191, 0.12)',
-  fontSize: 13,
-  fontWeight: 900,
-  fontFamily: THEME.fontMono,
+  width: 30,
+  height: 30,
+  borderRadius: 2,
+  border: `1px solid ${ACCENT_TEAL}`,
+  color: ACCENT_TEAL,
+  background: COLORS.stripe,
+  fontSize: 12,
+  fontWeight: 600,
+  fontFamily: FONT_MONO,
 };
 
 const stepLabelStyle: CSSProperties = {
   margin: '12px 0 6px 0',
-  fontSize: 18,
-  fontWeight: 900,
+  fontFamily: FONT_DISPLAY,
+  fontSize: 17,
+  fontWeight: 700,
   color: COLORS.textPrimary,
 };
 
 const commandBadgeStyle = (state: CommandState): CSSProperties => ({
   display: 'inline-flex',
   alignItems: 'center',
-  minHeight: 24,
+  minHeight: 22,
   marginTop: 12,
-  padding: '3px 7px',
-  borderRadius: 5,
+  padding: '2px 7px',
+  borderRadius: 2,
+  border:
+    state === 'done' || state === 'active' || state === 'ready'
+      ? `1px solid ${ACCENT_TEAL}`
+      : state === 'blocked'
+        ? `1px dashed ${ACCENT_AMBER}`
+        : `1px solid ${COLORS.rule}`,
   color:
-    state === 'done'
-      ? '#bbf7d0'
-      : state === 'active' || state === 'ready'
-        ? '#ccfbf1'
-        : state === 'blocked'
-          ? '#fef3c7'
-          : COLORS.textMuted,
-  background:
-    state === 'done'
-      ? 'rgba(34, 197, 94, 0.14)'
-      : state === 'active' || state === 'ready'
-        ? 'rgba(45, 212, 191, 0.14)'
-        : state === 'blocked'
-          ? 'rgba(251, 191, 36, 0.12)'
-          : 'rgba(148, 163, 184, 0.08)',
-  fontFamily: THEME.fontMono,
+    state === 'done' || state === 'active' || state === 'ready'
+      ? ACCENT_TEAL
+      : state === 'blocked'
+        ? ACCENT_AMBER
+        : COLORS.textMuted,
+  background: COLORS.stripe,
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 900,
+  fontWeight: 500,
+  letterSpacing: 0.6,
   textTransform: 'uppercase',
 });
 
@@ -710,9 +691,9 @@ const fleetControlPanelStyle: CSSProperties = {
   display: 'grid',
   gap: 12,
   padding: 16,
-  borderRadius: 8,
-  border: '1px solid rgba(45, 212, 191, 0.22)',
-  background: 'rgba(2, 6, 23, 0.40)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.ground,
 };
 
 const fleetControlHeaderStyle: CSSProperties = {
@@ -725,9 +706,10 @@ const fleetControlHeaderStyle: CSSProperties = {
 
 const fleetControlTitleStyle: CSSProperties = {
   margin: 0,
+  fontFamily: FONT_DISPLAY,
   color: COLORS.textPrimary,
   fontSize: 17,
-  fontWeight: 900,
+  fontWeight: 700,
 };
 
 const fleetButtonRowStyle: CSSProperties = {
@@ -740,36 +722,37 @@ const fleetAuthInputStyle: CSSProperties = {
   width: 'min(100%, 360px)',
   minHeight: 38,
   padding: '8px 10px',
-  borderRadius: 6,
-  border: '1px solid rgba(148, 163, 184, 0.26)',
-  background: 'rgba(2, 6, 23, 0.48)',
+  borderRadius: 2,
+  border: `1.5px solid ${COLORS.borderInk}`,
+  background: COLORS.ground,
   color: COLORS.textPrimary,
-  fontFamily: THEME.fontMono,
+  fontFamily: FONT_MONO,
   fontSize: 12,
-  outline: 'none',
 };
 
 const fleetNoticeStyle: CSSProperties = {
   margin: 0,
   color: COLORS.textSecondary,
-  fontSize: 12,
-  lineHeight: 1.45,
+  fontSize: 12.5,
+  lineHeight: 1.5,
 };
 
 const advancedDetailsStyle: CSSProperties = {
   marginTop: 20,
-  border: `1px solid ${COLORS.borderSubtle}`,
-  borderRadius: 8,
-  background: 'rgba(2, 6, 23, 0.34)',
+  border: `1px solid ${COLORS.rule}`,
+  borderRadius: 2,
+  background: COLORS.ground,
 };
 
 const advancedSummaryStyle: CSSProperties = {
   padding: '13px 16px',
-  color: COLORS.textSecondary,
+  color: COLORS.textPrimary,
   cursor: 'pointer',
-  fontFamily: FONT_FAMILY,
-  fontSize: 13,
-  fontWeight: 800,
+  fontFamily: FONT_MONO,
+  fontSize: 12,
+  fontWeight: 500,
+  letterSpacing: 0.7,
+  textTransform: 'uppercase',
 };
 
 const advancedStackStyle: CSSProperties = {
@@ -793,15 +776,15 @@ const verdictLabelStyle: CSSProperties = {
   display: 'block',
   marginBottom: 4,
   fontSize: 12,
-  fontWeight: 800,
+  fontWeight: 600,
   letterSpacing: 0.4,
-  fontFamily: THEME.fontMono,
+  fontFamily: FONT_MONO,
   color: COLORS.textPrimary,
 };
 
 function AuditScopeBanner({ scope }: { scope: CasHarnessAuditScope }) {
   const hasInternalAccess = scope.internalActivationAccess;
-  const accent = hasInternalAccess ? ACCENT_TEAL : '#fbbf24';
+  const accent = hasInternalAccess ? ACCENT_TEAL : ACCENT_AMBER;
   return (
     <div
       role="note"
@@ -811,28 +794,29 @@ function AuditScopeBanner({ scope }: { scope: CasHarnessAuditScope }) {
         flexDirection: 'column',
         gap: 4,
         padding: '10px 14px',
-        borderRadius: 8,
-        border: `1px solid ${accent}33`,
-        background: `${accent}14`,
+        borderRadius: 2,
+        border: hasInternalAccess ? `1px solid ${accent}` : `1px dashed ${accent}`,
+        background: COLORS.stripe,
         fontFamily: FONT_FAMILY,
       }}
     >
       <span
         style={{
+          fontFamily: FONT_MONO,
           fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: 0.4,
+          fontWeight: 500,
+          letterSpacing: 0.8,
           textTransform: 'uppercase',
           color: accent,
         }}
       >
         Audit scope
       </span>
-      <span style={{ fontSize: 13, color: COLORS.textPrimary, fontWeight: 500 }}>
+      <span style={{ fontSize: 13, color: COLORS.textPrimary, fontWeight: 600 }}>
         {scope.label}
       </span>
       {scope.detail ? (
-        <span style={{ fontSize: 12, color: COLORS.textSecondary, lineHeight: 1.45 }}>
+        <span style={{ fontSize: 12.5, color: COLORS.textSecondary, lineHeight: 1.45 }}>
           {scope.detail}
         </span>
       ) : null}
@@ -1470,8 +1454,8 @@ export default function AuditConsolePage() {
               title={liveWorkerChip.label}
               style={{
                 ...liveWorkerChipBaseStyle,
-                border: `1px solid ${liveWorkerChip.accent}59`,
-                background: `${liveWorkerChip.accent}1f`,
+                border: `1px solid ${liveWorkerChip.accent}`,
+                background: COLORS.card,
                 color: liveWorkerChip.accent,
               }}
             >
@@ -1491,9 +1475,9 @@ export default function AuditConsolePage() {
                 flex: '1 1 240px',
                 minWidth: 220,
                 padding: '8px 12px',
-                borderRadius: 6,
-                border: `1px solid ${COLORS.borderStrong}`,
-                background: COLORS.bgPanel,
+                borderRadius: 2,
+                border: `1.5px solid ${COLORS.borderInk}`,
+                background: COLORS.ground,
                 color: COLORS.textPrimary,
                 fontFamily: THEME.fontMono,
                 fontSize: 12,
@@ -1617,7 +1601,15 @@ export default function AuditConsolePage() {
                   fragment.
                 </p>
                 {accountAuth.accountsEnabled ? (
-                  <p role="note" style={{ ...fleetNoticeStyle, color: '#fef3c7' }}>
+                  <p role="note" style={{
+                    ...fleetNoticeStyle,
+                    marginTop: 8,
+                    padding: '8px 10px',
+                    borderRadius: 2,
+                    border: `1px dashed ${ACCENT_AMBER}`,
+                    background: COLORS.stripe,
+                    color: ACCENT_AMBER,
+                  }}>
                     Distributed/fleet customer account mode remains OPEN and is unavailable.
                     Tenant-bound service credentials are not implemented, so customer Bearer tokens
                     are never sent to these routes.
@@ -1717,7 +1709,7 @@ export default function AuditConsolePage() {
               </p>
             ) : null}
             {fleetExecutorError ? (
-              <p role="status" style={{ ...fleetNoticeStyle, color: '#fecaca' }}>
+              <p role="status" style={{ ...fleetNoticeStyle, color: ACCENT_ERROR }}>
                 {fleetExecutorError}
               </p>
             ) : null}
@@ -1733,9 +1725,9 @@ export default function AuditConsolePage() {
                   display: 'grid',
                   gap: 8,
                   padding: 12,
-                  borderRadius: 8,
-                  border: '1px solid rgba(45, 212, 191, 0.28)',
-                  background: 'rgba(15, 23, 42, 0.54)',
+                  borderRadius: 2,
+                  border: `1px solid ${ACCENT_TEAL}`,
+                  background: COLORS.card,
                 }}
               >
                 <p style={{ ...fleetNoticeStyle, color: COLORS.textPrimary, fontWeight: 800 }}>

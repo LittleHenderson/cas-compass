@@ -39,8 +39,7 @@ function LegacyLicenseRedirect() {
 const fallbackBackdropStyle: CSSProperties = {
   position: 'fixed',
   inset: 0,
-  background:
-    'radial-gradient(ellipse at top, #0a1124 0%, #02030a 60%, #000000 100%)',
+  background: COLORS.ground,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -52,17 +51,18 @@ const fallbackInnerStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: 14,
-  fontSize: 14,
-  letterSpacing: 0.3,
+  fontSize: 13,
+  fontFamily: THEME.fontMono,
+  letterSpacing: 0.6,
+  textTransform: 'uppercase',
   color: COLORS.textSecondary,
 };
 
 const fallbackDotStyle: CSSProperties = {
-  width: 10,
-  height: 10,
-  borderRadius: '50%',
+  width: 8,
+  height: 8,
+  borderRadius: 2,
   background: ACCENT_BLUE,
-  boxShadow: `0 0 16px ${ACCENT_BLUE}`,
 };
 
 function CockpitSuspenseFallback() {
@@ -72,10 +72,10 @@ function CockpitSuspenseFallback() {
         <div style={fallbackInnerStyle}>
           <motion.span
             style={fallbackDotStyle}
-            animate={{ opacity: [0.4, 1, 0.4], scale: [1, 1.15, 1] }}
+            animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
           />
-          <span>Warming up the cockpit…</span>
+          <span>Warming up the 3D cockpit…</span>
         </div>
       </GlassPanel>
     </div>

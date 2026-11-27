@@ -3,11 +3,11 @@
   "surfaces": {
     "product_app": {
       "route": "/",
-      "documentTitle": "Atlas Model Audit | Noetic Compass",
-      "description": "Scoped model-audit application with explicit research and customer-production boundaries.",
-      "eyebrow": "CAS Harness product boundary",
-      "heading": "Atlas Model Audit",
-      "summary": "Atlas is the interactive application for running and reviewing scoped model audits. This same-route summary is visible before the application hydrates.",
+      "documentTitle": "CAS Compass | CAS Lab",
+      "description": "CAS Compass — Cognitive architecture assessment, audit, and interpretability workbench by CAS Lab with explicit research and customer-production boundaries.",
+      "eyebrow": "CAS Lab · Product Boundary",
+      "heading": "CAS Compass",
+      "summary": "CAS Compass is the interactive CAS Lab workbench for running and reviewing scoped model audits and cognitive architecture assessments. This same-route summary is visible before the application hydrates.",
       "statements": [
         "Customer-production status: OPEN.",
         "Research verdicts do not establish customer-production ACCEPT.",
@@ -19,9 +19,9 @@
     },
     "audit_console": {
       "route": "/audit-console",
-      "documentTitle": "Audit Console | Noetic Compass",
-      "description": "Run and inspect a scoped model audit with explicit evidence and human-review boundaries.",
-      "eyebrow": "CAS Harness audit boundary",
+      "documentTitle": "Audit Console | CAS Compass",
+      "description": "Run and inspect a scoped model audit in CAS Compass with explicit evidence and human-review boundaries.",
+      "eyebrow": "CAS Lab · Audit Boundary",
       "heading": "Audit Console",
       "summary": "Use the Audit Console to start and inspect a scoped model audit. The interactive controls load after this same-route summary hydrates.",
       "statements": [

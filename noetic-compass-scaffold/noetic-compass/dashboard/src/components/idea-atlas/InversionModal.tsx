@@ -1,15 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { apiFetch, ApiError } from '../../api/client';
-import { highlightSyntax } from '../../pages/CompilerPage';
+import { highlightSyntax } from '../shared/CasNotationRenderer';
 
 // ── Types ──
 
-/**
- * Minimal Idea shape consumed by the modal. The full Idea type lives inside
- * IdeaAtlasPage.tsx (Agent J's territory) — we duplicate the shape here so
- * this component is independent and can be wired up by a follow-up agent
- * without circular imports. The wiring step may swap this for a shared type.
- */
 export interface InversionModalIdea {
   id: string;
   text: string;
@@ -59,7 +53,6 @@ export function InversionModal({ idea, onClose, onConfirm }: InversionModalProps
   const [error, setError] = useState<string | null>(null);
   const [notImplemented, setNotImplemented] = useState(false);
 
-  // Reset state whenever a new idea is opened
   useEffect(() => {
     if (idea) {
       setSelectedAxis(null);
@@ -70,7 +63,6 @@ export function InversionModal({ idea, onClose, onConfirm }: InversionModalProps
     }
   }, [idea?.id]);
 
-  // Escape-to-close
   useEffect(() => {
     if (!idea) return;
     function onKey(e: KeyboardEvent) {
@@ -122,12 +114,12 @@ export function InversionModal({ idea, onClose, onConfirm }: InversionModalProps
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#050b0a]/80 p-4"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="relative w-full max-w-2xl rounded-xl border border-cyan-500/20 bg-dark-800 p-6 shadow-2xl"
+        className="relative w-full max-w-2xl rounded-[2px] border border-[#20302b] bg-[#0c1513] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -136,7 +128,7 @@ export function InversionModal({ idea, onClose, onConfirm }: InversionModalProps
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-500 hover:text-slate-200 transition-colors"
+          className="absolute top-4 right-4 text-[#86958d] transition-colors hover:text-[#eaf3ee]"
           aria-label="Close"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -146,16 +138,21 @@ export function InversionModal({ idea, onClose, onConfirm }: InversionModalProps
 
         {/* Header */}
         <div className="mb-5">
-          <h2 className="text-lg font-semibold text-slate-100">Invert Idea</h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#37f5a0]">
+            Structural Inversion
+          </p>
+          <h2 className="mt-1 font-['Space_Grotesk',sans-serif] text-lg font-semibold text-[#eaf3ee]">
+            Invert Idea
+          </h2>
+          <p className="mt-1 text-xs text-[#b3c2ba]">
             Pick an inversion axis to generate the structural opposite of this idea.
           </p>
         </div>
 
         {/* Original idea */}
-        <div className="mb-5 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
-          <p className="text-[11px] uppercase tracking-wide text-slate-500 mb-1">Original</p>
-          <p className="text-sm text-slate-200">{idea.text}</p>
+        <div className="mb-5 rounded-[2px] border border-[#20302b] bg-[#13201c] p-3">
+          <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[#86958d]">Original</p>
+          <p className="text-sm text-[#eaf3ee]">{idea.text}</p>
           {idea.cas_expression && (
             <p className="mt-2 font-mono text-xs">{highlightSyntax(idea.cas_expression)}</p>
           )}
@@ -163,7 +160,7 @@ export function InversionModal({ idea, onClose, onConfirm }: InversionModalProps
 
         {/* Axis picker */}
         <div className="mb-4">
-          <p className="text-[11px] uppercase tracking-wide text-slate-500 mb-2">Inversion Axis</p>
+          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[#86958d]">Inversion Axis</p>
           <div className="flex flex-wrap gap-2">
             {AXES.map((axis) => {
               const isSelected = selectedAxis === axis.key;
@@ -175,16 +172,18 @@ export function InversionModal({ idea, onClose, onConfirm }: InversionModalProps
                   disabled={disabled}
                   title={axis.label}
                   className={[
-                    'group relative px-3 py-1.5 rounded-md text-xs font-mono border transition-colors',
+                    'group relative rounded-[2px] border px-3 py-1.5 font-mono text-xs transition-colors',
                     isSelected
-                      ? 'border-cyan-400 bg-cyan-500/15 text-cyan-200'
-                      : 'border-white/[0.08] bg-white/[0.02] text-slate-300 hover:border-cyan-500/40 hover:text-slate-100',
-                    disabled && !isSelected ? 'opacity-40 cursor-not-allowed hover:border-white/[0.08] hover:text-slate-300' : '',
+                      ? 'border-[#37f5a0] bg-[#37f5a0] text-[#050b0a]'
+                      : 'border-[#20302b] bg-[#13201c] text-[#eaf3ee] hover:border-[#37f5a0]',
+                    disabled && !isSelected ? 'cursor-not-allowed opacity-40 hover:border-[#20302b]' : '',
                   ].join(' ')}
                   aria-pressed={isSelected}
                 >
                   <span className="font-bold">{axis.key}</span>
-                  <span className="ml-1 text-[10px] text-slate-500">{axis.short}</span>
+                  <span className={`ml-1 text-[10px] ${isSelected ? 'text-[#050b0a]/80' : 'text-[#86958d]'}`}>
+                    {axis.short}
+                  </span>
                 </button>
               );
             })}
@@ -192,42 +191,42 @@ export function InversionModal({ idea, onClose, onConfirm }: InversionModalProps
         </div>
 
         {/* Result region */}
-        <div className="min-h-[120px] rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+        <div className="min-h-[120px] rounded-[2px] border border-[#20302b] bg-[#050b0a] p-3">
           {loading && (
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <span className="inline-block h-3 w-3 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
+            <div className="flex items-center gap-2 font-mono text-xs text-[#b3c2ba]">
+              <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-[#37f5a0] border-t-transparent" />
               Inverting along axis {selectedAxis}…
             </div>
           )}
 
           {!loading && notImplemented && (
-            <p className="text-xs text-amber-300">
+            <p className="text-xs text-[#f59e0b]">
               This axis is not yet implemented (planned for a later sprint).
             </p>
           )}
 
           {!loading && error && (
-            <p className="text-xs text-rose-300">{error}</p>
+            <p className="text-xs text-[#ff7b72]">{error}</p>
           )}
 
           {!loading && !error && !notImplemented && result && (
             <div className="space-y-3">
               <div>
-                <p className="text-[10px] uppercase tracking-wide text-slate-500 mb-1">Original CAS</p>
-                <p className="font-mono text-xs text-slate-400">
+                <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[#86958d]">Original CAS</p>
+                <p className="font-mono text-xs text-[#b3c2ba]">
                   {idea.cas_expression ? highlightSyntax(idea.cas_expression) : <span className="italic">none</span>}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wide text-slate-500 mb-1">Inverted CAS</p>
+                <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[#86958d]">Inverted CAS</p>
                 <p className="font-mono text-xs">{highlightSyntax(result.inverted_cas)}</p>
               </div>
-              <p className="text-[11px] text-slate-400 italic">{result.axis_description}</p>
+              <p className="text-[11px] italic text-[#b3c2ba]">{result.axis_description}</p>
             </div>
           )}
 
           {!loading && !error && !notImplemented && !result && !selectedAxis && (
-            <p className="text-xs text-slate-500">Select an axis above to preview the inversion.</p>
+            <p className="text-xs text-[#86958d]">Select an axis above to preview the inversion.</p>
           )}
         </div>
 
@@ -235,7 +234,7 @@ export function InversionModal({ idea, onClose, onConfirm }: InversionModalProps
         <div className="mt-5 flex items-center justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-md text-xs border border-white/[0.08] text-slate-300 hover:text-slate-100 hover:border-white/20 transition-colors"
+            className="rounded-[2px] border border-[#eaf3ee] px-3 py-1.5 text-xs font-medium text-[#eaf3ee] transition-colors hover:border-[#37f5a0] hover:text-[#37f5a0]"
           >
             Cancel
           </button>
@@ -243,10 +242,10 @@ export function InversionModal({ idea, onClose, onConfirm }: InversionModalProps
             onClick={onCommit}
             disabled={!result || loading}
             className={[
-              'px-3 py-1.5 rounded-md text-xs font-semibold transition-colors',
+              'rounded-[2px] px-4 py-1.5 text-xs font-semibold transition-opacity',
               !result || loading
-                ? 'border border-white/[0.06] bg-white/[0.02] text-slate-500 cursor-not-allowed'
-                : 'border border-cyan-400 bg-cyan-500/20 text-cyan-100 hover:bg-cyan-500/30',
+                ? 'cursor-not-allowed border border-[#20302b] bg-[#13201c] text-[#86958d]'
+                : 'bg-[#37f5a0] text-[#050b0a] hover:opacity-90',
             ].join(' ')}
           >
             Commit Inversion

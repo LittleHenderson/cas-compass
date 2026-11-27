@@ -154,7 +154,7 @@ class VerifyDeploymentTests(unittest.TestCase):
             "registry_image_digest": DIGEST,
             "expected_commit": COMMIT,
             "build": BUILD,
-            "deployment_url": "https://api.noeticcompass.com/deployment",
+            "deployment_url": "https://api.caslabai.com/deployment",
         }
         kwargs.update(overrides)
         return aws.verify_deployment(**kwargs)

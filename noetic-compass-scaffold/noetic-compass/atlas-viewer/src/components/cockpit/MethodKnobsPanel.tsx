@@ -48,9 +48,9 @@ function panelStyleFor(density: MethodKnobsDensity): CSSProperties {
     display: 'flex',
     flexDirection: 'column',
     gap: density === 'comfortable' ? 10 : 8,
-    fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
+    fontFamily: "'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif",
     fontSize: density === 'comfortable' ? 14 : 13,
-    color: '#e2e8f0',
+    color: '#eaf3ee',
     minWidth: density === 'comfortable' ? 360 : 320,
   };
 }
@@ -59,16 +59,14 @@ const cardStyle = (enabled: boolean): CSSProperties => ({
   position: 'relative',
   display: 'flex',
   flexDirection: 'column',
-  // Wave 5.2: drop the gradient sheen. Sharper radius. Cleaner.
-  border: `1px solid ${enabled ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)'}`,
-  borderRadius: 6,
-  background: enabled ? GLASS_PANEL_FILL : 'rgba(255, 255, 255, 0.01)',
-  opacity: enabled ? 1 : 0.6,
+  border: `1px solid ${enabled ? '#20302b' : '#17231f'}`,
+  borderRadius: 2,
+  background: enabled ? GLASS_PANEL_FILL : '#050b0a',
+  opacity: enabled ? 1 : 0.62,
   overflow: 'hidden',
   transition: 'border-color 0.15s ease, opacity 0.15s ease',
 });
 
-// Sheen removed — see Wave 5.2 cardStyle comment.
 const cardSheenStyle: CSSProperties = { display: 'none' };
 
 const headerStyle: CSSProperties = {
@@ -86,27 +84,25 @@ const nameStyle: CSSProperties = {
   flex: '1 1 auto',
 };
 
-const pillStyle = (background: string, fg = '#0f172a'): CSSProperties => ({
+const pillStyle = (background: string, fg = '#050b0a'): CSSProperties => ({
   display: 'inline-block',
-  padding: '2px 8px',
-  borderRadius: 999,
+  padding: '2px 7px',
+  borderRadius: 2,
   fontSize: 11,
   fontWeight: 600,
   color: fg,
   background,
-  backdropFilter: 'blur(8px) saturate(140%)',
-  WebkitBackdropFilter: 'blur(8px) saturate(140%)',
 });
 
 const stageBadgeStyle: CSSProperties = {
   display: 'inline-block',
-  padding: '2px 8px',
-  borderRadius: 6,
+  padding: '2px 7px',
+  borderRadius: 2,
   fontSize: 11,
   fontWeight: 500,
-  color: '#cbd5e1',
-  background: 'rgba(30, 41, 59, 0.6)',
-  border: '1px solid rgba(255,255,255,0.06)',
+  color: '#b3c2ba',
+  background: '#13201c',
+  border: '1px solid #20302b',
 };
 
 const bodyStyle: CSSProperties = {
@@ -114,7 +110,7 @@ const bodyStyle: CSSProperties = {
   flexDirection: 'column',
   gap: 8,
   padding: '0 10px 12px 10px',
-  borderTop: '1px solid rgba(255,255,255,0.05)',
+  borderTop: '1px solid #17231f',
   overflow: 'hidden',
 };
 
@@ -126,17 +122,17 @@ const lineStyle: CSSProperties = {
 
 const liveNoticeStyle: CSSProperties = {
   padding: 10,
-  borderRadius: 6,
-  border: '1px solid rgba(45, 212, 191, 0.24)',
-  background: 'rgba(45, 212, 191, 0.07)',
-  color: '#ccfbf1',
+  borderRadius: 2,
+  border: '1px solid #37f5a0',
+  background: '#13201c',
+  color: '#eaf3ee',
   fontSize: 12,
   lineHeight: 1.45,
 };
 
 const labelStrong: CSSProperties = {
   fontWeight: 600,
-  color: '#94a3b8',
+  color: '#86958d',
 };
 
 const knobRowStyle: CSSProperties = {
@@ -149,7 +145,7 @@ const knobRowStyle: CSSProperties = {
 const knobLabelStyle: CSSProperties = {
   fontSize: 12,
   fontWeight: 500,
-  color: '#cbd5e1',
+  color: '#b3c2ba',
 };
 
 const inputStyle: CSSProperties = {

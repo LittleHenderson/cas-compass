@@ -13,11 +13,11 @@ import type { ReportData, ChartImages } from './reportData';
 
 // ── Constants ──
 
-const TEAL = '2DD4BF';
-const DARK = '0A0F1A';
-const GRAY = '94A3B8';
-const WHITE_TEXT = 'E2E8F0';
-const RED = 'F87171';
+const TEAL = '37F5A0';
+const DARK = '050B0A';
+const GRAY = '86958D';
+const WHITE_TEXT = 'EAF3EE';
+const RED = 'FF7B72';
 
 // ── Helpers ──
 
@@ -65,14 +65,14 @@ function makeCell(text: string, opts?: { bold?: boolean; color?: string; shading
 
 function headerRow(labels: string[]) {
   return new TableRow({
-    children: labels.map(l => makeCell(l, { bold: true, color: TEAL, shading: '151D33' })),
+    children: labels.map(l => makeCell(l, { bold: true, color: TEAL, shading: '13201C' })),
   });
 }
 
 function dataRow(cells: string[], alt: boolean, flagIdx?: number) {
   return new TableRow({
     children: cells.map((text, i) => makeCell(text, {
-      shading: alt ? '0F1629' : undefined,
+      shading: alt ? '0C1513' : undefined,
       color: i === flagIdx && text !== 'OK' ? RED : WHITE_TEXT,
     })),
   });
@@ -82,12 +82,12 @@ function simpleTable(headers: string[], rows: string[][]) {
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     borders: {
-      top: { style: BorderStyle.SINGLE, size: 1, color: '1B2540' },
-      bottom: { style: BorderStyle.SINGLE, size: 1, color: '1B2540' },
-      left: { style: BorderStyle.SINGLE, size: 1, color: '1B2540' },
-      right: { style: BorderStyle.SINGLE, size: 1, color: '1B2540' },
-      insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: '1B2540' },
-      insideVertical: { style: BorderStyle.SINGLE, size: 1, color: '1B2540' },
+      top: { style: BorderStyle.SINGLE, size: 1, color: '20302B' },
+      bottom: { style: BorderStyle.SINGLE, size: 1, color: '20302B' },
+      left: { style: BorderStyle.SINGLE, size: 1, color: '20302B' },
+      right: { style: BorderStyle.SINGLE, size: 1, color: '20302B' },
+      insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: '20302B' },
+      insideVertical: { style: BorderStyle.SINGLE, size: 1, color: '20302B' },
     },
     rows: [
       headerRow(headers),
@@ -125,7 +125,7 @@ export async function exportDocx(data: ReportData, images: ChartImages): Promise
   // Title
   children.push(new Paragraph({
     spacing: { after: 40 },
-    children: [new TextRun({ text: 'NOETIC COMPASS — RESEARCH PROTOTYPE', color: TEAL, bold: true, size: 18 })],
+    children: [new TextRun({ text: 'CAS COMPASS — CAS LAB — RESEARCH PROTOTYPE', color: TEAL, bold: true, size: 18 })],
   }));
   children.push(heading(data.title, HeadingLevel.TITLE));
   children.push(textPara(
@@ -266,7 +266,7 @@ export async function exportDocx(data: ReportData, images: ChartImages): Promise
           children: [new Paragraph({
             alignment: AlignmentType.CENTER,
             children: [
-              new TextRun({ text: 'Noetic Compass (Research Prototype) | CAS v7.4 | Research-stage scoring — empirical validation pending  —  Page ', color: GRAY, size: 14 }),
+              new TextRun({ text: 'CAS Compass — CAS Lab (Research Prototype) | CAS v7.4 | Research-stage scoring — empirical validation pending  —  Page ', color: GRAY, size: 14 }),
               new TextRun({ children: [PageNumber.CURRENT], color: GRAY, size: 14 }),
               new TextRun({ text: ' of ', color: GRAY, size: 14 }),
               new TextRun({ children: [PageNumber.TOTAL_PAGES], color: GRAY, size: 14 }),
@@ -290,6 +290,6 @@ export async function exportDocx(data: ReportData, images: ChartImages): Promise
   });
 
   const blob = await Packer.toBlob(doc);
-  const filename = `noetic-assessment-${data.date.replace(/[/:, ]/g, '-')}.docx`;
+  const filename = `cas-compass-assessment-${data.date.replace(/[/:, ]/g, '-')}.docx`;
   saveAs(blob, filename);
 }

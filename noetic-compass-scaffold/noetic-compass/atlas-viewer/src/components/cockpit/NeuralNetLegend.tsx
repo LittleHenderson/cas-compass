@@ -13,11 +13,9 @@ const wrapStyle: CSSProperties = {
 };
 
 const containerStyle: CSSProperties = {
-  background: 'rgba(2, 6, 23, 0.78)',
-  border: '1px solid rgba(255, 255, 255, 0.08)',
-  borderRadius: 6,
-  backdropFilter: 'blur(14px) saturate(120%)',
-  WebkitBackdropFilter: 'blur(14px) saturate(120%)',
+  background: COLORS.card,
+  border: `1px solid ${COLORS.rule}`,
+  borderRadius: 2,
   color: COLORS.textPrimary,
   fontSize: 11.5,
   overflow: 'hidden',
@@ -31,18 +29,21 @@ const headerStyle: CSSProperties = {
   padding: '6px 10px',
   cursor: 'pointer',
   userSelect: 'none',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+  borderBottom: `1px solid ${COLORS.rule}`,
+  background: COLORS.stripe,
 };
 
 const titleStyle: CSSProperties = {
+  fontFamily: THEME.fontMono,
   fontSize: 10.5,
-  fontWeight: 700,
-  letterSpacing: 1.2,
+  fontWeight: 500,
+  letterSpacing: 1.1,
   textTransform: 'uppercase',
   color: COLORS.textMuted,
 };
 
 const toggleLabelStyle: CSSProperties = {
+  fontFamily: THEME.fontMono,
   fontSize: 10,
   color: COLORS.textMuted,
 };

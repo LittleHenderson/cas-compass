@@ -34,18 +34,19 @@ const shellStyle: CSSProperties = {
   display: 'grid',
   gap: 14,
   padding: 16,
-  borderRadius: 8,
-  border: '1px solid rgba(45, 212, 191, 0.18)',
-  background: 'rgba(45, 212, 191, 0.045)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.stripe,
   fontFamily: FONT_FAMILY,
 };
 
 const eyebrowStyle: CSSProperties = {
   margin: 0,
   color: ACCENT_TEAL,
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 800,
-  letterSpacing: 0.6,
+  fontWeight: 500,
+  letterSpacing: 1,
   textTransform: 'uppercase',
 };
 
@@ -54,7 +55,7 @@ const headlineStyle: CSSProperties = {
   color: COLORS.textPrimary,
   fontSize: 18,
   lineHeight: 1.35,
-  fontWeight: 850,
+  fontWeight: 700,
 };
 
 const proofGridStyle: CSSProperties = {
@@ -66,20 +67,15 @@ const proofGridStyle: CSSProperties = {
 const proofRowStyle = (state: 'pass' | 'blocked' | 'unknown'): CSSProperties => ({
   minHeight: 54,
   padding: 10,
-  borderRadius: 6,
+  borderRadius: 2,
   cursor: 'help',
   border:
     state === 'pass'
-      ? '1px solid rgba(45, 212, 191, 0.30)'
+      ? `1px solid ${ACCENT_TEAL}`
       : state === 'blocked'
-        ? '1px solid rgba(251, 191, 36, 0.34)'
-        : '1px solid rgba(148, 163, 184, 0.20)',
-  background:
-    state === 'pass'
-      ? 'rgba(45, 212, 191, 0.07)'
-      : state === 'blocked'
-        ? 'rgba(251, 191, 36, 0.08)'
-        : 'rgba(148, 163, 184, 0.045)',
+        ? `1px dashed ${COLORS.warn}`
+        : `1px solid ${COLORS.rule}`,
+  background: COLORS.card,
 });
 
 const proofNameStyle: CSSProperties = {
@@ -89,26 +85,27 @@ const proofNameStyle: CSSProperties = {
   gap: 8,
   color: COLORS.textPrimary,
   fontSize: 12,
-  fontWeight: 800,
+  fontWeight: 600,
 };
 
 const statusPillStyle = (state: 'pass' | 'blocked' | 'unknown'): CSSProperties => ({
   flex: '0 0 auto',
   padding: '2px 6px',
-  borderRadius: 4,
+  borderRadius: 2,
+  border:
+    state === 'pass'
+      ? `1px solid ${ACCENT_TEAL}`
+      : state === 'blocked'
+        ? `1px dashed ${COLORS.warn}`
+        : `1px solid ${COLORS.rule}`,
   color:
     state === 'pass'
-      ? '#ccfbf1'
+      ? ACCENT_TEAL
       : state === 'blocked'
-        ? '#fef3c7'
+        ? COLORS.warn
         : COLORS.textMuted,
-  background:
-    state === 'pass'
-      ? 'rgba(45, 212, 191, 0.12)'
-      : state === 'blocked'
-        ? 'rgba(251, 191, 36, 0.11)'
-        : 'rgba(148, 163, 184, 0.08)',
-  fontSize: 10,
+  background: COLORS.ground,
+  fontSize: 10.5,
   fontFamily: FONT_MONO,
   textTransform: 'uppercase',
 });
@@ -127,9 +124,9 @@ const compactLineStyle: CSSProperties = {
 const scopeLineStyle: CSSProperties = {
   ...compactLineStyle,
   padding: '9px 10px',
-  borderRadius: 6,
-  border: '1px solid rgba(45, 212, 191, 0.20)',
-  background: 'rgba(2, 6, 23, 0.26)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.ground,
 };
 
 const infoTipStyle: CSSProperties = {
@@ -138,13 +135,14 @@ const infoTipStyle: CSSProperties = {
   justifyContent: 'center',
   width: 22,
   height: 22,
-  borderRadius: 5,
-  border: '1px solid rgba(45, 212, 191, 0.24)',
-  background: 'rgba(45, 212, 191, 0.07)',
-  color: '#ccfbf1',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.card,
+  color: ACCENT_TEAL,
   cursor: 'help',
-  fontSize: 12,
-  fontWeight: 900,
+  fontFamily: FONT_MONO,
+  fontSize: 11.5,
+  fontWeight: 600,
 };
 
 function chipState(chip: ProvenanceChip | undefined): 'pass' | 'blocked' | 'unknown' {

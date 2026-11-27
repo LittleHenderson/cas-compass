@@ -36,7 +36,7 @@ function StripPlot({ runs, mean, stdDev }: { runs: { composite: number; certific
   ];
 
   return (
-    <div className="relative h-28 rounded-lg border border-white/[0.06] bg-white/[0.02] overflow-hidden">
+    <div className="relative h-28 rounded-[2px] border border-[#20302b] bg-[#13201c] overflow-hidden">
       {/* Certification bands */}
       {bands.map(band => {
         const left = toX(Math.max(band.from, lo));
@@ -53,7 +53,7 @@ function StripPlot({ runs, mean, stdDev }: { runs: { composite: number; certific
 
       {/* Std dev range */}
       <div
-        className="absolute top-4 bottom-4 rounded bg-accent-teal/10 border border-accent-teal/20"
+        className="absolute top-4 bottom-4 rounded-[2px] bg-[#37f5a0]/12 border border-[#37f5a0]/35"
         style={{
           left: `${toX(mean - stdDev)}%`,
           width: `${toX(mean + stdDev) - toX(mean - stdDev)}%`,
@@ -62,7 +62,7 @@ function StripPlot({ runs, mean, stdDev }: { runs: { composite: number; certific
 
       {/* Mean line */}
       <div
-        className="absolute top-2 bottom-2 w-0.5 bg-accent-teal"
+        className="absolute top-2 bottom-2 w-0.5 bg-[#37f5a0]"
         style={{ left: `${toX(mean)}%` }}
       />
 
@@ -70,11 +70,11 @@ function StripPlot({ runs, mean, stdDev }: { runs: { composite: number; certific
       {runs.map((run, i) => (
         <div
           key={i}
-          className="absolute w-2.5 h-2.5 rounded-full border border-dark-900"
+          className="absolute w-2.5 h-2.5 rounded-full border border-[#050b0a]"
           style={{
             left: `${toX(run.composite)}%`,
             top: `${30 + (i % 3) * 18}%`,
-            backgroundColor: CERT_COLORS[run.certification] ?? '#94a3b8',
+            backgroundColor: CERT_COLORS[run.certification] ?? '#86958d',
             transform: 'translateX(-50%)',
           }}
           title={`Run ${i + 1}: ${run.composite.toFixed(1)} (${run.certification})`}
@@ -82,10 +82,10 @@ function StripPlot({ runs, mean, stdDev }: { runs: { composite: number; certific
       ))}
 
       {/* Scale labels */}
-      <div className="absolute bottom-1 left-2 text-[8px] text-slate-600 font-mono">{lo.toFixed(0)}</div>
-      <div className="absolute bottom-1 right-2 text-[8px] text-slate-600 font-mono">{hi.toFixed(0)}</div>
+      <div className="absolute bottom-1 left-2 text-[10px] text-[#86958d] font-['Geist_Mono']">{lo.toFixed(0)}</div>
+      <div className="absolute bottom-1 right-2 text-[10px] text-[#86958d] font-['Geist_Mono']">{hi.toFixed(0)}</div>
       <div
-        className="absolute top-1 text-[8px] text-accent-teal font-mono font-semibold"
+        className="absolute top-1 text-[10px] text-[#37f5a0] font-['Geist_Mono'] font-semibold"
         style={{ left: `${toX(mean)}%`, transform: 'translateX(-50%)' }}
       >
         {mean.toFixed(1)}
@@ -122,8 +122,11 @@ export function ReproducibilityPage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div>
-        <h1 className="text-2xl font-bold text-slate-100 mb-1">Reproducibility Test</h1>
-        <p className="text-sm text-slate-400">
+        <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#37f5a0] mb-1">
+          ◕ Under evaluation · Test-Retest Variance
+        </p>
+        <h1 className="font-['Space_Grotesk'] text-2xl font-bold tracking-[-0.03em] text-[#eaf3ee] mb-1">Reproducibility Test</h1>
+        <p className="text-sm text-[#b3c2ba]">
           Run the same prompt against the same provider N times. Measure test-retest reliability
           of the NCCS scoring engine.
         </p>
@@ -132,7 +135,7 @@ export function ReproducibilityPage() {
       <Card title="Configure Test">
         <div className="space-y-4">
           <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+            <label className="block font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d] mb-1.5">
               Prompt
             </label>
             <textarea
@@ -140,33 +143,33 @@ export function ReproducibilityPage() {
               onChange={(e) => setText(e.target.value)}
               placeholder="Enter the prompt to test for reproducibility..."
               rows={3}
-              className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-base sm:text-sm text-slate-200 placeholder-slate-600 focus:border-accent-teal/50 focus:outline-none focus:ring-1 focus:ring-accent-teal/30 resize-none"
+              className="w-full rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3 text-base sm:text-sm text-[#eaf3ee] placeholder-[#62706a] focus:border-[#37f5a0] focus:outline-none resize-none"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <label className="space-y-1">
-              <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Provider</span>
+              <span className="block font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Provider</span>
               <select
                 value={provider}
                 onChange={(e) => setProvider(e.target.value)}
-                className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-slate-300 focus:border-accent-teal/50 focus:outline-none min-h-[44px]"
+                className="w-full rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-2 text-sm text-[#eaf3ee] focus:border-[#37f5a0] focus:outline-none min-h-[44px]"
               >
                 {PROVIDERS.map((p) => (
-                  <option key={p} value={p} className="bg-dark-800">{formatProviderLabel(p)}</option>
+                  <option key={p} value={p} className="bg-[#0c1513]">{formatProviderLabel(p)}</option>
                 ))}
               </select>
             </label>
 
             <label className="space-y-1">
-              <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Runs</span>
+              <span className="block font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Runs</span>
               <input
                 type="number"
                 min={2}
                 max={50}
                 value={runs}
                 onChange={(e) => setRuns(Math.min(50, Math.max(2, Number(e.target.value))))}
-                className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-slate-300 focus:border-accent-teal/50 focus:outline-none min-h-[44px]"
+                className="w-full rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-2 font-['Geist_Mono'] text-sm text-[#eaf3ee] focus:border-[#37f5a0] focus:outline-none min-h-[44px]"
               />
             </label>
 
@@ -174,7 +177,7 @@ export function ReproducibilityPage() {
               <button
                 onClick={handleRun}
                 disabled={!text.trim() || mutation.isPending}
-                className="w-full rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-4 py-2.5 text-sm font-semibold text-dark-900 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity min-h-[44px]"
+                className="w-full rounded-[2px] bg-[#37f5a0] px-4 py-2.5 text-sm font-semibold text-[#050b0a] hover:bg-[#37f5a0]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors min-h-[44px]"
               >
                 {mutation.isPending ? `Running ${runs} assessments...` : `Run ${runs}x`}
               </button>
@@ -182,7 +185,7 @@ export function ReproducibilityPage() {
           </div>
 
           {provider !== 'mock' && (
-            <p className="text-[10px] text-amber-400/80 flex items-center gap-1">
+            <p className="text-xs text-[#f59e0b] flex items-center gap-1.5">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               Live API — {runs} calls will be made. Requires API key in .env
             </p>
@@ -192,7 +195,7 @@ export function ReproducibilityPage() {
 
       {mutation.error && (
         <Card>
-          <p className="text-sm text-red-400">{(mutation.error as Error).message}</p>
+          <p className="text-sm text-[#ff7b72]">{(mutation.error as Error).message}</p>
         </Card>
       )}
 
@@ -202,33 +205,33 @@ export function ReproducibilityPage() {
           <Card title="Scoring Reliability">
             <div className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 text-center">
-                  <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">Mean NCCS</p>
-                  <p className="text-2xl font-bold text-slate-100 mt-1">{result.stats.mean}</p>
+                <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-3 text-center">
+                  <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Mean NCCS</p>
+                  <p className="font-['Space_Grotesk'] text-2xl font-bold text-[#eaf3ee] mt-1">{result.stats.mean}</p>
                 </div>
-                <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 text-center">
-                  <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">Std Dev</p>
-                  <p className="text-2xl font-bold text-slate-100 mt-1">{result.stats.std_dev}</p>
+                <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-3 text-center">
+                  <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Std Dev</p>
+                  <p className="font-['Space_Grotesk'] text-2xl font-bold text-[#eaf3ee] mt-1">{result.stats.std_dev}</p>
                 </div>
-                <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 text-center">
-                  <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">Range</p>
-                  <p className="text-2xl font-bold text-slate-100 mt-1">{result.stats.range}</p>
-                  <p className="text-[9px] text-slate-500 mt-0.5">{result.stats.min} — {result.stats.max}</p>
+                <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-3 text-center">
+                  <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Range</p>
+                  <p className="font-['Space_Grotesk'] text-2xl font-bold text-[#eaf3ee] mt-1">{result.stats.range}</p>
+                  <p className="font-['Geist_Mono'] text-[10px] text-[#86958d] mt-0.5">{result.stats.min} — {result.stats.max}</p>
                 </div>
-                <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 text-center">
-                  <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">CV</p>
-                  <p className="text-2xl font-bold text-slate-100 mt-1">{result.stats.coefficient_of_variation}%</p>
+                <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-3 text-center">
+                  <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">CV</p>
+                  <p className="font-['Space_Grotesk'] text-2xl font-bold text-[#eaf3ee] mt-1">{result.stats.coefficient_of_variation}%</p>
                 </div>
               </div>
 
               {/* Certification consistency */}
-              <div className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+              <div className="flex items-center gap-3 rounded-[2px] border border-[#20302b] bg-[#13201c] p-3">
                 <CertBadge certification={result.stats.dominant_certification} composite={result.stats.mean} />
                 <div>
-                  <p className="text-sm font-medium text-slate-200">
+                  <p className="text-sm font-medium text-[#eaf3ee]">
                     {result.stats.certification_consistency}% certification consistency
                   </p>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-xs text-[#86958d]">
                     {result.stats.certification_consistency === 100
                       ? `All ${result.completed_runs} runs certified ${result.stats.dominant_certification}`
                       : `${Math.round(result.stats.certification_consistency / 100 * result.completed_runs)} of ${result.completed_runs} runs certified ${result.stats.dominant_certification}`}
@@ -237,19 +240,19 @@ export function ReproducibilityPage() {
               </div>
 
               {/* Reliability interpretation */}
-              <div className={`rounded-lg border p-3 ${
+              <div className={`rounded-[2px] border p-3 ${
                 result.stats.coefficient_of_variation < 3
-                  ? 'border-emerald-500/20 bg-emerald-500/[0.04]'
+                  ? 'border-[#37f5a0]/35 bg-[#13201c]'
                   : result.stats.coefficient_of_variation < 8
-                    ? 'border-amber-500/20 bg-amber-500/[0.04]'
-                    : 'border-red-500/20 bg-red-500/[0.04]'
+                    ? 'border-[#f59e0b]/40 bg-[#f59e0b]/10'
+                    : 'border-[#ff7b72]/40 bg-[#ff7b72]/10'
               }`}>
-                <p className={`text-[11px] font-semibold ${
+                <p className={`font-['Geist_Mono'] text-xs uppercase tracking-[0.08em] font-semibold ${
                   result.stats.coefficient_of_variation < 3
-                    ? 'text-emerald-400'
+                    ? 'text-[#37f5a0]'
                     : result.stats.coefficient_of_variation < 8
-                      ? 'text-amber-400'
-                      : 'text-red-400'
+                      ? 'text-[#f59e0b]'
+                      : 'text-[#ff7b72]'
                 }`}>
                   {result.stats.coefficient_of_variation < 3
                     ? 'High Test-Retest Reliability'
@@ -257,7 +260,7 @@ export function ReproducibilityPage() {
                       ? 'Moderate Test-Retest Reliability'
                       : 'Low Test-Retest Reliability'}
                 </p>
-                <p className="text-[10px] text-slate-400 mt-1">
+                <p className="text-xs text-[#b3c2ba] mt-1">
                   When the same prompt was submitted to {formatProviderLabel(result.provider)} {result.completed_runs} times independently,
                   NCCS scores showed a standard deviation of {result.stats.std_dev} points
                   (CV = {result.stats.coefficient_of_variation}%), demonstrating{' '}
@@ -276,14 +279,14 @@ export function ReproducibilityPage() {
                 mean={result.stats.mean}
                 stdDev={result.stats.std_dev}
               />
-              <div className="flex flex-wrap gap-3 text-[9px] text-slate-500">
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-accent-teal inline-block" /> Mean
+              <div className="flex flex-wrap gap-3 font-['Geist_Mono'] text-[11px] text-[#86958d]">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#37f5a0] inline-block" /> Mean
                 </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-6 h-2 rounded bg-accent-teal/10 border border-accent-teal/20 inline-block" /> ±1 Std Dev
+                <span className="flex items-center gap-1.5">
+                  <span className="w-6 h-2 rounded-[2px] bg-[#37f5a0]/15 border border-[#37f5a0]/35 inline-block" /> ±1 Std Dev
                 </span>
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: CERT_COLORS.Gold }} /> Individual Run
                 </span>
               </div>
@@ -293,40 +296,40 @@ export function ReproducibilityPage() {
           {/* Individual runs table */}
           <Card title={`Individual Runs (${result.completed_runs})`}>
             <div className="overflow-x-auto">
-              <table className="w-full text-[11px]">
+              <table className="w-full text-xs">
                 <thead>
-                  <tr className="text-slate-500 uppercase tracking-wider text-[9px]">
-                    <th className="text-left px-2 py-1.5">#</th>
-                    <th className="text-right px-2 py-1.5">NCCS</th>
-                    <th className="text-center px-2 py-1.5">Cert</th>
-                    <th className="text-right px-2 py-1.5">Operator</th>
-                    <th className="text-right px-2 py-1.5">Domain</th>
-                    <th className="text-right px-2 py-1.5">Drive/RPM</th>
-                    <th className="text-right px-2 py-1.5">Inversion</th>
-                    <th className="text-right px-2 py-1.5">Time</th>
+                  <tr className="bg-[#13201c] border-b border-[#20302b] text-[#86958d] font-['Geist_Mono'] uppercase tracking-[0.08em] text-[11px]">
+                    <th className="text-left px-2.5 py-2 font-medium">#</th>
+                    <th className="text-right px-2.5 py-2 font-medium">NCCS</th>
+                    <th className="text-center px-2.5 py-2 font-medium">Cert</th>
+                    <th className="text-right px-2.5 py-2 font-medium">Operator</th>
+                    <th className="text-right px-2.5 py-2 font-medium">Domain</th>
+                    <th className="text-right px-2.5 py-2 font-medium">Drive/RPM</th>
+                    <th className="text-right px-2.5 py-2 font-medium">Inversion</th>
+                    <th className="text-right px-2.5 py-2 font-medium">Time</th>
                   </tr>
                 </thead>
                 <tbody>
                   {result.runs.map((run) => (
-                    <tr key={run.run_index} className="border-t border-white/[0.04] hover:bg-white/[0.02]">
-                      <td className="px-2 py-1.5 text-slate-500 font-mono">{run.run_index + 1}</td>
-                      <td className="px-2 py-1.5 text-right font-semibold text-slate-200">{run.composite.toFixed(1)}</td>
-                      <td className="px-2 py-1.5 text-center">
+                    <tr key={run.run_index} className="border-t border-[#20302b]/60 hover:bg-[#13201c]/70">
+                      <td className="px-2.5 py-2 text-[#86958d] font-['Geist_Mono']">{run.run_index + 1}</td>
+                      <td className="px-2.5 py-2 text-right font-['Geist_Mono'] font-semibold text-[#eaf3ee]">{run.composite.toFixed(1)}</td>
+                      <td className="px-2.5 py-2 text-center">
                         <span
-                          className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold"
+                          className="font-['Geist_Mono'] text-[10px] uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-[2px] font-semibold"
                           style={{
-                            backgroundColor: `${CERT_COLORS[run.certification] ?? '#94a3b8'}20`,
-                            color: CERT_COLORS[run.certification] ?? '#94a3b8',
+                            backgroundColor: `${CERT_COLORS[run.certification] ?? '#86958d'}20`,
+                            color: CERT_COLORS[run.certification] ?? '#eaf3ee',
                           }}
                         >
                           {run.certification}
                         </span>
                       </td>
-                      <td className="px-2 py-1.5 text-right text-slate-400">{run.operator_profile.toFixed(1)}</td>
-                      <td className="px-2 py-1.5 text-right text-slate-400">{run.domain_coherence.toFixed(1)}</td>
-                      <td className="px-2 py-1.5 text-right text-slate-400">{run.drive_rpm_integrity.toFixed(1)}</td>
-                      <td className="px-2 py-1.5 text-right text-slate-400">{run.inversion_resistance.toFixed(1)}</td>
-                      <td className="px-2 py-1.5 text-right text-slate-500 font-mono">{run.elapsed_ms.toFixed(0)}ms</td>
+                      <td className="px-2.5 py-2 text-right font-['Geist_Mono'] text-[#b3c2ba]">{run.operator_profile.toFixed(1)}</td>
+                      <td className="px-2.5 py-2 text-right font-['Geist_Mono'] text-[#b3c2ba]">{run.domain_coherence.toFixed(1)}</td>
+                      <td className="px-2.5 py-2 text-right font-['Geist_Mono'] text-[#b3c2ba]">{run.drive_rpm_integrity.toFixed(1)}</td>
+                      <td className="px-2.5 py-2 text-right font-['Geist_Mono'] text-[#b3c2ba]">{run.inversion_resistance.toFixed(1)}</td>
+                      <td className="px-2.5 py-2 text-right text-[#86958d] font-['Geist_Mono']">{run.elapsed_ms.toFixed(0)}ms</td>
                     </tr>
                   ))}
                 </tbody>
@@ -336,7 +339,7 @@ export function ReproducibilityPage() {
 
           {/* Citable summary */}
           <Card title="Citable Summary">
-            <div className="rounded-lg border border-white/[0.06] bg-dark-900/50 p-4 font-mono text-[11px] text-slate-300 leading-relaxed select-all">
+            <div className="rounded-[2px] border border-[#20302b] bg-[#050b0a] p-4 font-['Geist_Mono'] text-xs text-[#b3c2ba] leading-relaxed select-all">
               When the same prompt was submitted to {formatProviderLabel(result.provider)} {result.completed_runs} times independently,
               NCCS composite scores ranged from {result.stats.min} to {result.stats.max} (M = {result.stats.mean}, SD = {result.stats.std_dev},
               CV = {result.stats.coefficient_of_variation}%). Certification level was {result.stats.dominant_certification} in{' '}

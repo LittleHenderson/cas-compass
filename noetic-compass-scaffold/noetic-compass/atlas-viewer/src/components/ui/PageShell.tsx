@@ -1,8 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionConfig } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { useAccountAuth } from '../../auth/AccountAuthProvider';
-import { ACCENT_TEAL, ACCENT_CYAN, COLORS, SPRING_GENTLE, SPRING_SNAPPY, THEME } from '../../lib/designTokens';
+import { COLORS, SPRING_GENTLE, THEME } from '../../lib/designTokens';
+import { useMotionPaused } from '../../lib/motionPause';
 
 export interface PageShellProps {
   children: ReactNode;
@@ -16,170 +17,162 @@ const SIGNED_OUT_STEPS: Array<{ to: string; label: string }> = [
 
 const SIGNED_IN_STEPS: Array<{ to: string; label: string }> = [
   { to: '/model-config', label: 'Model' },
-  { to: '/audit-console', label: 'Audit' },
-  { to: '/cockpit', label: 'Cockpit' },
+  { to: '/audit-console', label: 'Audit Console' },
+  { to: '/cockpit', label: '3D Cockpit' },
   { to: '/account-security', label: 'Account' },
 ];
 
 const ACCOUNT_OFF_STEPS = SIGNED_IN_STEPS.filter((step) => step.to !== '/account-security');
 
-// Wave 5.2: dropped the big purple/blue ambient blobs. Replaced with a tight
-// slate-950 base + a single subtle radial darkening from bottom. No
-// chromatic sky, no glow halo — production tools don't decorate the backdrop.
-const backdropStyle: CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  background:
-    'radial-gradient(ellipse at 50% 110%, rgba(15, 23, 42, 0.9) 0%, #020617 60%, #000000 100%)',
-  overflowX: 'hidden',
-  overflowY: 'auto',
-};
-
-// A faint grid graticule behind everything — gives the page a HUD-like
-// foundation without competing with the content. Uses inline SVG via
-// data URI so there's no extra HTTP request.
-const gridOverlayStyle: CSSProperties = {
-  position: 'absolute',
-  inset: 0,
-  pointerEvents: 'none',
-  opacity: 0.35,
-  backgroundImage:
-    "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><path d='M40 0H0V40' fill='none' stroke='rgba(148,163,184,0.06)' stroke-width='1'/></svg>\")",
-  backgroundSize: '40px 40px',
-};
-
-const navWrapperStyle: CSSProperties = {
-  position: 'relative',
-  zIndex: 10,
+const shellContainerStyle: CSSProperties = {
+  minHeight: '100vh',
   display: 'flex',
-  justifyContent: 'center',
-  paddingTop: 22,
-  paddingBottom: 4,
-};
-
-const navInnerStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 2,
-  padding: 4,
-  fontSize: 12,
-  letterSpacing: 0.3,
+  flexDirection: 'column',
+  background: COLORS.ground,
+  color: COLORS.textPrimary,
   fontFamily: THEME.fontFamily,
 };
 
-const navStepStyle = (active: boolean): CSSProperties => ({
-  position: 'relative',
-  padding: '6px 12px',
-  borderRadius: 6,
-  color: active ? ACCENT_TEAL : COLORS.textSecondary,
-  fontWeight: active ? 600 : 500,
-  textDecoration: 'none',
-  cursor: 'pointer',
-  zIndex: 2,
-  transition: 'color 0.15s ease',
-});
-
 const mainStyle: CSSProperties = {
   position: 'relative',
-  zIndex: 1,
-  minHeight: '100vh',
+  flex: 1,
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '24px 24px 64px 24px',
+  padding: '32px 20px 64px 20px',
+  background: COLORS.ground,
   fontFamily: THEME.fontFamily,
   color: COLORS.textPrimary,
 };
 
-const wordmarkStyle: CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'baseline',
-  gap: 8,
-  marginBottom: 28,
-  fontSize: 11,
-  letterSpacing: 2.2,
-  textTransform: 'uppercase',
-  color: COLORS.textMuted,
-  fontWeight: 500,
-};
+export function CasLabTriangleBrainMark({ size = 24 }: { size?: number }): JSX.Element {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 28 28"
+      fill="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <polygon
+        points="14,2.5 26,24 2,24"
+        stroke="#eaf3ee"
+        strokeWidth="1.6"
+        strokeLinejoin="miter"
+        fill="#0c1513"
+      />
+      <path
+        d="M14 8.5V21M14 12.2C11.8 11.4 10.2 12.6 10.4 14.5C10.5 15.8 11.8 16.5 14 16.5M14 12.2C16.2 11.4 17.8 12.6 17.6 14.5C17.5 15.8 16.2 16.5 14 16.5M11.2 18.8H16.8"
+        stroke="#37f5a0"
+        strokeWidth="1.4"
+        strokeLinecap="square"
+      />
+      <circle cx="14" cy="8.5" r="1.4" fill="#37f5a0" />
+      <circle cx="10.4" cy="14.5" r="1.2" fill="#eaf3ee" />
+      <circle cx="17.6" cy="14.5" r="1.2" fill="#eaf3ee" />
+    </svg>
+  );
+}
 
-const wordmarkAccentStyle: CSSProperties = {
-  background: `linear-gradient(90deg, ${ACCENT_TEAL} 0%, ${ACCENT_CYAN} 100%)`,
-  WebkitBackgroundClip: 'text',
-  backgroundClip: 'text',
-  color: 'transparent',
-  fontWeight: 700,
-  letterSpacing: 2.5,
-};
+export interface CasLabHeaderProps {
+  showNav?: boolean;
+  compact?: boolean;
+}
 
-export function PageShell({
-  children,
-  showNav = true,
-  cardMaxWidth = 460,
-}: PageShellProps) {
+export function CasLabHeader({ showNav = true, compact = false }: CasLabHeaderProps): JSX.Element {
   const location = useLocation();
   const auth = useAccountAuth();
+  const { motionPaused, toggleMotionPaused } = useMotionPaused();
+
   const steps = !auth.accountsEnabled
     ? ACCOUNT_OFF_STEPS
     : auth.isAuthenticated
       ? SIGNED_IN_STEPS
       : SIGNED_OUT_STEPS;
 
-  const cardStyle: CSSProperties = {
-    width: '100%',
-    maxWidth: cardMaxWidth,
-  };
-
   return (
-    <div style={backdropStyle}>
-      <div style={gridOverlayStyle} aria-hidden="true" />
+    <>
+      <div className="caslab-bar">
+        <div
+          className="caslab-bar-inner"
+          style={compact ? { maxWidth: '100%', padding: '5px 14px' } : undefined}
+        >
+          <a href="https://www.caslabai.com/#research">← CAS Lab</a>
+          <span>CAS Compass · Audit &amp; 3D Cockpit</span>
+        </div>
+      </div>
 
-      {showNav ? (
-        <nav style={navWrapperStyle}>
-          <div
-            style={{
-              ...navInnerStyle,
-              background: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
-              borderRadius: 8,
-              backdropFilter: 'blur(14px) saturate(120%)',
-              WebkitBackdropFilter: 'blur(14px) saturate(120%)',
-            }}
-            role="navigation"
-            aria-label="Atlas Viewer flow"
+      <header className="caslab-header">
+        <div
+          className="caslab-header-inner"
+          style={compact ? { maxWidth: '100%', padding: '8px 14px' } : undefined}
+        >
+          <Link
+            to={auth.accountsEnabled && !auth.isAuthenticated ? '/login' : '/model-config'}
+            className="caslab-brand"
+            aria-label="CAS Compass — CAS Harness Audit"
           >
-            {steps.map((step) => {
-              const active = location.pathname.startsWith(step.to);
-              return (
-                <Link
-                  key={step.to}
-                  to={step.to}
-                  style={navStepStyle(active)}
-                  aria-current={active ? 'page' : undefined}
-                  data-testid={`nav-step-${step.to.slice(1)}`}
-                >
-                  {active ? (
-                    <motion.span
-                      layoutId="nav-active-pill"
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'rgba(45, 212, 191, 0.10)',
-                        border: '1px solid rgba(45, 212, 191, 0.30)',
-                        borderRadius: 6,
-                        zIndex: -1,
-                      }}
-                      transition={SPRING_SNAPPY}
-                    />
-                  ) : null}
-                  {step.label}
-                </Link>
-              );
-            })}
+            <CasLabTriangleBrainMark size={compact ? 20 : 24} />
+            <span className="caslab-brand-word">CAS</span>
+            <span className="caslab-brand-pill">Compass</span>
+            <span className="caslab-brand-sub">CAS HARNESS AUDIT</span>
+          </Link>
+
+          <nav className="caslab-nav-group" aria-label="CAS Compass navigation">
+            {showNav
+              ? steps.map((step) => {
+                  const active = location.pathname.startsWith(step.to);
+                  return (
+                    <Link
+                      key={step.to}
+                      to={step.to}
+                      className="caslab-nav-link"
+                      aria-current={active ? 'page' : undefined}
+                      data-testid={`nav-step-${step.to.slice(1)}`}
+                    >
+                      {step.label}
+                    </Link>
+                  );
+                })
+              : null}
+
+            {showNav ? <span className="caslab-nav-divider" aria-hidden="true" /> : null}
+
+            <a
+              href="https://compass.caslabai.com/scenarios"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="caslab-nav-link"
+            >
+              Workbench ↗
+            </a>
+            <a
+              href="https://www.caslabai.com/compiler/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="caslab-nav-link"
+            >
+              CAS Compiler ↗
+            </a>
+
+            <span className="caslab-nav-divider" aria-hidden="true" />
+
+            <button
+              type="button"
+              className="caslab-motion-btn"
+              aria-pressed={motionPaused}
+              onClick={toggleMotionPaused}
+              data-testid="pause-motion-toggle"
+            >
+              {motionPaused ? 'Resume motion' : 'Pause motion'}
+            </button>
+
             {auth.accountsEnabled && auth.isAuthenticated ? (
               <button
                 type="button"
+                className="caslab-nav-link"
                 onClick={() => {
                   void auth.logout().catch(() => {
                     // AccountAuthProvider clears local state and records a
@@ -187,37 +180,65 @@ export function PageShell({
                     // could not be confirmed.
                   });
                 }}
-                style={{
-                  ...navStepStyle(false),
-                  border: 0,
-                  background: 'transparent',
-                  fontFamily: THEME.fontFamily,
-                  fontSize: 12,
-                }}
               >
                 Sign out
               </button>
             ) : null}
-          </div>
-        </nav>
-      ) : null}
-
-      <main style={mainStyle}>
-        <div style={wordmarkStyle}>
-          <span style={wordmarkAccentStyle}>Atlas Viewer</span>
-          <span>·</span>
-          <span>Alpha</span>
+          </nav>
         </div>
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={SPRING_GENTLE}
-          style={cardStyle}
-        >
-          {children}
-        </motion.div>
-      </main>
-    </div>
+      </header>
+    </>
+  );
+}
+
+export function PageShell({
+  children,
+  showNav = true,
+  cardMaxWidth = 460,
+}: PageShellProps) {
+  const { motionPaused } = useMotionPaused();
+
+  const cardStyle: CSSProperties = {
+    width: '100%',
+    maxWidth: cardMaxWidth,
+  };
+
+  return (
+    <MotionConfig reducedMotion={motionPaused ? 'always' : 'user'}>
+      <div style={shellContainerStyle}>
+        <a className="skip-link" href="#main-content">
+          Skip to main content
+        </a>
+
+        <CasLabHeader showNav={showNav} />
+
+        <main id="main-content" style={mainStyle}>
+          <motion.div
+            initial={motionPaused ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={motionPaused ? { duration: 0 } : SPRING_GENTLE}
+            style={cardStyle}
+          >
+            {children}
+          </motion.div>
+        </main>
+
+        <footer className="caslab-footer">
+          <div className="caslab-footer-inner">
+            <span>
+              CAS Compass is a{' '}
+              <a href="https://www.caslabai.com" target="_blank" rel="noopener noreferrer">
+                CAS Lab
+              </a>{' '}
+              product · Zero analytics · No third-party tracking.
+            </span>
+            <span>
+              Boundary: Customer-production status is OPEN. Research verdicts do not establish customer-production ACCEPT.
+            </span>
+          </div>
+        </footer>
+      </div>
+    </MotionConfig>
   );
 }
 

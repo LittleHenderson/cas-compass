@@ -23,7 +23,7 @@ describe('TutorialPage', () => {
   it('renders the plain-language tutorial entry point', () => {
     renderTutorial();
     expect(screen.getByRole('heading', {
-      name: /Learn Noetic Compass without starting in the math/i,
+      name: /Learn CAS Compass without starting in the math/i,
     })).toBeInTheDocument();
     expect(screen.getByText(/About five minutes/i)).toBeInTheDocument();
   });
@@ -34,7 +34,7 @@ describe('TutorialPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /technical/i }));
 
-    expect(screen.getByText(/Noetics, Domains, Registers, Drives/i)).toBeInTheDocument();
+    expect(screen.getByText(/10 Noetics, 4 Domains, 4 Registers/i)).toBeInTheDocument();
   });
 
   it('advances and returns between tutorial steps', () => {
@@ -52,7 +52,7 @@ describe('TutorialPage', () => {
     renderTutorial();
     expect(screen.getByRole('link', { name: /Visual \+ Audio/i })).toHaveAttribute('href', '/visualization');
     expect(screen.getByRole('link', { name: /Risk Forecast/i })).toHaveAttribute('href', '/forecast');
-    expect(screen.getByRole('link', { name: /CAS Compiler/i })).toHaveAttribute('href', '/compiler');
+    expect(screen.getByRole('link', { name: /CAS Compiler/i })).toHaveAttribute('href', 'https://www.caslabai.com/compiler/');
     expect(screen.getByRole('link', { name: /Assessment/i })).toHaveAttribute('href', '/assessment');
   });
 

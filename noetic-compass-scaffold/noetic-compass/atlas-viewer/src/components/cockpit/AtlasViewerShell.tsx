@@ -72,7 +72,7 @@ import {
 } from '../../lib/atlasLiveApi';
 import { GlassPanel } from '../ui/GlassPanel';
 import LiquidGlassTooltip from '../ui/LiquidGlassTooltip';
-import { ACCENT_TEAL, COLORS, SPRING_GENTLE, SPRING_SNAPPY, THEME } from '../../lib/designTokens';
+import { ACCENT_AMBER, ACCENT_ERROR, ACCENT_TEAL, COLORS, FONT_MONO, SPRING_GENTLE, SPRING_SNAPPY, THEME } from '../../lib/designTokens';
 
 interface TraceNeuronCovers {
   // unknown[] tolerates BOTH the legacy bare-string shape AND the new
@@ -136,7 +136,7 @@ const shellStyle: CSSProperties = {
   width: '100%',
   height: '100%',
   minHeight: 0,
-  background: '#020617',
+  background: COLORS.ground,
   color: COLORS.textPrimary,
   fontFamily: THEME.fontFamily,
   position: 'relative',
@@ -168,7 +168,8 @@ const floatingCardStyle: CSSProperties = {
 const tabBarStyle: CSSProperties = {
   display: 'flex',
   position: 'relative',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+  borderBottom: `1px solid ${COLORS.rule}`,
+  background: COLORS.stripe,
 };
 
 const tabBaseStyle: CSSProperties = {
@@ -179,9 +180,10 @@ const tabBaseStyle: CSSProperties = {
   color: COLORS.textMuted,
   border: 'none',
   cursor: 'pointer',
+  fontFamily: FONT_MONO,
   fontSize: 11.5,
   fontWeight: 500,
-  letterSpacing: 0.4,
+  letterSpacing: 0.6,
   textTransform: 'uppercase',
 };
 
@@ -196,7 +198,7 @@ const tabUnderlineStyle: CSSProperties = {
   left: 0,
   right: 0,
   bottom: -1,
-  height: 1,
+  height: 2,
   background: ACCENT_TEAL,
   borderRadius: 0,
 };
@@ -223,26 +225,28 @@ const spatialScenarioButtonStyle = (active: boolean): CSSProperties => ({
   textAlign: 'left',
   border: active
     ? `1px solid ${ACCENT_TEAL}`
-    : '1px solid rgba(148, 163, 184, 0.22)',
-  background: active ? 'rgba(20, 184, 166, 0.14)' : 'rgba(15, 23, 42, 0.42)',
-  color: active ? '#ccfbf1' : COLORS.textSecondary,
-  borderRadius: 8,
+    : `1px solid ${COLORS.rule}`,
+  background: active ? COLORS.stripe : COLORS.ground,
+  color: active ? ACCENT_TEAL : COLORS.textSecondary,
+  borderRadius: 2,
   padding: '6px 8px',
   cursor: 'pointer',
 });
 
 const spatialScenarioTitleStyle: CSSProperties = {
   display: 'block',
-  fontSize: 12,
-  fontWeight: 800,
+  fontFamily: FONT_MONO,
+  fontSize: 11.5,
+  fontWeight: 600,
 };
 
 const spatialScenarioSentenceStyle: CSSProperties = {
   margin: 0,
   padding: '9px 10px',
-  borderRadius: 8,
-  border: '1px solid rgba(45, 212, 191, 0.22)',
-  background: 'rgba(20, 184, 166, 0.08)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  borderLeft: `2px solid ${ACCENT_TEAL}`,
+  background: COLORS.stripe,
   color: COLORS.textSecondary,
   fontSize: 12,
   lineHeight: 1.45,
@@ -268,22 +272,22 @@ const bottomTimelineFloatStyle: CSSProperties = {
 
 const placeholderCardStyle: CSSProperties = {
   padding: 16,
-  borderRadius: 6,
-  background: 'rgba(255, 255, 255, 0.02)',
-  border: '1px dashed rgba(255, 255, 255, 0.08)',
+  borderRadius: 2,
+  background: COLORS.ground,
+  border: `1px dashed ${COLORS.dash}`,
   color: COLORS.textMuted,
   fontSize: 12.5,
   lineHeight: 1.55,
 };
 
-// Wave 5.3 fullscreen: NN scene sits at viewport inset 0, hiding all
+// Fullscreen: NN scene sits at viewport inset 0, hiding all
 // surrounding chrome (control bar, narration, timeline, side panels).
 // A small floating exit-fullscreen button overlays the top-right.
 const fullscreenOverlayStyle: CSSProperties = {
   position: 'absolute',
   inset: 0,
   zIndex: 40,
-  background: '#020617',
+  background: COLORS.ground,
 };
 
 const fullscreenExitButtonStyle: CSSProperties = {
@@ -292,85 +296,79 @@ const fullscreenExitButtonStyle: CSSProperties = {
   right: 12,
   zIndex: 41,
   padding: '6px 12px',
-  borderRadius: 6,
-  border: '1px solid rgba(45, 212, 191, 0.45)',
-  background: 'rgba(45, 212, 191, 0.10)',
+  borderRadius: 2,
+  border: `1px solid ${ACCENT_TEAL}`,
+  background: COLORS.card,
   color: ACCENT_TEAL,
   fontSize: 11.5,
   fontWeight: 600,
-  letterSpacing: 0.3,
-  fontFamily: THEME.fontFamily,
+  letterSpacing: 0.6,
+  textTransform: 'uppercase',
+  fontFamily: FONT_MONO,
   cursor: 'pointer',
 };
 
 // Provenance badge — surfaces real-vs-demo split in the cockpit header so
-// the user never thinks they're looking at a mock. Trace is real Pythia-160M
-// activations replayed from disk; spatial primitives are demo fixtures
-// until the live wire-up lands.
+// the user never thinks they're looking at a mock.
 const provenanceBadgeStyle: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: 6,
   padding: '3px 8px',
-  borderRadius: 4,
-  border: '1px solid rgba(45, 212, 191, 0.35)',
-  background: 'rgba(45, 212, 191, 0.08)',
+  borderRadius: 2,
+  border: `1px solid ${ACCENT_TEAL}`,
+  background: COLORS.card,
   color: ACCENT_TEAL,
-  fontSize: 10.5,
-  fontWeight: 600,
-  letterSpacing: 0.8,
+  fontSize: 11,
+  fontWeight: 500,
+  letterSpacing: 0.7,
   textTransform: 'uppercase',
-  fontFamily: THEME.fontFamily,
+  fontFamily: FONT_MONO,
 };
 
 const provenanceDotStyle: CSSProperties = {
   width: 6,
   height: 6,
-  borderRadius: '50%',
+  borderRadius: 2,
   background: ACCENT_TEAL,
 };
 
 const demoBadgeStyle: CSSProperties = {
   ...provenanceBadgeStyle,
-  border: '1px solid rgba(234, 179, 8, 0.40)',
-  background: 'rgba(234, 179, 8, 0.08)',
-  color: '#fbbf24',
+  border: `1px dashed ${ACCENT_AMBER}`,
+  background: COLORS.card,
+  color: ACCENT_AMBER,
 };
 
 const demoDotStyle: CSSProperties = {
   ...provenanceDotStyle,
-  background: '#fbbf24',
+  background: ACCENT_AMBER,
 };
 
 const proofBadgeStyle = (connected: boolean | null): CSSProperties => ({
   display: 'inline-flex',
   alignItems: 'center',
   gap: 7,
-  padding: '4px 8px',
-  borderRadius: 4,
+  padding: '3px 8px',
+  borderRadius: 2,
   border:
     connected === true
-      ? '1px solid rgba(34, 197, 94, 0.42)'
+      ? `1px solid ${ACCENT_TEAL}`
       : connected === false
-        ? '1px solid rgba(251, 113, 133, 0.42)'
-        : '1px solid rgba(234, 179, 8, 0.38)',
-  background:
-    connected === true
-      ? 'rgba(34, 197, 94, 0.08)'
-      : connected === false
-        ? 'rgba(251, 113, 133, 0.08)'
-        : 'rgba(234, 179, 8, 0.08)',
+        ? `1px solid ${ACCENT_ERROR}`
+        : `1px dashed ${ACCENT_AMBER}`,
+  background: COLORS.card,
   color:
     connected === true
-      ? '#86efac'
+      ? ACCENT_TEAL
       : connected === false
-        ? '#fda4af'
-        : '#fde68a',
-  fontSize: 10.5,
-  fontWeight: 700,
+        ? ACCENT_ERROR
+        : ACCENT_AMBER,
+  fontSize: 11,
+  fontWeight: 500,
   letterSpacing: 0.5,
   textTransform: 'uppercase',
-  fontFamily: THEME.fontFamily,
+  fontFamily: FONT_MONO,
 });
 
 function defaultValueForKnob(knob: { type: string; default: unknown }): KnobValue {
@@ -1233,7 +1231,7 @@ export function AtlasViewerShell(props: AtlasViewerShellProps): JSX.Element {
           </span>
         </LiquidGlassTooltip>
         {liveError ? (
-          <span style={{ color: '#fb7185', fontWeight: 600 }}>
+          <span style={{ color: ACCENT_ERROR, fontWeight: 600 }}>
             {liveError}
           </span>
         ) : null}
@@ -1245,9 +1243,9 @@ export function AtlasViewerShell(props: AtlasViewerShellProps): JSX.Element {
             {proofLabel}
             <span
               style={{
-                color: 'rgba(255, 255, 255, 0.78)',
+                color: COLORS.textPrimary,
                 textTransform: 'none',
-                fontWeight: 600,
+                fontWeight: 500,
               }}
               data-testid="live-proof-reason"
             >
@@ -1283,7 +1281,7 @@ export function AtlasViewerShell(props: AtlasViewerShellProps): JSX.Element {
             >
               <span
                 style={{
-                  color: inversionRiskNow >= 0.5 ? '#fb7185' : '#fbbf24',
+                  color: inversionRiskNow >= 0.5 ? ACCENT_ERROR : ACCENT_AMBER,
                   fontFamily: THEME.fontMono,
                 }}
               >
@@ -1304,10 +1302,10 @@ export function AtlasViewerShell(props: AtlasViewerShellProps): JSX.Element {
                 style={{
                   color:
                     verificationVerdictNow === 'ACCEPT'
-                      ? '#86efac'
+                      ? ACCENT_TEAL
                       : verificationVerdictNow === 'SUPPRESS'
-                        ? '#fb7185'
-                        : '#fde68a',
+                        ? ACCENT_ERROR
+                        : ACCENT_AMBER,
                   fontFamily: THEME.fontMono,
                 }}
               >

@@ -47,7 +47,7 @@ jobs:
           EXPECTED_DEPLOY_ID: ${{ inputs.expected_deploy_id }}
         run: |
           set -euo pipefail
-          test "$DISPATCH_REPOSITORY" = "LittleHenderson/noetic-compass"
+          test "$DISPATCH_REPOSITORY" = "LittleHenderson/cas-compass"
           test "$DEFAULT_BRANCH" = "master"
           test "$DISPATCH_REF" = "refs/heads/master"
           test "$DISPATCH_REF_PROTECTED" = "true"
@@ -81,7 +81,7 @@ jobs:
           name: ${{ inputs.evidence_artifact_name }}
           path: .customer-production-evidence
           github-token: ${{ github.token }}
-          repository: LittleHenderson/noetic-compass
+          repository: LittleHenderson/cas-compass
           run-id: ${{ inputs.evidence_run_id }}
 
       - name: Require authoritative customer-production ACCEPT

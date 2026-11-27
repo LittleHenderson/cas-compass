@@ -18,12 +18,13 @@ describe('contextualFaq', () => {
     expect(matchFaqTopic('/assessment').id).toBe('evaluation-trace');
     expect(matchFaqTopic('/details/abc123').id).toBe('evaluation-trace');
     expect(matchFaqTopic('/idea-atlas').id).toBe('evidence-packet-flight-recorder');
-    expect(matchFaqTopic('/compiler').id).toBe('notation-composer');
+    expect(matchFaqTopic('/support').id).toBe('what-is-noetic-compass');
     expect(matchFaqTopic('/forecast').id).toBe('inversion');
   });
 
   it('finds deep-link topics by stable FAQ id', () => {
     expect(findFaqTopic('evidence-packet-flight-recorder')?.label).toBe('Evidence Packet');
+    expect(findFaqTopic('notation-composer')?.externalUrl).toBe('https://www.caslabai.com/compiler/');
     expect(findFaqTopic('not-a-real-topic')).toBeUndefined();
   });
 

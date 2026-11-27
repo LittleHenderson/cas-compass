@@ -98,40 +98,34 @@ const bodyStyle: CSSProperties = {
 const statusStyle = (tone: 'verified' | 'loading' | 'failed' | 'neutral'): CSSProperties => {
   const color =
     tone === 'verified'
-      ? '#86efac'
+      ? COLORS.accent
       : tone === 'loading'
-        ? '#fde68a'
+        ? COLORS.warn
         : tone === 'failed'
-          ? '#fca5a5'
+          ? COLORS.error
           : COLORS.textSecondary;
   const border =
     tone === 'verified'
-      ? 'rgba(34, 197, 94, 0.35)'
+      ? COLORS.accent
       : tone === 'loading'
-        ? 'rgba(251, 191, 36, 0.35)'
+        ? COLORS.warn
         : tone === 'failed'
-          ? 'rgba(248, 113, 113, 0.35)'
-          : COLORS.borderSubtle;
-  const background =
-    tone === 'verified'
-      ? 'rgba(34, 197, 94, 0.10)'
-      : tone === 'loading'
-        ? 'rgba(251, 191, 36, 0.10)'
-        : tone === 'failed'
-          ? 'rgba(248, 113, 113, 0.10)'
-          : 'rgba(255, 255, 255, 0.03)';
+          ? COLORS.error
+          : COLORS.rule;
   return {
     display: 'inline-flex',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    minHeight: 26,
-    padding: '4px 8px',
-    borderRadius: 6,
-    border: `1px solid ${border}`,
+    minHeight: 24,
+    padding: '3px 8px',
+    borderRadius: 2,
+    border: tone === 'loading' ? `1px dashed ${border}` : `1px solid ${border}`,
     color,
-    background,
-    fontSize: 11.5,
-    fontWeight: 800,
+    background: COLORS.ground,
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
     whiteSpace: 'nowrap',
   };
 };
@@ -139,13 +133,15 @@ const statusStyle = (tone: 'verified' | 'loading' | 'failed' | 'neutral'): CSSPr
 const refreshButtonStyle: CSSProperties = {
   minHeight: 28,
   padding: '4px 8px',
-  borderRadius: 6,
-  border: '1px solid rgba(45, 212, 191, 0.35)',
-  background: 'rgba(45, 212, 191, 0.08)',
+  borderRadius: 2,
+  border: `1px solid ${ACCENT_TEAL}`,
+  background: COLORS.stripe,
   color: ACCENT_TEAL,
   fontFamily: 'inherit',
-  fontSize: 11.5,
-  fontWeight: 700,
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: 0.5,
+  textTransform: 'uppercase',
   cursor: 'pointer',
 };
 
@@ -160,7 +156,7 @@ const rowStyle: CSSProperties = {
   gridTemplateColumns: '120px minmax(0, 1fr)',
   gap: 8,
   padding: '7px 0',
-  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+  borderTop: `1px solid ${COLORS.rule}`,
 };
 
 const labelStyle: CSSProperties = {

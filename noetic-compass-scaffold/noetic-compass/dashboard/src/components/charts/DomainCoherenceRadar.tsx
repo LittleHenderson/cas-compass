@@ -41,53 +41,53 @@ export function DomainCoherenceRadar({ result }: { result: WrapResult }) {
       <div className="animate-chart-in">
         <ResponsiveContainer width="100%" height={260}>
           <RadarChart data={data} cx="50%" cy="50%" outerRadius="65%">
-            <PolarGrid stroke="rgba(255,255,255,0.06)" />
+            <PolarGrid stroke="#20302b" />
             <PolarAngleAxis
               dataKey="domain"
-              tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }}
+              tick={{ fill: '#b3c2ba', fontSize: 11, fontWeight: 500 }}
             />
             <PolarRadiusAxis
               domain={[0, Math.max(40, ...data.map(d => d.value))]}
-              tick={{ fill: '#475569', fontSize: 9 }}
+              tick={{ fill: '#86958d', fontSize: 9 }}
               axisLine={false}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#151d33',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 8,
-                color: '#e2e8f0',
+                backgroundColor: '#0c1513',
+                border: '1px solid #20302b',
+                borderRadius: 2,
+                color: '#eaf3ee',
               }}
               formatter={(value) => [`${Number(value).toFixed(1)}%`, 'Strength']}
             />
             <Radar
               dataKey="value"
-              stroke="#818cf8"
+              stroke="#37f5a0"
               strokeWidth={2}
-              fill="#818cf8"
-              fillOpacity={0.15}
+              fill="#37f5a0"
+              fillOpacity={0.14}
             />
           </RadarChart>
         </ResponsiveContainer>
 
         {/* Processing Balance indicator */}
         <div className="flex items-center justify-center gap-2 mt-1">
-          <span className="text-[10px] text-slate-500 uppercase tracking-wider">Processing Balance</span>
+          <span className="font-['Geist_Mono'] text-[11px] text-[#86958d] uppercase tracking-[0.08em]">Processing Balance</span>
           <span
-            className="font-mono text-[12px] font-bold"
+            className="font-['Geist_Mono'] text-xs font-bold"
             style={{ color: dc.dci.severityColor }}
           >
             {dc.dci.displayValue}
           </span>
         </div>
 
-        <div className="chart-hint text-center text-[10px] text-slate-600 opacity-0 transition-opacity mt-1">
+        <div className="chart-hint text-center font-['Geist_Mono'] text-[10px] text-[#86958d] opacity-0 transition-opacity mt-1">
           Click for domain details
         </div>
       </div>
 
       <ExplainPanel visible={open} onClose={() => setOpen(false)}>
-        <p className="font-medium text-slate-200 mb-3">
+        <p className="font-medium text-[#eaf3ee] mb-3">
           Strongest: {strongest.name} ({strongest.pct}). Weakest: {weakest.name} ({weakest.pct}).
         </p>
 
@@ -95,17 +95,17 @@ export function DomainCoherenceRadar({ result }: { result: WrapResult }) {
 
         <div className="mt-3 space-y-2">
           {dc.domains.map((d, i) => (
-            <div key={d.name} className="rounded border border-white/[0.04] bg-white/[0.02] px-3 py-2">
+            <div key={d.name} className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full" style={{ backgroundColor: DOMAIN_COLORS[i] }} />
-                  <span className="text-[12px] font-semibold text-slate-200">{d.name}</span>
+                  <span className="text-xs font-semibold text-[#eaf3ee]">{d.name}</span>
                 </div>
-                <span className="font-mono text-[12px] font-bold" style={{ color: DOMAIN_COLORS[i] }}>
+                <span className="font-['Geist_Mono'] text-xs font-bold" style={{ color: DOMAIN_COLORS[i] }}>
                   {d.pct}
                 </span>
               </div>
-              <p className="mt-0.5 text-[11px] text-slate-400">{DOMAIN_DESCRIPTIONS[i]}</p>
+              <p className="mt-0.5 text-xs text-[#b3c2ba]">{DOMAIN_DESCRIPTIONS[i]}</p>
             </div>
           ))}
         </div>

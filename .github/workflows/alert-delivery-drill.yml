@@ -59,7 +59,7 @@ jobs:
           CONFIRMATION: ${{ inputs.confirmation }}
         run: |
           set -euo pipefail
-          test "$DISPATCH_REPOSITORY" = "LittleHenderson/noetic-compass"
+          test "$DISPATCH_REPOSITORY" = "LittleHenderson/cas-compass"
           test "$DEFAULT_BRANCH" = "master"
           test "$DISPATCH_REF" = "refs/heads/master"
           test "$DISPATCH_REF_PROTECTED" = "true"
@@ -94,7 +94,7 @@ jobs:
           name: ${{ inputs.root_ci_receipt_artifact_name }}
           path: ${{ runner.temp }}/root-ci-receipt-input
           github-token: ${{ github.token }}
-          repository: LittleHenderson/noetic-compass
+          repository: LittleHenderson/cas-compass
           run-id: ${{ inputs.root_ci_receipt_run_id }}
 
       - name: Bootstrap immutable exact-head verification environment

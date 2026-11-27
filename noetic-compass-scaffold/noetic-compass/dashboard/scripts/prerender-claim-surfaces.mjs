@@ -60,7 +60,10 @@ function loadAndValidateContent(raw) {
     }
     assert(Array.isArray(surface.statements) && surface.statements.length >= 4, `${expected.kind}.statements must contain at least four boundaries`);
     assert(surface.statements.every((statement) => typeof statement === 'string' && statement.trim().length > 0), `${expected.kind}.statements must contain only non-empty strings`);
-    assert(surface.heading !== 'Log in to Noetic Compass', `${expected.kind} cannot use the generic login heading`);
+    assert(
+      surface.heading !== 'Log in to Noetic Compass' && surface.heading !== 'Sign in to CAS Compass',
+      `${expected.kind} cannot use the generic login heading`,
+    );
   }
   return document;
 }

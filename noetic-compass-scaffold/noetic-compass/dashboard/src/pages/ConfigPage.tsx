@@ -14,13 +14,20 @@ export function ConfigPage() {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <h2 className="text-xl font-bold text-slate-100">Dial Configuration</h2>
+      <div>
+        <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#37f5a0] mb-1">
+          ◐ Prototype · Operator Calibration
+        </p>
+        <h2 className="font-['Space_Grotesk'] text-2xl font-bold tracking-[-0.03em] text-[#eaf3ee]">
+          Dial Configuration
+        </h2>
+      </div>
 
       {config.isLoading && <LoadingSpinner />}
       <ErrorBanner error={(config.error ?? mutation.error) as Error | null} />
 
       {mutation.isSuccess && (
-        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-400">
+        <div role="status" className="rounded-[2px] border border-[#37f5a0]/40 bg-[#13201c] p-3 text-sm text-[#37f5a0]">
           Configuration saved successfully.
         </div>
       )}

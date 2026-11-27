@@ -118,10 +118,8 @@ type PacketState =
 const backdropStyle: CSSProperties = {
   position: 'fixed',
   inset: 0,
-  background: 'rgba(2, 6, 23, 0.55)',
+  background: 'rgba(5, 11, 10, 0.72)',
   zIndex: 40,
-  backdropFilter: 'blur(4px)',
-  WebkitBackdropFilter: 'blur(4px)',
 };
 
 const drawerWrapperStyle: CSSProperties = {
@@ -134,7 +132,7 @@ const drawerWrapperStyle: CSSProperties = {
   zIndex: 50,
   display: 'flex',
   flexDirection: 'column',
-  fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
+  fontFamily: THEME.fontFamily,
   fontSize: 13,
 };
 
@@ -144,8 +142,8 @@ const drawerInnerStyle: CSSProperties = {
   flex: 1,
   height: '100%',
   borderRadius: 0,
-  borderLeft: '1px solid rgba(255,255,255,0.08)',
-  boxShadow: '-12px 0 36px rgba(0,0,0,0.45)',
+  borderLeft: `1px solid ${THEME.colors.borderInk}`,
+  boxShadow: 'none',
 };
 
 const headerStyle: CSSProperties = {
@@ -153,7 +151,7 @@ const headerStyle: CSSProperties = {
   alignItems: 'center',
   justifyContent: 'space-between',
   padding: '12px 16px',
-  borderBottom: '1px solid rgba(255,255,255,0.06)',
+  borderBottom: `1px solid ${THEME.colors.rule}`,
 };
 
 const titleStyle: CSSProperties = {

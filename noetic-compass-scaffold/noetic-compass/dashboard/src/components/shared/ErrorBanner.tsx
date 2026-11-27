@@ -2,7 +2,7 @@ import { ApiError } from '../../api/client';
 
 const STATUS_LABELS: Record<number, string> = {
   0: 'Network error',
-  401: 'Unauthorized - check your JWT token',
+  401: 'Unauthorized - check your session token',
   403: 'Forbidden',
   404: 'Not found',
   429: 'Rate limited - try again later',
@@ -65,14 +65,19 @@ export function ErrorBanner({ error }: { error: Error | null }) {
 
   if (violation) {
     return (
-      <div className="rounded-lg border border-amber-500/30 bg-amber-500/[0.06] p-4">
+      <div
+        role="alert"
+        className="rounded-[2px] border border-[#f59e0b]/45 bg-[#f59e0b]/[0.08] p-4"
+      >
         <div className="flex items-start gap-3">
-          <svg className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg className="mt-0.5 h-5 w-5 shrink-0 text-[#f59e0b]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
             <path d={violation.icon} strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-amber-300">{violation.label}</p>
-            <p className="text-[12px] text-slate-400 leading-relaxed">{detail}</p>
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.06em] text-[#f59e0b]">
+              {violation.label}
+            </p>
+            <p className="text-xs leading-relaxed text-[#b3c2ba]">{detail}</p>
           </div>
         </div>
       </div>
@@ -83,7 +88,10 @@ export function ErrorBanner({ error }: { error: Error | null }) {
   const message = label ? `${label}: ${detail}` : status ? `Error ${status}: ${detail}` : detail;
 
   return (
-    <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
+    <div
+      role="alert"
+      className="rounded-[2px] border border-[#ff7b72]/50 bg-[#ff7b72]/10 p-3.5 text-sm text-[#ff7b72]"
+    >
       {message}
     </div>
   );

@@ -329,10 +329,10 @@ describe('EvidencePacket — claim-level badges', () => {
     }[level];
     expect(badges[0].textContent).toContain(expectedLabel);
     const colorMap: Record<EvidenceClaimLevel, string> = {
-      cas_hard_trace: 'emerald-400/30',
-      source_copy_evidence: 'emerald-400/25',
-      derived_trace: 'sky-400/30',
-      neural_attribution_estimate: 'amber-400/30',
+      cas_hard_trace: 'border-[#37f5a0]/50',
+      source_copy_evidence: 'border-[#37f5a0]/35',
+      derived_trace: 'border-[#37f5a0]/25',
+      neural_attribution_estimate: 'border-[#f59e0b]/50',
     };
     expect(badges[0].className).toContain(colorMap[level]);
   });

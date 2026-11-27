@@ -21,7 +21,7 @@ const server = setupServer(
       operator_correlations: [
         {
           operator_index: 0,
-          operator_name: 'CO-0 (Generative Potential)',
+          operator_name: 'CO-0 (Idea)',
           n_pairs: 12,
           human_mean: 6.2,
           machine_mean: 6.0,
@@ -37,7 +37,7 @@ const server = setupServer(
         },
         {
           operator_index: 1,
-          operator_name: 'CO-1 (Directed Attention)',
+          operator_name: 'CO-1 (Mind)',
           n_pairs: 12,
           human_mean: 5.4,
           machine_mean: 5.7,

@@ -29,8 +29,8 @@ export function DetailsPage() {
 
   if (!record) {
     return (
-      <div className="p-8 text-center text-slate-500">
-        Assessment not found. <button onClick={() => navigate('/history')} className="text-accent-teal underline">Back to history</button>
+      <div className="p-8 text-center text-[#86958d]">
+        Assessment not found. <button onClick={() => navigate('/history')} className="text-[#37f5a0] underline">Back to history</button>
       </div>
     );
   }
@@ -54,15 +54,20 @@ export function DetailsPage() {
   const axisScores = result.stages.find(s => s.stage === 'inversion_scan')?.data?.axis_scores as number[] | undefined;
   const stealthResistance = result.stages.find(s => s.stage === 'inversion_scan')?.data?.stealth_resistance as number | undefined;
   const chartFallback = (
-    <div className="flex min-h-[220px] items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-xs text-slate-500">
+    <div className="flex min-h-[220px] items-center justify-center rounded-[2px] border border-[#20302b] bg-[#13201c] font-['Geist_Mono'] text-xs text-[#86958d]">
       Loading visualization...
     </div>
   );
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-xl font-bold text-slate-100">Assessment Details</h2>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#37f5a0] mb-1">
+            ◐ Prototype · Evaluation Record
+          </p>
+          <h2 className="font-['Space_Grotesk'] text-2xl font-bold tracking-[-0.03em] text-[#eaf3ee]">Assessment Details</h2>
+        </div>
         <div className="flex flex-wrap gap-2">
           <ExportButton
             result={record.result}
@@ -71,13 +76,13 @@ export function DetailsPage() {
           />
           <button
             onClick={() => navigate('/assessment', { state: { prefill: record.text } })}
-            className="rounded-lg border border-accent-teal/30 bg-accent-teal/10 px-3 py-2 text-xs font-medium text-accent-teal hover:bg-accent-teal/20 transition-colors min-h-[44px]"
+            className="rounded-[2px] bg-[#37f5a0] px-3.5 py-2 text-xs font-semibold text-[#050b0a] hover:bg-[#37f5a0]/90 transition-colors min-h-[44px]"
           >
             Re-run
           </button>
           <button
             onClick={() => navigate('/history')}
-            className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/[0.08] transition-colors min-h-[44px]"
+            className="rounded-[2px] border border-[#eaf3ee] bg-transparent px-3.5 py-2 text-xs font-medium text-[#eaf3ee] hover:bg-[#13201c] transition-colors min-h-[44px]"
           >
             Back
           </button>
@@ -87,8 +92,8 @@ export function DetailsPage() {
       <ResearchPrototypeNotice compact />
 
       <Card title="Input Text">
-        <p className="text-sm text-slate-300 whitespace-pre-wrap">{record.text}</p>
-        <p className="mt-2 text-xs text-slate-600">{new Date(record.timestamp).toLocaleString()}</p>
+        <p className="text-sm text-[#eaf3ee] whitespace-pre-wrap">{record.text}</p>
+        <p className="mt-2 font-['Geist_Mono'] text-xs text-[#86958d]">{new Date(record.timestamp).toLocaleString()}</p>
       </Card>
 
       {/* Show the actual AI response that was assessed. Collapsed by default. */}
@@ -98,7 +103,7 @@ export function DetailsPage() {
         <div className="flex justify-end">
           <button
             onClick={() => setViewMode(viewMode === 'summary' ? 'technical' : 'summary')}
-            className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/[0.08] transition-colors min-h-[44px]"
+            className="rounded-[2px] border border-[#eaf3ee] bg-transparent px-3.5 py-2 text-xs font-medium text-[#eaf3ee] hover:bg-[#13201c] transition-colors min-h-[44px]"
           >
             {viewMode === 'summary' ? 'Show Technical View' : 'Show Summary View'}
           </button>
@@ -178,22 +183,22 @@ export function DetailsPage() {
                   <div className="relative flex items-center justify-center w-5 h-5">
                     {s.success ? (
                       <>
-                        <div className="absolute inset-0 rounded-full bg-emerald-400/20" />
+                        <div className="absolute inset-0 rounded-full bg-[#37f5a0]/20" />
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                          <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#34d399" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#37f5a0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </>
                     ) : (
                       <>
-                        <div className="absolute inset-0 rounded-full bg-red-400/20" />
+                        <div className="absolute inset-0 rounded-full bg-[#ff7b72]/20" />
                         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                          <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="#f87171" strokeWidth="1.5" strokeLinecap="round" />
+                          <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="#ff7b72" strokeWidth="1.5" strokeLinecap="round" />
                         </svg>
                       </>
                     )}
                   </div>
-                  <span className="text-xs font-medium text-slate-300 w-32">{PIPELINE_STAGES[i]}</span>
-                  {s.error && <span className="text-[10px] text-red-400">{s.error}</span>}
+                  <span className="text-xs font-medium text-[#eaf3ee] w-32">{PIPELINE_STAGES[i]}</span>
+                  {s.error && <span className="text-[11px] text-[#ff7b72]">{s.error}</span>}
                 </div>
               ))}
             </div>
@@ -208,12 +213,12 @@ export function DetailsPage() {
       <Card>
         <button
           onClick={() => setShowRaw(!showRaw)}
-          className="text-xs font-medium text-accent-teal hover:text-accent-cyan transition-colors"
+          className="font-['Geist_Mono'] text-xs uppercase tracking-[0.08em] text-[#37f5a0] hover:underline transition-colors"
         >
           {showRaw ? 'Hide' : 'Show'} Raw JSON
         </button>
         {showRaw && (
-          <pre className="mt-3 max-h-96 overflow-auto rounded-lg bg-dark-800 border border-white/[0.06] p-4 text-xs text-slate-400">
+          <pre className="mt-3 max-h-96 overflow-auto rounded-[2px] bg-[#050b0a] border border-[#20302b] p-4 font-['Geist_Mono'] text-xs text-[#b3c2ba]">
             {JSON.stringify(result, null, 2)}
           </pre>
         )}

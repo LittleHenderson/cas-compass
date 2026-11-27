@@ -2,9 +2,12 @@ import type { CSSProperties } from 'react';
 import { GlassPanel } from '../ui/GlassPanel';
 import {
   ACCENT_AMBER,
+  ACCENT_ERROR,
   ACCENT_TEAL,
   COLORS,
+  FONT_DISPLAY,
   FONT_FAMILY,
+  FONT_MONO,
 } from '../../lib/designTokens';
 import { AuditPopover } from './AuditPopover';
 
@@ -43,27 +46,27 @@ const statusTone: Record<
 > = {
   disconnected: {
     color: COLORS.textSecondary,
-    border: 'rgba(148, 163, 184, 0.22)',
-    fill: 'rgba(255, 255, 255, 0.04)',
+    border: COLORS.rule,
+    fill: COLORS.ground,
     dot: COLORS.textMuted,
   },
   connecting: {
-    color: '#fef3c7',
-    border: 'rgba(251, 191, 36, 0.38)',
-    fill: 'rgba(251, 191, 36, 0.10)',
+    color: ACCENT_AMBER,
+    border: ACCENT_AMBER,
+    fill: COLORS.card,
     dot: ACCENT_AMBER,
   },
   connected: {
-    color: '#ccfbf1',
-    border: 'rgba(45, 212, 191, 0.42)',
-    fill: 'rgba(45, 212, 191, 0.11)',
+    color: ACCENT_TEAL,
+    border: ACCENT_TEAL,
+    fill: COLORS.card,
     dot: ACCENT_TEAL,
   },
   error: {
-    color: '#ffe4e6',
-    border: 'rgba(251, 113, 133, 0.40)',
-    fill: 'rgba(251, 113, 133, 0.10)',
-    dot: '#fb7185',
+    color: ACCENT_ERROR,
+    border: ACCENT_ERROR,
+    fill: COLORS.card,
+    dot: ACCENT_ERROR,
   },
 };
 
@@ -82,11 +85,12 @@ const headerStyle: CSSProperties = {
 
 const titleStyle: CSSProperties = {
   margin: 0,
+  fontFamily: FONT_DISPLAY,
   color: COLORS.textPrimary,
   fontSize: 18,
   lineHeight: 1.2,
-  fontWeight: 800,
-  letterSpacing: 0,
+  fontWeight: 700,
+  letterSpacing: -0.2,
 };
 
 const subtitleStyle: CSSProperties = {
@@ -102,13 +106,14 @@ const infoTipStyle: CSSProperties = {
   justifyContent: 'center',
   width: 22,
   height: 22,
-  borderRadius: 5,
-  border: '1px solid rgba(45, 212, 191, 0.28)',
-  background: 'rgba(45, 212, 191, 0.08)',
-  color: '#ccfbf1',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.card,
+  color: ACCENT_TEAL,
   cursor: 'help',
-  fontSize: 12,
-  fontWeight: 900,
+  fontFamily: FONT_MONO,
+  fontSize: 11.5,
+  fontWeight: 600,
 };
 
 const statusPillStyle = (status: ModelConnectionStatus): CSSProperties => {
@@ -117,22 +122,25 @@ const statusPillStyle = (status: ModelConnectionStatus): CSSProperties => {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 8,
-    minHeight: 30,
-    padding: '5px 10px',
-    borderRadius: 6,
+    minHeight: 28,
+    padding: '4px 10px',
+    borderRadius: 2,
     border: `1px solid ${tone.border}`,
     background: tone.fill,
     color: tone.color,
-    fontSize: 12,
-    fontWeight: 800,
+    fontFamily: FONT_MONO,
+    fontSize: 11,
+    fontWeight: 500,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
     whiteSpace: 'nowrap',
   };
 };
 
 const dotStyle = (status: ModelConnectionStatus): CSSProperties => ({
-  width: 8,
-  height: 8,
-  borderRadius: '50%',
+  width: 7,
+  height: 7,
+  borderRadius: 2,
   background: statusTone[status].dot,
 });
 
@@ -144,17 +152,18 @@ const detailsGridStyle: CSSProperties = {
 
 const detailTileStyle: CSSProperties = {
   padding: '11px 12px',
-  borderRadius: 8,
-  border: `1px solid ${COLORS.borderSubtle}`,
-  background: 'rgba(2, 6, 23, 0.34)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.ground,
 };
 
 const detailLabelStyle: CSSProperties = {
   display: 'block',
   color: COLORS.textMuted,
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: 0,
+  fontWeight: 500,
+  letterSpacing: 0.7,
   textTransform: 'uppercase',
 };
 
@@ -163,7 +172,7 @@ const detailValueStyle: CSSProperties = {
   marginTop: 5,
   color: COLORS.textPrimary,
   fontSize: 13,
-  fontWeight: 700,
+  fontWeight: 600,
   overflowWrap: 'anywhere',
 };
 
@@ -176,21 +185,24 @@ const actionRowStyle: CSSProperties = {
 const buttonStyle: CSSProperties = {
   minHeight: 34,
   padding: '7px 12px',
-  borderRadius: 6,
-  border: `1px solid ${COLORS.borderStrong}`,
-  background: 'rgba(255, 255, 255, 0.04)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.card,
   color: COLORS.textPrimary,
   cursor: 'pointer',
-  fontFamily: 'inherit',
-  fontSize: 13,
-  fontWeight: 800,
+  fontFamily: FONT_MONO,
+  fontSize: 11.5,
+  fontWeight: 500,
+  letterSpacing: 0.6,
+  textTransform: 'uppercase',
 };
 
 const primaryButtonStyle: CSSProperties = {
   ...buttonStyle,
-  border: '1px solid rgba(45, 212, 191, 0.45)',
-  background: 'rgba(45, 212, 191, 0.12)',
-  color: '#ccfbf1',
+  border: `1px solid ${ACCENT_TEAL}`,
+  background: ACCENT_TEAL,
+  color: COLORS.ground,
+  fontWeight: 600,
 };
 
 const disabledButtonStyle: CSSProperties = {

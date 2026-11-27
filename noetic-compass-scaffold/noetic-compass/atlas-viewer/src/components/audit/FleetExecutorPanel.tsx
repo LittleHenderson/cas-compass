@@ -54,8 +54,10 @@ const headerStyle: CSSProperties = {
 const eyebrowStyle: CSSProperties = {
   margin: 0,
   color: ACCENT_TEAL,
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 850,
+  fontWeight: 500,
+  letterSpacing: 1,
   textTransform: 'uppercase',
 };
 
@@ -63,8 +65,8 @@ const titleStyle: CSSProperties = {
   margin: '4px 0 0',
   fontSize: 20,
   lineHeight: 1.15,
-  fontWeight: 850,
-  color: '#f8fafc',
+  fontWeight: 700,
+  color: COLORS.textPrimary,
 };
 
 const bodyStyle: CSSProperties = {
@@ -86,14 +88,16 @@ const metricStyle: CSSProperties = {
   minHeight: 58,
   padding: '10px 11px',
   borderRadius: RADIUS.md,
-  border: `1px solid ${COLORS.borderSubtle}`,
+  border: `1px solid ${COLORS.rule}`,
   background: GLASS_PANEL_FILL,
 };
 
 const labelStyle: CSSProperties = {
   color: COLORS.textMuted,
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 800,
+  fontWeight: 500,
+  letterSpacing: 0.7,
   textTransform: 'uppercase',
 };
 
@@ -101,7 +105,7 @@ const valueStyle: CSSProperties = {
   color: COLORS.textPrimary,
   fontFamily: FONT_MONO,
   fontSize: 13,
-  fontWeight: 850,
+  fontWeight: 600,
 };
 
 const noticeStyle = (tone: 'info' | 'warning' | 'error'): CSSProperties => ({
@@ -110,23 +114,18 @@ const noticeStyle = (tone: 'info' | 'warning' | 'error'): CSSProperties => ({
   borderRadius: RADIUS.md,
   border:
     tone === 'error'
-      ? '1px solid rgba(248, 113, 113, 0.36)'
+      ? `1px solid ${COLORS.error}`
       : tone === 'warning'
-        ? '1px solid rgba(251, 191, 36, 0.36)'
-        : '1px solid rgba(45, 212, 191, 0.24)',
-  background:
-    tone === 'error'
-      ? 'rgba(248, 113, 113, 0.08)'
-      : tone === 'warning'
-        ? 'rgba(251, 191, 36, 0.08)'
-        : 'rgba(45, 212, 191, 0.07)',
+        ? `1px dashed ${COLORS.warn}`
+        : `1px solid ${COLORS.rule}`,
+  background: COLORS.card,
   color:
     tone === 'error'
-      ? '#fecaca'
+      ? COLORS.error
       : tone === 'warning'
-        ? '#fef3c7'
+        ? COLORS.warn
         : COLORS.textSecondary,
-  fontSize: 12,
+  fontSize: 12.5,
   lineHeight: 1.45,
 });
 
@@ -137,23 +136,18 @@ const readinessPanelStyle = (status: FleetReadinessStatus): CSSProperties => ({
   borderRadius: RADIUS.md,
   border:
     status === 'ready'
-      ? '1px solid rgba(34, 197, 94, 0.34)'
+      ? `1px solid ${ACCENT_TEAL}`
       : status === 'blocked'
-        ? '1px solid rgba(248, 113, 113, 0.34)'
-        : '1px solid rgba(251, 191, 36, 0.34)',
-  background:
-    status === 'ready'
-      ? 'rgba(34, 197, 94, 0.08)'
-      : status === 'blocked'
-        ? 'rgba(248, 113, 113, 0.08)'
-        : 'rgba(251, 191, 36, 0.08)',
+        ? `1px solid ${COLORS.error}`
+        : `1px dashed ${COLORS.warn}`,
+  background: COLORS.stripe,
 });
 
 const readinessTitleStyle: CSSProperties = {
   margin: 0,
   color: COLORS.textPrimary,
   fontSize: 13,
-  fontWeight: 900,
+  fontWeight: 700,
 };
 
 const readinessListStyle: CSSProperties = {

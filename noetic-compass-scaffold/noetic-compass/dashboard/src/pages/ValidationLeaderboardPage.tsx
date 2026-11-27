@@ -109,9 +109,9 @@ function interpretLeaderboard(data: ValidationLeaderboard): string {
 }
 
 const STRENGTH_COLOR: Record<string, string> = {
-  strong: '#34d399',
-  moderate: '#fbbf24',
-  weak: '#f87171',
+  strong: '#37f5a0',
+  moderate: '#f59e0b',
+  weak: '#ff7b72',
 };
 
 const STRENGTH_LABEL: Record<string, string> = {
@@ -127,10 +127,10 @@ const STRENGTH_ICON: Record<string, string> = {
 };
 
 const SEVERITY_STYLE: Record<string, { bg: string; fg: string; border: string }> = {
-  ok: { bg: 'rgba(52, 211, 153, 0.06)', fg: '#34d399', border: 'rgba(52, 211, 153, 0.2)' },
-  warn: { bg: 'rgba(251, 191, 36, 0.06)', fg: '#fbbf24', border: 'rgba(251, 191, 36, 0.2)' },
-  alert: { bg: 'rgba(248, 113, 113, 0.06)', fg: '#f87171', border: 'rgba(248, 113, 113, 0.2)' },
-  info: { bg: 'rgba(148, 163, 184, 0.06)', fg: '#94a3b8', border: 'rgba(148, 163, 184, 0.2)' },
+  ok: { bg: '#0c1513', fg: '#37f5a0', border: 'rgba(55, 245, 160, 0.35)' },
+  warn: { bg: '#0c1513', fg: '#f59e0b', border: 'rgba(245, 158, 11, 0.4)' },
+  alert: { bg: '#0c1513', fg: '#ff7b72', border: 'rgba(255, 123, 114, 0.4)' },
+  info: { bg: '#0c1513', fg: '#b3c2ba', border: '#20302b' },
 };
 
 function EvidenceField({
@@ -142,14 +142,14 @@ function EvidenceField({
 }) {
   return (
     <label className="space-y-1">
-      <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">{label}</span>
+      <span className="block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#86958d]">{label}</span>
       {children}
     </label>
   );
 }
 
 const FIELD_CLASS =
-  'w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-slate-300 focus:border-accent-teal/50 focus:outline-none min-h-[40px]';
+  'w-full rounded-[2px] border border-[#20302b] bg-[#050b0a] px-3 py-2 text-sm text-[#eaf3ee] focus:border-[#37f5a0] focus:outline-none min-h-[40px]';
 
 function readEntryString(entry: Record<string, unknown>, key: string): string | null {
   const value = entry[key];
@@ -217,18 +217,18 @@ function RecentEvidenceSection({
   summarize: (entry: Record<string, unknown>) => string;
 }) {
   return (
-    <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{title}</p>
+    <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">{title}</p>
       <div className="mt-3 space-y-3">
         {entries.length === 0 ? (
-          <p className="text-[11px] text-slate-500">{emptyLabel}</p>
+          <p className="text-[11px] text-[#86958d]">{emptyLabel}</p>
         ) : (
           [...entries].reverse().map((entry, index) => (
-            <div key={`${title}-${formatEntryTimestamp(entry)}-${index}`} className="rounded-lg border border-white/[0.06] bg-dark-900/30 px-3 py-2">
-              <p className="text-[10px] uppercase tracking-wider text-slate-500">{formatEntryTimestamp(entry)}</p>
-              <p className="mt-1 text-[11px] leading-relaxed text-slate-300">{summarize(entry)}</p>
+            <div key={`${title}-${formatEntryTimestamp(entry)}-${index}`} className="rounded-[2px] border border-[#20302b] bg-[#0c1513] px-3 py-2">
+              <p className="text-[10px] uppercase tracking-wider text-[#86958d]">{formatEntryTimestamp(entry)}</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-[#b3c2ba]">{summarize(entry)}</p>
               {readEntryString(entry, 'notes') && (
-                <p className="mt-1 text-[10px] leading-relaxed text-slate-500">{readEntryString(entry, 'notes')}</p>
+                <p className="mt-1 text-[10px] leading-relaxed text-[#86958d]">{readEntryString(entry, 'notes')}</p>
               )}
             </div>
           ))
@@ -255,15 +255,15 @@ function TrendTable({
   labelKey: 'provider' | 'model';
 }) {
   return (
-    <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{title}</p>
+    <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">{title}</p>
       {rows.length === 0 ? (
-        <p className="mt-3 text-[11px] text-slate-500">No trend data yet.</p>
+        <p className="mt-3 text-[11px] text-[#86958d]">No trend data yet.</p>
       ) : (
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[420px] text-[11px]">
             <thead>
-              <tr className="border-b border-white/[0.06] text-left uppercase tracking-wider text-slate-500">
+              <tr className="border-b border-[#20302b] text-left uppercase tracking-wider text-[#86958d]">
                 <th className="pb-2 pr-3">{labelKey === 'provider' ? 'Provider' : 'Model'}</th>
                 <th className="pb-2 pr-3 text-right">Entries</th>
                 <th className="pb-2 pr-3 text-right">Gap</th>
@@ -275,14 +275,14 @@ function TrendTable({
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={`${labelKey}-${row[labelKey] ?? 'unknown'}`} className="border-b border-white/[0.03]">
-                  <td className="py-2 pr-3 text-slate-300">{row[labelKey] ?? 'Unknown'}</td>
-                  <td className="py-2 pr-3 text-right font-mono text-slate-300">{row.total_entries}</td>
-                  <td className="py-2 pr-3 text-right font-mono text-slate-300">{row.mean_absolute_gap.toFixed(2)}</td>
-                  <td className="py-2 pr-3 text-right font-mono text-slate-300">{row.benchmark_cases}</td>
-                  <td className="py-2 pr-3 text-right font-mono text-slate-300">{row.failed_runs}</td>
-                  <td className="py-2 pr-3 text-right font-mono text-slate-300">{row.false_positives}/{row.false_negatives}</td>
-                  <td className="py-2 text-right text-slate-500">{formatTrendTimestamp(row.latest_timestamp)}</td>
+                <tr key={`${labelKey}-${row[labelKey] ?? 'unknown'}`} className="border-b border-[#20302b]/70">
+                  <td className="py-2 pr-3 text-[#b3c2ba]">{row[labelKey] ?? 'Unknown'}</td>
+                  <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{row.total_entries}</td>
+                  <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{row.mean_absolute_gap.toFixed(2)}</td>
+                  <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{row.benchmark_cases}</td>
+                  <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{row.failed_runs}</td>
+                  <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{row.false_positives}/{row.false_negatives}</td>
+                  <td className="py-2 text-right text-[#86958d]">{formatTrendTimestamp(row.latest_timestamp)}</td>
                 </tr>
               ))}
             </tbody>
@@ -328,16 +328,16 @@ function BenchmarkRankingTable({
   return (
     <Card title={title}>
       <div className="space-y-3">
-        <p className="text-[11px] leading-relaxed text-slate-400">{description}</p>
+        <p className="text-[11px] leading-relaxed text-[#b3c2ba]">{description}</p>
         {studies.length === 0 ? (
-          <p className="text-[11px] text-slate-500">
+          <p className="text-[11px] text-[#86958d]">
             No archived studies meet the current ranking threshold yet. Rankings only include successful runs with at least 10 prompts.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[840px] text-[11px]">
               <thead>
-                <tr className="border-b border-white/[0.06] text-left uppercase tracking-wider text-slate-500">
+                <tr className="border-b border-[#20302b] text-left uppercase tracking-wider text-[#86958d]">
                   <th className="pb-2 pr-3 text-right">Rank</th>
                   <th className="pb-2 pr-3">Provider</th>
                   <th className="pb-2 pr-3">Generator Model</th>
@@ -351,27 +351,27 @@ function BenchmarkRankingTable({
               </thead>
               <tbody>
                 {studies.map((study, index) => (
-                  <tr key={study.filename} className="border-b border-white/[0.03]">
-                    <td className="py-2 pr-3 text-right font-mono text-slate-300">{index + 1}</td>
-                    <td className="py-2 pr-3 text-slate-300">{study.provider ?? 'unknown'}</td>
-                    <td className="py-2 pr-3 text-slate-400">{study.model ?? 'n/a'}</td>
-                    <td className="py-2 pr-3 text-slate-400">{scoringModeSummary(study)}</td>
-                    <td className="py-2 pr-3 text-right font-mono text-slate-300">{study.prompt_count ?? 0}</td>
-                    <td className="py-2 pr-3 text-right font-mono text-slate-200">
+                  <tr key={study.filename} className="border-b border-[#20302b]/70">
+                    <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{index + 1}</td>
+                    <td className="py-2 pr-3 text-[#b3c2ba]">{study.provider ?? 'unknown'}</td>
+                    <td className="py-2 pr-3 text-[#b3c2ba]">{study.model ?? 'n/a'}</td>
+                    <td className="py-2 pr-3 text-[#b3c2ba]">{scoringModeSummary(study)}</td>
+                    <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{study.prompt_count ?? 0}</td>
+                    <td className="py-2 pr-3 text-right font-mono text-[#eaf3ee]">
                       {typeof study.composite_mean === 'number' ? study.composite_mean.toFixed(2) : 'n/a'}
                     </td>
-                    <td className="py-2 pr-3 text-right font-mono text-slate-400">
+                    <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">
                       {typeof study.composite_std === 'number' ? study.composite_std.toFixed(2) : 'n/a'}
                     </td>
-                    <td className="py-2 pr-3 text-slate-400">{study.study_label ?? study.filename}</td>
-                    <td className="py-2 text-slate-500">{formatTrendTimestamp(study.study_date ?? '')}</td>
+                    <td className="py-2 pr-3 text-[#b3c2ba]">{study.study_label ?? study.filename}</td>
+                    <td className="py-2 text-[#86958d]">{formatTrendTimestamp(study.study_date ?? '')}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-        {footer && <p className="text-[10px] leading-relaxed text-slate-500">{footer}</p>}
+        {footer && <p className="text-[10px] leading-relaxed text-[#86958d]">{footer}</p>}
       </div>
     </Card>
   );
@@ -379,9 +379,9 @@ function BenchmarkRankingTable({
 
 function StatCard({ label, value, color }: { label: string; value: string | number; color?: string }) {
   return (
-    <div className="glass-card p-4">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">{label}</p>
-      <p className="text-2xl font-bold" style={{ color: color ?? '#e2e8f0' }}>{value}</p>
+    <div className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-4">
+      <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#86958d]">{label}</p>
+      <p className="font-['Space_Grotesk',sans-serif] text-2xl font-bold" style={{ color: color ?? '#eaf3ee' }}>{value}</p>
     </div>
   );
 }
@@ -389,13 +389,13 @@ function StatCard({ label, value, color }: { label: string; value: string | numb
 function statusBadge(status: string | null | undefined) {
   const normalized = status ?? 'unknown';
   const styles: Record<string, string> = {
-    completed: 'bg-emerald-500/10 text-emerald-300',
-    success: 'bg-emerald-500/10 text-emerald-300',
-    partial: 'bg-amber-500/10 text-amber-300',
-    failed: 'bg-rose-500/10 text-rose-300',
+    completed: 'border border-[#37f5a0]/40 bg-[#13201c] text-[#37f5a0]',
+    success: 'border border-[#37f5a0]/40 bg-[#13201c] text-[#37f5a0]',
+    partial: 'border border-[#f59e0b]/40 bg-[#13201c] text-[#f59e0b]',
+    failed: 'border border-[#ff7b72]/40 bg-[#13201c] text-[#ff7b72]',
   };
   return (
-    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${styles[normalized] ?? 'bg-slate-500/10 text-slate-300'}`}>
+    <span className={`rounded-[2px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${styles[normalized] ?? 'border border-[#20302b] bg-[#13201c] text-[#b3c2ba]'}`}>
       {normalized}
     </span>
   );
@@ -403,52 +403,51 @@ function statusBadge(status: string | null | undefined) {
 
 function ScatterPlot({ correlation }: { correlation: OperatorCorrelation }) {
   const points = correlation.scatter_points;
-  // Add regression line endpoints if we have enough data
   const color = STRENGTH_COLOR[correlation.strength];
 
   return (
-    <div className="glass-card p-4">
-      <div className="flex items-center justify-between mb-2">
-        <h4 className="text-[11px] font-semibold text-slate-200">{correlation.operator_name}</h4>
+    <div className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <h4 className="font-mono text-[11px] font-semibold text-[#eaf3ee]">{correlation.operator_name}</h4>
         <span
-          className="text-[10px] font-mono px-2 py-0.5 rounded-full"
-          style={{ color, backgroundColor: `${color}15` }}
+          className="rounded-[2px] px-2 py-0.5 font-mono text-[10px]"
+          style={{ color, backgroundColor: `${color}15`, border: `1px solid ${color}40` }}
         >
           r = {correlation.pearson_r.toFixed(3)}
         </span>
       </div>
       <ResponsiveContainer width="100%" height={200}>
         <ScatterChart margin={{ left: 0, right: 10, top: 10, bottom: 5 }}>
-          <CartesianGrid stroke="rgba(255,255,255,0.04)" />
+          <CartesianGrid stroke="#20302b" />
           <XAxis
             type="number"
             dataKey="machine"
             name="Machine"
             domain={[0, 10]}
-            tick={{ fill: '#64748b', fontSize: 9 }}
-            label={{ value: 'Machine', position: 'insideBottomRight', offset: 0, fill: '#64748b', fontSize: 10 }}
+            tick={{ fill: '#86958d', fontSize: 9 }}
+            label={{ value: 'Machine', position: 'insideBottomRight', offset: 0, fill: '#86958d', fontSize: 10 }}
           />
           <YAxis
             type="number"
             dataKey="human"
             name="Human"
             domain={[0, 10]}
-            tick={{ fill: '#64748b', fontSize: 9 }}
-            label={{ value: 'Human', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
+            tick={{ fill: '#86958d', fontSize: 9 }}
+            label={{ value: 'Human', angle: -90, position: 'insideLeft', fill: '#86958d', fontSize: 10 }}
           />
           <Tooltip
             cursor={{ strokeDasharray: '3 3' }}
-            contentStyle={{ backgroundColor: '#151d33', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
+            contentStyle={{ backgroundColor: '#0c1513', border: '1px solid #20302b', borderRadius: 2, fontSize: 11, color: '#eaf3ee' }}
           />
           <ReferenceLine
             segment={[{ x: 0, y: 0 }, { x: 10, y: 10 }]}
-            stroke="rgba(255,255,255,0.1)"
+            stroke="#20302b"
             strokeDasharray="3 3"
           />
-          <Scatter data={points} fill={color} fillOpacity={0.7} />
+          <Scatter data={points} fill={color} fillOpacity={0.8} />
         </ScatterChart>
       </ResponsiveContainer>
-      <div className="flex justify-between mt-2 text-[9px] text-slate-500">
+      <div className="mt-2 flex justify-between font-mono text-[9px] text-[#86958d]">
         <span>n={correlation.n_pairs}</span>
         <span>p={correlation.p_value.toFixed(4)}</span>
         <span>CI=[{correlation.ci_lower.toFixed(2)}, {correlation.ci_upper.toFixed(2)}]</span>
@@ -736,8 +735,8 @@ export function ValidationLeaderboardPage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100 mb-1">Validation Leaderboard</h1>
-          <p className="text-[11px] text-slate-500">
+          <h1 className="font-['Space_Grotesk',sans-serif] text-2xl font-bold text-[#eaf3ee] mb-1">Validation Leaderboard</h1>
+          <p className="text-[11px] text-[#86958d]">
             Real-time correlation between human raters and machine scores. Updates every 10 seconds.
           </p>
         </div>
@@ -748,38 +747,38 @@ export function ValidationLeaderboardPage() {
 
       <Card title="Benchmark Mode Guidance">
         <div className="space-y-4">
-          <p className="text-[11px] leading-relaxed text-slate-400">
+          <p className="text-[11px] leading-relaxed text-[#b3c2ba]">
             There is no zero-bias scoring mode. Use different tables for different scoring modes and do not collapse them into a single ranking.
           </p>
           <div className="grid gap-3 lg:grid-cols-3">
-            <div className="rounded-lg border border-emerald-400/20 bg-emerald-400/[0.05] px-4 py-3">
+            <div className="rounded-[2px] border border-[#37f5a0]/35 bg-[#13201c] px-4 py-3">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-300">Best least-biased automated baseline</p>
-              <p className="mt-1 text-sm font-medium text-slate-100">heuristic_fallback</p>
-              <p className="mt-2 text-[11px] leading-relaxed text-slate-400">
+              <p className="mt-1 text-sm font-medium text-[#eaf3ee]">heuristic_fallback</p>
+              <p className="mt-2 text-[11px] leading-relaxed text-[#b3c2ba]">
                 Avoids model-as-judge bias entirely. Tradeoff: structurally consistent, but less semantically rich than an external assessor.
               </p>
             </div>
-            <div className="rounded-lg border border-accent-teal/20 bg-accent-teal/[0.05] px-4 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-accent-teal">Best overall current mode</p>
-              <p className="mt-1 text-sm font-medium text-slate-100">secondary_llm + separate scorer</p>
-              <p className="mt-2 text-[11px] leading-relaxed text-slate-400">
+            <div className="rounded-[2px] border border-[#37f5a0]/40 bg-[#13201c] px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#37f5a0]">Best overall current mode</p>
+              <p className="mt-1 text-sm font-medium text-[#eaf3ee]">secondary_llm + separate scorer</p>
+              <p className="mt-2 text-[11px] leading-relaxed text-[#b3c2ba]">
                 Richer than heuristics, but only honest if the scorer is external to the generator. Same-provider judging reintroduces bias.
               </p>
             </div>
-            <div className="rounded-lg border border-amber-400/20 bg-amber-400/[0.05] px-4 py-3">
+            <div className="rounded-[2px] border border-dashed border-[#f59e0b]/60 bg-[#13201c] px-4 py-3">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">Worst stakeholder comparison mode</p>
-              <p className="mt-1 text-sm font-medium text-slate-100">self_reported</p>
-              <p className="mt-2 text-[11px] leading-relaxed text-slate-400">
+              <p className="mt-1 text-sm font-medium text-[#eaf3ee]">self_reported</p>
+              <p className="mt-2 text-[11px] leading-relaxed text-[#b3c2ba]">
                 The generating model grades its own response. Keep it out of ranking tables and stakeholder claims.
               </p>
             </div>
           </div>
-          <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Stakeholder-facing protocol</p>
-            <ol className="mt-2 list-decimal space-y-1 pl-4 text-[11px] leading-relaxed text-slate-400">
-              <li>Run a frozen prompt set in <code className="text-slate-300">heuristic_fallback</code> for all providers.</li>
-              <li>Run the same prompt set in <code className="text-slate-300">secondary_llm</code> with one fixed external scorer.</li>
-              <li>Have humans review disagreement cases in the calibration workflow on <code className="text-slate-300">ValidationPage.tsx</code>.</li>
+          <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Stakeholder-facing protocol</p>
+            <ol className="mt-2 list-decimal space-y-1 pl-4 text-[11px] leading-relaxed text-[#b3c2ba]">
+              <li>Run a frozen prompt set in <code className="text-[#b3c2ba]">heuristic_fallback</code> for all providers.</li>
+              <li>Run the same prompt set in <code className="text-[#b3c2ba]">secondary_llm</code> with one fixed external scorer.</li>
+              <li>Have humans review disagreement cases in the calibration workflow on <code className="text-[#b3c2ba]">ValidationPage.tsx</code>.</li>
               <li>Report heuristic, external-LLM, and human reconciliation results separately.</li>
             </ol>
           </div>
@@ -806,29 +805,29 @@ export function ValidationLeaderboardPage() {
       {evidence && (
         <Card title="Validation Evidence Coverage">
           <div className="grid gap-3 md:grid-cols-3">
-            <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Scorer Agreement</p>
-              <p className="mt-1 text-lg font-bold text-slate-100">{evidence.scorer_agreement.count}</p>
-              <p className="mt-1 text-[11px] text-slate-400">
+            <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Scorer Agreement</p>
+              <p className="mt-1 text-lg font-bold text-[#eaf3ee]">{evidence.scorer_agreement.count}</p>
+              <p className="mt-1 text-[11px] text-[#b3c2ba]">
                 Mean absolute gap: {(evidence.scorer_agreement.mean_absolute_gap ?? 0).toFixed(3)}
               </p>
             </div>
-            <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Benchmark Suites</p>
-              <p className="mt-1 text-lg font-bold text-slate-100">{evidence.benchmark_suites.count}</p>
-              <p className="mt-1 text-[11px] text-slate-400">
+            <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Benchmark Suites</p>
+              <p className="mt-1 text-lg font-bold text-[#eaf3ee]">{evidence.benchmark_suites.count}</p>
+              <p className="mt-1 text-[11px] text-[#b3c2ba]">
                 Cases logged: {evidence.benchmark_suites.cases_run} | Failed runs: {evidence.benchmark_suites.failed_runs ?? 0}
               </p>
             </div>
-            <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Error Cases</p>
-              <p className="mt-1 text-lg font-bold text-slate-100">{evidence.error_cases.count}</p>
-              <p className="mt-1 text-[11px] text-slate-400">
+            <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Error Cases</p>
+              <p className="mt-1 text-lg font-bold text-[#eaf3ee]">{evidence.error_cases.count}</p>
+              <p className="mt-1 text-[11px] text-[#b3c2ba]">
                 FP: {evidence.error_cases.false_positives} | FN: {evidence.error_cases.false_negatives}
               </p>
             </div>
           </div>
-          <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
+          <p className="mt-3 text-[11px] leading-relaxed text-[#86958d]">
             Human-rater agreement is tracked above. Additional scorer-agreement, benchmark-suite, and false
             positive/negative evidence can now be logged through the validation API and will accumulate here.
           </p>
@@ -855,12 +854,12 @@ export function ValidationLeaderboardPage() {
 
       <Card title="Operational Workflows">
         <div className="space-y-5">
-          <p className="text-[11px] leading-relaxed text-slate-500">
+          <p className="text-[11px] leading-relaxed text-[#86958d]">
             Use these controls to generate archived study artifacts and reseed evidence from them. A live-provider run only counts as real external evidence if it actually succeeds; failed runs are still archived and surfaced so provider blockers are visible.
           </p>
           <div className="grid gap-4 xl:grid-cols-2">
             <form
-              className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3 space-y-3"
+              className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3 space-y-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 runBaselineMutation.mutate({
@@ -872,7 +871,7 @@ export function ValidationLeaderboardPage() {
                 });
               }}
             >
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Run Baseline + Reseed</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Run Baseline + Reseed</p>
               <div className="grid gap-3 md:grid-cols-2">
                 <EvidenceField label="Provider">
                   <input
@@ -928,20 +927,20 @@ export function ValidationLeaderboardPage() {
                   />
                 </EvidenceField>
               </div>
-              <p className="text-[10px] leading-relaxed text-slate-500">
+              <p className="text-[10px] leading-relaxed text-[#86958d]">
                 For stakeholder-facing comparisons, use at least 10 frozen prompts. Keep heuristic and external-scorer runs in separate tables, and avoid self-reported runs entirely.
               </p>
               <button
                 type="submit"
                 disabled={runBaselineMutation.isPending}
-                className="rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-4 py-2 text-sm font-semibold text-dark-900 hover:opacity-90 disabled:opacity-50"
+                className="rounded-[2px] bg-[#37f5a0] px-4 py-2 text-sm font-semibold text-[#050b0a] transition-opacity hover:opacity-90 disabled:opacity-50"
               >
                 {runBaselineMutation.isPending ? 'Running...' : 'Run Baseline + Reseed'}
               </button>
             </form>
 
             <form
-              className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3 space-y-3"
+              className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3 space-y-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 runMatrixMutation.mutate({
@@ -953,7 +952,7 @@ export function ValidationLeaderboardPage() {
                 });
               }}
             >
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Run Suite Matrix + Reseed</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Run Suite Matrix + Reseed</p>
               <div className="grid gap-3 md:grid-cols-2">
                 <EvidenceField label="Provider">
                   <input
@@ -978,7 +977,7 @@ export function ValidationLeaderboardPage() {
                       {collections.map((collection) => {
                         const checked = (matrixRunForm.suite_ids ?? []).includes(collection.id);
                         return (
-                          <label key={collection.id} className="flex items-center gap-2 rounded-lg border border-white/[0.08] bg-dark-900/30 px-3 py-2 text-[11px] text-slate-300">
+                          <label key={collection.id} className="flex items-center gap-2 rounded-[2px] border border-[#20302b] bg-[#0c1513] px-3 py-2 text-[11px] text-[#b3c2ba]">
                             <input
                               type="checkbox"
                               checked={checked}
@@ -1000,7 +999,7 @@ export function ValidationLeaderboardPage() {
               <button
                 type="submit"
                 disabled={runMatrixMutation.isPending}
-                className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-sm font-semibold text-slate-200 hover:text-white disabled:opacity-50"
+                className="rounded-[2px] border border-[#eaf3ee] bg-transparent px-4 py-2 text-sm font-semibold text-[#eaf3ee] transition-colors hover:border-[#37f5a0] hover:text-[#37f5a0] disabled:opacity-50"
               >
                 {runMatrixMutation.isPending ? 'Running...' : 'Run Suite Matrix + Reseed'}
               </button>
@@ -1009,23 +1008,23 @@ export function ValidationLeaderboardPage() {
           {(runBaselineMutation.data || runMatrixMutation.data) && (
             <div className="grid gap-3 xl:grid-cols-2">
               {runBaselineMutation.data && (
-                <div className="rounded-lg border border-white/[0.08] bg-dark-900/30 px-4 py-3">
+                <div className="rounded-[2px] border border-[#20302b] bg-[#0c1513] px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Latest Baseline Run</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Latest Baseline Run</p>
                     {statusBadge(String((runBaselineMutation.data.summary as Record<string, unknown>).status ?? 'unknown'))}
                   </div>
-                  <p className="mt-2 text-[11px] text-slate-300">
+                  <p className="mt-2 text-[11px] text-[#b3c2ba]">
                     Archive: {runBaselineMutation.data.archive_path}
                   </p>
                 </div>
               )}
               {runMatrixMutation.data && (
-                <div className="rounded-lg border border-white/[0.08] bg-dark-900/30 px-4 py-3">
+                <div className="rounded-[2px] border border-[#20302b] bg-[#0c1513] px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Latest Matrix Run</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Latest Matrix Run</p>
                     {statusBadge(runMatrixMutation.data.failed_count > 0 ? (runMatrixMutation.data.success_count > 0 ? 'partial' : 'failed') : 'completed')}
                   </div>
-                  <p className="mt-2 text-[11px] text-slate-300">
+                  <p className="mt-2 text-[11px] text-[#b3c2ba]">
                     {runMatrixMutation.data.success_count} success / {runMatrixMutation.data.partial_count} partial / {runMatrixMutation.data.failed_count} failed
                   </p>
                 </div>
@@ -1037,7 +1036,7 @@ export function ValidationLeaderboardPage() {
 
       <Card title="Log Validation Evidence">
         <div className="space-y-4">
-          <p className="text-[11px] leading-relaxed text-slate-500">
+          <p className="text-[11px] leading-relaxed text-[#86958d]">
             Human-rater agreement is collected through the validation workflow above. Use these forms
             to log additional scorer-agreement checks, benchmark-suite runs, and tracked false
             positive / false negative cases.
@@ -1050,22 +1049,22 @@ export function ValidationLeaderboardPage() {
                 seedEvidenceMutation.mutate();
               }}
               disabled={seedEvidenceMutation.isPending}
-              className="rounded-lg border border-accent-teal/30 bg-accent-teal/10 px-4 py-2 text-xs font-semibold text-accent-teal hover:bg-accent-teal/20 disabled:opacity-50"
+              className="rounded-[2px] border border-[#37f5a0] bg-[#13201c] px-4 py-2 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-[#37f5a0] transition-colors hover:bg-[#37f5a0] hover:text-[#050b0a] disabled:opacity-50"
             >
               {seedEvidenceMutation.isPending ? 'Seeding...' : 'Regenerate From Current Artifacts'}
             </button>
-            <span className="text-[11px] text-slate-500">
+            <span className="text-[11px] text-[#86958d]">
               Rebuilds scorer-agreement, benchmark, and tier-disagreement evidence from the current baseline study and human labels.
             </span>
           </div>
           {evidenceStatus && (
-            <p className="rounded-lg border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-2 text-[11px] text-emerald-300">
+            <p className="rounded-[2px] border border-[#37f5a0]/40 bg-[#13201c] px-3 py-2 text-[11px] text-emerald-300">
               {evidenceStatus}
             </p>
           )}
 
-          <details className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-            <summary className="cursor-pointer text-sm font-medium text-slate-200">Scorer Agreement Case</summary>
+          <details className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+            <summary className="cursor-pointer text-sm font-medium text-[#eaf3ee]">Scorer Agreement Case</summary>
             <form
               className="mt-4 grid gap-3 md:grid-cols-2"
               onSubmit={(e) => {
@@ -1159,7 +1158,7 @@ export function ValidationLeaderboardPage() {
                 <button
                   type="submit"
                   disabled={scorerAgreementMutation.isPending}
-                  className="rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-4 py-2 text-sm font-semibold text-dark-900 hover:opacity-90 disabled:opacity-50"
+                  className="rounded-[2px] bg-[#37f5a0] px-4 py-2 text-sm font-semibold text-[#050b0a] transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
                   {scorerAgreementMutation.isPending ? 'Saving...' : 'Save Scorer Agreement Case'}
                 </button>
@@ -1167,8 +1166,8 @@ export function ValidationLeaderboardPage() {
             </form>
           </details>
 
-          <details className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-            <summary className="cursor-pointer text-sm font-medium text-slate-200">Benchmark Suite Run</summary>
+          <details className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+            <summary className="cursor-pointer text-sm font-medium text-[#eaf3ee]">Benchmark Suite Run</summary>
             <form
               className="mt-4 grid gap-3 md:grid-cols-2"
               onSubmit={(e) => {
@@ -1269,7 +1268,7 @@ export function ValidationLeaderboardPage() {
                 <button
                   type="submit"
                   disabled={benchmarkMutation.isPending}
-                  className="rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-4 py-2 text-sm font-semibold text-dark-900 hover:opacity-90 disabled:opacity-50"
+                  className="rounded-[2px] bg-[#37f5a0] px-4 py-2 text-sm font-semibold text-[#050b0a] transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
                   {benchmarkMutation.isPending ? 'Saving...' : 'Save Benchmark Run'}
                 </button>
@@ -1277,8 +1276,8 @@ export function ValidationLeaderboardPage() {
             </form>
           </details>
 
-          <details className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-            <summary className="cursor-pointer text-sm font-medium text-slate-200">False Positive / Negative Case</summary>
+          <details className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+            <summary className="cursor-pointer text-sm font-medium text-[#eaf3ee]">False Positive / Negative Case</summary>
             <form
               className="mt-4 grid gap-3 md:grid-cols-2"
               onSubmit={(e) => {
@@ -1360,7 +1359,7 @@ export function ValidationLeaderboardPage() {
                 <button
                   type="submit"
                   disabled={errorCaseMutation.isPending}
-                  className="rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-4 py-2 text-sm font-semibold text-dark-900 hover:opacity-90 disabled:opacity-50"
+                  className="rounded-[2px] bg-[#37f5a0] px-4 py-2 text-sm font-semibold text-[#050b0a] transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
                   {errorCaseMutation.isPending ? 'Saving...' : 'Save Error Case'}
                 </button>
@@ -1406,15 +1405,15 @@ export function ValidationLeaderboardPage() {
               <TrendTable title="By Provider" rows={trendData.by_provider} labelKey="provider" />
               <TrendTable title="By Model" rows={trendData.by_model} labelKey="model" />
             </div>
-            <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Timeline</p>
+            <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Timeline</p>
               {trendData.timeline.length === 0 ? (
-                <p className="mt-3 text-[11px] text-slate-500">No evidence timeline data yet.</p>
+                <p className="mt-3 text-[11px] text-[#86958d]">No evidence timeline data yet.</p>
               ) : (
                 <div className="mt-3 overflow-x-auto">
                   <table className="w-full min-w-[420px] text-[11px]">
                     <thead>
-                      <tr className="border-b border-white/[0.06] text-left uppercase tracking-wider text-slate-500">
+                      <tr className="border-b border-[#20302b] text-left uppercase tracking-wider text-[#86958d]">
                         <th className="pb-2 pr-3">Date</th>
                         <th className="pb-2 pr-3 text-right">Total</th>
                         <th className="pb-2 pr-3 text-right">Scorer</th>
@@ -1424,12 +1423,12 @@ export function ValidationLeaderboardPage() {
                     </thead>
                     <tbody>
                       {trendData.timeline.map((point) => (
-                        <tr key={point.date} className="border-b border-white/[0.03]">
-                          <td className="py-2 pr-3 text-slate-300">{point.date}</td>
-                          <td className="py-2 pr-3 text-right font-mono text-slate-300">{point.total}</td>
-                          <td className="py-2 pr-3 text-right font-mono text-slate-300">{point.scorer_agreement}</td>
-                          <td className="py-2 pr-3 text-right font-mono text-slate-300">{point.benchmark_suites}</td>
-                          <td className="py-2 text-right font-mono text-slate-300">{point.error_cases}</td>
+                        <tr key={point.date} className="border-b border-[#20302b]/70">
+                          <td className="py-2 pr-3 text-[#b3c2ba]">{point.date}</td>
+                          <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{point.total}</td>
+                          <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{point.scorer_agreement}</td>
+                          <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{point.benchmark_suites}</td>
+                          <td className="py-2 text-right font-mono text-[#b3c2ba]">{point.error_cases}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1447,12 +1446,12 @@ export function ValidationLeaderboardPage() {
         ) : studiesLoading ? (
           <LoadingSpinner />
         ) : studies.length === 0 ? (
-          <p className="text-[11px] text-slate-500">No archived study artifacts yet.</p>
+          <p className="text-[11px] text-[#86958d]">No archived study artifacts yet.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-[11px]">
               <thead>
-                <tr className="border-b border-white/[0.06] text-left uppercase tracking-wider text-slate-500">
+                <tr className="border-b border-[#20302b] text-left uppercase tracking-wider text-[#86958d]">
                   <th className="pb-2 pr-3">Date</th>
                   <th className="pb-2 pr-3">Provider</th>
                   <th className="pb-2 pr-3">Mode</th>
@@ -1466,15 +1465,15 @@ export function ValidationLeaderboardPage() {
               </thead>
               <tbody>
                 {studies.slice(0, 12).map((study) => (
-                  <tr key={study.filename} className="border-b border-white/[0.03]">
-                    <td className="py-2 pr-3 text-slate-300">{formatTrendTimestamp(study.study_date ?? '')}</td>
-                    <td className="py-2 pr-3 text-slate-300">{study.provider ?? 'unknown'}</td>
-                    <td className="py-2 pr-3 text-slate-400">{scoringModeSummary(study)}</td>
-                    <td className="py-2 pr-3 text-slate-300">{study.study_label ?? study.filename}</td>
-                    <td className="py-2 pr-3 text-right font-mono text-slate-300">{study.prompt_count ?? 0}</td>
-                    <td className="py-2 pr-3 text-right font-mono text-slate-300">{study.successes ?? 0}</td>
-                    <td className="py-2 pr-3 text-right font-mono text-slate-300">{study.failures ?? 0}</td>
-                    <td className="py-2 pr-3 text-right font-mono text-slate-300">
+                  <tr key={study.filename} className="border-b border-[#20302b]/70">
+                    <td className="py-2 pr-3 text-[#b3c2ba]">{formatTrendTimestamp(study.study_date ?? '')}</td>
+                    <td className="py-2 pr-3 text-[#b3c2ba]">{study.provider ?? 'unknown'}</td>
+                    <td className="py-2 pr-3 text-[#b3c2ba]">{scoringModeSummary(study)}</td>
+                    <td className="py-2 pr-3 text-[#b3c2ba]">{study.study_label ?? study.filename}</td>
+                    <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{study.prompt_count ?? 0}</td>
+                    <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{study.successes ?? 0}</td>
+                    <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{study.failures ?? 0}</td>
+                    <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">
                       {typeof study.composite_mean === 'number' ? study.composite_mean.toFixed(1) : 'n/a'}
                     </td>
                     <td className="py-2">{statusBadge(study.status)}</td>
@@ -1490,7 +1489,7 @@ export function ValidationLeaderboardPage() {
         <div className="space-y-4">
           <div className="grid gap-3 md:grid-cols-4">
             <label className="space-y-1">
-              <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Kind</span>
+              <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Kind</span>
               <select className={FIELD_CLASS} value={reviewKind} onChange={(e) => setReviewKind(e.target.value)}>
                 <option value="all">All evidence</option>
                 {(reviewData?.facets.kinds ?? []).map((facet) => (
@@ -1499,7 +1498,7 @@ export function ValidationLeaderboardPage() {
               </select>
             </label>
             <label className="space-y-1">
-              <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Provider</span>
+              <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Provider</span>
               <select className={FIELD_CLASS} value={reviewProvider} onChange={(e) => setReviewProvider(e.target.value)}>
                 <option value="all">All providers</option>
                 {(reviewData?.facets.providers ?? []).map((facet) => (
@@ -1508,7 +1507,7 @@ export function ValidationLeaderboardPage() {
               </select>
             </label>
             <label className="space-y-1">
-              <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Model</span>
+              <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Model</span>
               <select className={FIELD_CLASS} value={reviewModel} onChange={(e) => setReviewModel(e.target.value)}>
                 <option value="all">All models</option>
                 {(reviewData?.facets.models ?? []).map((facet) => (
@@ -1517,7 +1516,7 @@ export function ValidationLeaderboardPage() {
               </select>
             </label>
             <label className="space-y-1">
-              <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Search</span>
+              <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Search</span>
               <input
                 className={FIELD_CLASS}
                 value={reviewQuery}
@@ -1531,7 +1530,7 @@ export function ValidationLeaderboardPage() {
               href={`/api/validation/evidence/export?format=json${exportSuffix}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200"
+              className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-2 font-mono text-xs font-medium text-[#b3c2ba] transition-colors hover:border-[#37f5a0] hover:text-[#eaf3ee]"
             >
               Export Filtered JSON
             </a>
@@ -1539,12 +1538,12 @@ export function ValidationLeaderboardPage() {
               href={`/api/validation/evidence/export?format=csv${exportSuffix}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200"
+              className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-2 font-mono text-xs font-medium text-[#b3c2ba] transition-colors hover:border-[#37f5a0] hover:text-[#eaf3ee]"
             >
               Export Filtered CSV
             </a>
             {reviewData && (
-              <span className="self-center text-[11px] text-slate-500">
+              <span className="self-center text-[11px] text-[#86958d]">
                 Showing {reviewData.returned} of {reviewData.total} matching evidence entries.
               </span>
             )}
@@ -1554,22 +1553,22 @@ export function ValidationLeaderboardPage() {
           ) : reviewLoading || !reviewData ? (
             <LoadingSpinner />
           ) : reviewData.entries.length === 0 ? (
-            <p className="text-[11px] text-slate-500">No evidence entries match the current filters.</p>
+            <p className="text-[11px] text-[#86958d]">No evidence entries match the current filters.</p>
           ) : (
             <div className="space-y-3">
               {reviewData.entries.map((entry, index) => (
-                <div key={`${entry.kind}-${entry.timestamp}-${entry.item_index ?? index}`} className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
+                <div key={`${entry.kind}-${entry.timestamp}-${entry.item_index ?? index}`} className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-accent-teal/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-accent-teal">
+                    <span className="rounded-[2px] border border-[#37f5a0]/40 bg-[#0c1513] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#37f5a0]">
                       {entry.kind_label}
                     </span>
-                    <span className="text-[10px] uppercase tracking-wider text-slate-500">{formatEntryTimestamp(entry)}</span>
-                    {entry.provider && <span className="text-[10px] text-slate-500">Provider: {entry.provider}</span>}
-                    {entry.model && <span className="text-[10px] text-slate-500">Model: {entry.model}</span>}
+                    <span className="text-[10px] uppercase tracking-wider text-[#86958d]">{formatEntryTimestamp(entry)}</span>
+                    {entry.provider && <span className="text-[10px] text-[#86958d]">Provider: {entry.provider}</span>}
+                    {entry.model && <span className="text-[10px] text-[#86958d]">Model: {entry.model}</span>}
                   </div>
-                  <p className="mt-2 text-[11px] leading-relaxed text-slate-300">{entry.summary}</p>
-                  {entry.prompt_excerpt && <p className="mt-2 text-[10px] leading-relaxed text-slate-500">{entry.prompt_excerpt}</p>}
-                  {entry.notes && <p className="mt-2 text-[10px] leading-relaxed text-slate-500">{entry.notes}</p>}
+                  <p className="mt-2 text-[11px] leading-relaxed text-[#b3c2ba]">{entry.summary}</p>
+                  {entry.prompt_excerpt && <p className="mt-2 text-[10px] leading-relaxed text-[#86958d]">{entry.prompt_excerpt}</p>}
+                  {entry.notes && <p className="mt-2 text-[10px] leading-relaxed text-[#86958d]">{entry.notes}</p>}
                 </div>
               ))}
             </div>
@@ -1582,9 +1581,9 @@ export function ValidationLeaderboardPage() {
         <div className="overflow-x-auto -mx-5 px-5 sm:mx-0 sm:px-0">
           <table className="w-full text-sm min-w-[680px]">
             <thead>
-              <tr className="border-b border-white/[0.06] text-left text-[10px] text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-[#20302b] text-left text-[10px] text-[#86958d] uppercase tracking-wider">
                 <th
-                  className="pb-2 pr-4 cursor-pointer hover:text-slate-300"
+                  className="pb-2 pr-4 cursor-pointer hover:text-[#b3c2ba]"
                   onClick={() => setSortField('name')}
                 >
                   Operator {sortField === 'name' && '↓'}
@@ -1592,14 +1591,14 @@ export function ValidationLeaderboardPage() {
                 <th className="pb-2 pr-4 text-right">Human μ</th>
                 <th className="pb-2 pr-4 text-right">Machine μ</th>
                 <th
-                  className="pb-2 pr-4 text-right cursor-pointer hover:text-slate-300"
+                  className="pb-2 pr-4 text-right cursor-pointer hover:text-[#b3c2ba]"
                   onClick={() => setSortField('r')}
                 >
                   r {sortField === 'r' && '↓'}
                 </th>
                 <th className="pb-2 pr-4 text-right">p</th>
                 <th
-                  className="pb-2 pr-4 text-right cursor-pointer hover:text-slate-300"
+                  className="pb-2 pr-4 text-right cursor-pointer hover:text-[#b3c2ba]"
                   onClick={() => setSortField('n')}
                 >
                   n {sortField === 'n' && '↓'}
@@ -1614,21 +1613,21 @@ export function ValidationLeaderboardPage() {
                   <tr
                     key={op.operator_index}
                     onClick={() => setSelectedOp(op.operator_index)}
-                    className={`border-b border-white/[0.03] cursor-pointer hover:bg-white/[0.02] ${
+                    className={`border-b border-[#20302b]/70 cursor-pointer hover:bg-white/[0.02] ${
                       selectedOp === op.operator_index ? 'bg-white/[0.03]' : ''
                     }`}
                   >
-                    <td className="py-2.5 pr-4 text-slate-200">{op.operator_name}</td>
-                    <td className="py-2.5 pr-4 text-right font-mono text-slate-300">{op.human_mean.toFixed(1)}</td>
-                    <td className="py-2.5 pr-4 text-right font-mono text-slate-300">{op.machine_mean.toFixed(1)}</td>
+                    <td className="py-2.5 pr-4 text-[#eaf3ee]">{op.operator_name}</td>
+                    <td className="py-2.5 pr-4 text-right font-mono text-[#b3c2ba]">{op.human_mean.toFixed(1)}</td>
+                    <td className="py-2.5 pr-4 text-right font-mono text-[#b3c2ba]">{op.machine_mean.toFixed(1)}</td>
                     <td className="py-2.5 pr-4 text-right font-mono font-bold" style={{ color }}>
                       {op.pearson_r.toFixed(3)}
                     </td>
-                    <td className="py-2.5 pr-4 text-right font-mono text-slate-500">{op.p_value.toFixed(3)}</td>
-                    <td className="py-2.5 pr-4 text-right font-mono text-slate-400">{op.n_pairs}</td>
+                    <td className="py-2.5 pr-4 text-right font-mono text-[#86958d]">{op.p_value.toFixed(3)}</td>
+                    <td className="py-2.5 pr-4 text-right font-mono text-[#b3c2ba]">{op.n_pairs}</td>
                     <td className="py-2.5">
                       <span
-                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                        className="inline-flex items-center gap-1 rounded-[2px] px-2 py-0.5 font-mono text-[10px] font-semibold"
                         style={{ color, backgroundColor: `${color}15` }}
                       >
                         {STRENGTH_ICON[op.strength]} {STRENGTH_LABEL[op.strength]}
@@ -1640,23 +1639,23 @@ export function ValidationLeaderboardPage() {
             </tbody>
           </table>
         </div>
-        <p className="text-[10px] text-slate-500 mt-2">Click a row to view its scatter plot below.</p>
+        <p className="text-[10px] text-[#86958d] mt-2">Click a row to view its scatter plot below.</p>
       </Card>
 
       {/* Scatter plot for selected (or first) operator */}
       {selectedCorrelation && (
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#b3c2ba]">
               Scatter Plot — {selectedCorrelation.operator_name}
             </h3>
             <select
               value={selectedOp ?? 0}
               onChange={(e) => setSelectedOp(Number(e.target.value))}
-              className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-xs text-slate-300"
+              className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-1 text-xs text-[#b3c2ba]"
             >
               {operator_correlations.map((op) => (
-                <option key={op.operator_index} value={op.operator_index} className="bg-dark-800">
+                <option key={op.operator_index} value={op.operator_index} className="bg-[#0c1513]">
                   {op.operator_name}
                 </option>
               ))}
@@ -1672,7 +1671,7 @@ export function ValidationLeaderboardPage() {
           <div className="overflow-x-auto -mx-5 px-5 sm:mx-0 sm:px-0">
             <table className="w-full text-sm min-w-[480px]">
               <thead>
-                <tr className="border-b border-white/[0.06] text-left text-[10px] text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-[#20302b] text-left text-[10px] text-[#86958d] uppercase tracking-wider">
                   <th className="pb-2 pr-4">Rater A</th>
                   <th className="pb-2 pr-4">Rater B</th>
                   <th className="pb-2 pr-4 text-right">Shared Items</th>
@@ -1684,14 +1683,14 @@ export function ValidationLeaderboardPage() {
                 {inter_rater.map((ir, i) => {
                   const kColor = STRENGTH_COLOR[ir.cohens_kappa >= 0.7 ? 'strong' : ir.cohens_kappa >= 0.4 ? 'moderate' : 'weak'];
                   return (
-                    <tr key={i} className="border-b border-white/[0.03]">
-                      <td className="py-2.5 pr-4 text-slate-200">{ir.rater_a}</td>
-                      <td className="py-2.5 pr-4 text-slate-200">{ir.rater_b}</td>
-                      <td className="py-2.5 pr-4 text-right font-mono text-slate-400">{ir.shared_items}</td>
+                    <tr key={i} className="border-b border-[#20302b]/70">
+                      <td className="py-2.5 pr-4 text-[#eaf3ee]">{ir.rater_a}</td>
+                      <td className="py-2.5 pr-4 text-[#eaf3ee]">{ir.rater_b}</td>
+                      <td className="py-2.5 pr-4 text-right font-mono text-[#b3c2ba]">{ir.shared_items}</td>
                       <td className="py-2.5 pr-4 text-right font-mono font-bold" style={{ color: kColor }}>
                         {ir.cohens_kappa.toFixed(3)}
                       </td>
-                      <td className="py-2.5 text-right font-mono text-slate-300">{ir.agreement_pct.toFixed(1)}%</td>
+                      <td className="py-2.5 text-right font-mono text-[#b3c2ba]">{ir.agreement_pct.toFixed(1)}%</td>
                     </tr>
                   );
                 })}
@@ -1709,15 +1708,15 @@ export function ValidationLeaderboardPage() {
         ) : (
           <div className="space-y-4">
             <div className="grid gap-4 xl:grid-cols-2">
-              <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Rater Drift</p>
+              <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Rater Drift</p>
                 {calibrationReview.raters.length === 0 ? (
-                  <p className="mt-3 text-[11px] text-slate-500">No calibration rows yet.</p>
+                  <p className="mt-3 text-[11px] text-[#86958d]">No calibration rows yet.</p>
                 ) : (
                   <div className="mt-3 overflow-x-auto">
                     <table className="w-full min-w-[520px] text-[11px]">
                       <thead>
-                        <tr className="border-b border-white/[0.06] text-left uppercase tracking-wider text-slate-500">
+                        <tr className="border-b border-[#20302b] text-left uppercase tracking-wider text-[#86958d]">
                           <th className="pb-2 pr-3">Rater</th>
                           <th className="pb-2 pr-3 text-right">Labels</th>
                           <th className="pb-2 pr-3 text-right">Abs Panel Gap</th>
@@ -1727,12 +1726,12 @@ export function ValidationLeaderboardPage() {
                       </thead>
                       <tbody>
                         {calibrationReview.raters.map((row) => (
-                          <tr key={row.rater} className="border-b border-white/[0.03]">
-                            <td className="py-2 pr-3 text-slate-300">{row.rater}</td>
-                            <td className="py-2 pr-3 text-right font-mono text-slate-300">{row.label_count}</td>
-                            <td className="py-2 pr-3 text-right font-mono text-slate-300">{row.mean_abs_panel_gap.toFixed(2)}</td>
-                            <td className="py-2 pr-3 text-right font-mono text-slate-300">{row.mean_abs_machine_gap.toFixed(2)}</td>
-                            <td className="py-2 text-slate-400">
+                          <tr key={row.rater} className="border-b border-[#20302b]/70">
+                            <td className="py-2 pr-3 text-[#b3c2ba]">{row.rater}</td>
+                            <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{row.label_count}</td>
+                            <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{row.mean_abs_panel_gap.toFixed(2)}</td>
+                            <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{row.mean_abs_machine_gap.toFixed(2)}</td>
+                            <td className="py-2 text-[#b3c2ba]">
                               {row.top_operator_drift
                                 ? `${row.top_operator_drift.operator_name} (${row.top_operator_drift.signed_gap >= 0 ? '+' : ''}${row.top_operator_drift.signed_gap.toFixed(2)})`
                                 : 'n/a'}
@@ -1745,15 +1744,15 @@ export function ValidationLeaderboardPage() {
                 )}
               </div>
 
-              <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Highest Operator Disagreement</p>
+              <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Highest Operator Disagreement</p>
                 {calibrationReview.operators.length === 0 ? (
-                  <p className="mt-3 text-[11px] text-slate-500">No shared-item disagreement data yet.</p>
+                  <p className="mt-3 text-[11px] text-[#86958d]">No shared-item disagreement data yet.</p>
                 ) : (
                   <div className="mt-3 overflow-x-auto">
                     <table className="w-full min-w-[520px] text-[11px]">
                       <thead>
-                        <tr className="border-b border-white/[0.06] text-left uppercase tracking-wider text-slate-500">
+                        <tr className="border-b border-[#20302b] text-left uppercase tracking-wider text-[#86958d]">
                           <th className="pb-2 pr-3">Operator</th>
                           <th className="pb-2 pr-3 text-right">Shared</th>
                           <th className="pb-2 pr-3 text-right">Mean Spread</th>
@@ -1762,11 +1761,11 @@ export function ValidationLeaderboardPage() {
                       </thead>
                       <tbody>
                         {calibrationReview.operators.slice(0, 8).map((row) => (
-                          <tr key={row.operator_index} className="border-b border-white/[0.03]">
-                            <td className="py-2 pr-3 text-slate-300">{row.operator_name}</td>
-                            <td className="py-2 pr-3 text-right font-mono text-slate-300">{row.shared_items}</td>
-                            <td className="py-2 pr-3 text-right font-mono text-slate-300">{row.mean_spread.toFixed(2)}</td>
-                            <td className="py-2 text-right font-mono text-slate-300">{row.max_spread.toFixed(2)}</td>
+                          <tr key={row.operator_index} className="border-b border-[#20302b]/70">
+                            <td className="py-2 pr-3 text-[#b3c2ba]">{row.operator_name}</td>
+                            <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{row.shared_items}</td>
+                            <td className="py-2 pr-3 text-right font-mono text-[#b3c2ba]">{row.mean_spread.toFixed(2)}</td>
+                            <td className="py-2 text-right font-mono text-[#b3c2ba]">{row.max_spread.toFixed(2)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1776,23 +1775,23 @@ export function ValidationLeaderboardPage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Reconciliation Queue</p>
+            <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86958d]">Reconciliation Queue</p>
               {calibrationReview.items.length === 0 ? (
-                <p className="mt-3 text-[11px] text-slate-500">No multi-rater conflicts to reconcile yet.</p>
+                <p className="mt-3 text-[11px] text-[#86958d]">No multi-rater conflicts to reconcile yet.</p>
               ) : (
                 <div className="mt-3 space-y-3">
                   {calibrationReview.items.slice(0, 8).map((item) => (
-                    <div key={item.item_index} className="rounded-lg border border-white/[0.06] bg-dark-900/30 px-3 py-3">
+                    <div key={item.item_index} className="rounded-[2px] border border-[#20302b] bg-[#0c1513] px-3 py-3">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
+                        <span className="rounded-[2px] border border-[#f59e0b]/40 bg-[#0c1513] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#f59e0b]">
                           Item {item.item_index}
                         </span>
-                        <span className="text-[10px] text-slate-500">Raters: {item.raters.join(', ')}</span>
-                        <span className="text-[10px] text-slate-500">Machine mean: {item.machine_mean != null ? item.machine_mean.toFixed(2) : 'n/a'}</span>
+                        <span className="text-[10px] text-[#86958d]">Raters: {item.raters.join(', ')}</span>
+                        <span className="text-[10px] text-[#86958d]">Machine mean: {item.machine_mean != null ? item.machine_mean.toFixed(2) : 'n/a'}</span>
                       </div>
-                      <p className="mt-2 text-[11px] leading-relaxed text-slate-300">{item.prompt_excerpt}</p>
-                      <p className="mt-2 text-[10px] text-slate-500">
+                      <p className="mt-2 text-[11px] leading-relaxed text-[#b3c2ba]">{item.prompt_excerpt}</p>
+                      <p className="mt-2 text-[10px] text-[#86958d]">
                         Largest gap: {item.largest_operator_gap.operator_name} spread {item.largest_operator_gap.spread.toFixed(2)}; panel mean {item.panel_mean.toFixed(2)}
                       </p>
                     </div>
@@ -1808,7 +1807,7 @@ export function ValidationLeaderboardPage() {
       <Card title="Calibration Recommendations">
         <div className="space-y-2">
           {recommendations.length === 0 ? (
-            <p className="text-[11px] text-slate-500 text-center py-4">
+            <p className="text-[11px] text-[#86958d] text-center py-4">
               No recommendations yet — collect more validations to generate calibration guidance.
             </p>
           ) : (
@@ -1817,7 +1816,7 @@ export function ValidationLeaderboardPage() {
               return (
                 <div
                   key={i}
-                  className="rounded-lg border px-4 py-3"
+                  className="rounded-[2px] border px-4 py-3"
                   style={{ backgroundColor: style.bg, borderColor: style.border }}
                 >
                   <p className="text-[11px] leading-relaxed" style={{ color: style.fg }}>
@@ -1836,7 +1835,7 @@ export function ValidationLeaderboardPage() {
           href="/api/validation/export?format=json"
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 min-h-[44px] inline-flex items-center"
+          className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-2 font-mono text-xs font-medium text-[#b3c2ba] transition-colors hover:border-[#37f5a0] hover:text-[#eaf3ee] min-h-[44px] inline-flex items-center"
         >
           Export JSON
         </a>
@@ -1844,7 +1843,7 @@ export function ValidationLeaderboardPage() {
           href="/api/validation/export?format=csv"
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 min-h-[44px] inline-flex items-center"
+          className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-2 font-mono text-xs font-medium text-[#b3c2ba] transition-colors hover:border-[#37f5a0] hover:text-[#eaf3ee] min-h-[44px] inline-flex items-center"
         >
           Export CSV
         </a>

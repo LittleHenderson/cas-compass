@@ -1,7 +1,7 @@
 {
   "schemaVersion": "atlas_render_static_routes.v1",
   "dashboardManaged": true,
-  "requiredApiBaseUrl": "https://api.noeticcompass.com/atlas",
+  "requiredApiBaseUrl": "https://api.caslabai.com/atlas",
   "requiredAccountsEnabled": "true",
   "expectedCurrentRoutes": [
     {

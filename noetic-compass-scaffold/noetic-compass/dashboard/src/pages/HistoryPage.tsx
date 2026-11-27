@@ -98,16 +98,19 @@ export function HistoryPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">History</h2>
+          <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#37f5a0] mb-1">
+            ◐ Prototype · Assessment Log
+          </p>
+          <h2 className="font-['Space_Grotesk'] text-2xl font-bold tracking-[-0.03em] text-[#eaf3ee]">History</h2>
           {records.length > 0 && (
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-xs text-[#86958d] mt-1">
               {records.length} prompt{records.length !== 1 ? 's' : ''} assessed
               {records.length < 40 ? (
-                <span className="text-amber-400"> — {40 - records.length} more for broader prompt coverage</span>
+                <span className="text-[#f59e0b]"> — {40 - records.length} more for broader prompt coverage</span>
               ) : (
-                <span className="text-emerald-400"> — broader coverage reached</span>
+                <span className="text-[#37f5a0]"> — broader coverage reached</span>
               )}
             </p>
           )}
@@ -117,18 +120,18 @@ export function HistoryPage() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen((v) => !v)}
-                className="rounded-lg border border-accent-teal/30 bg-accent-teal/10 px-3 py-2 text-xs font-medium text-accent-teal hover:bg-accent-teal/20 transition-colors min-h-[44px]"
+                className="rounded-[2px] border border-[#eaf3ee] bg-transparent px-3 py-2 text-xs font-medium text-[#eaf3ee] hover:bg-[#13201c] transition-colors min-h-[44px]"
               >
                 Export All Data
               </button>
               {dropdownOpen && (
-                <div className="absolute right-0 mt-1 w-36 rounded-lg border border-white/10 bg-slate-800 shadow-lg z-10">
+                <div className="absolute right-0 mt-1 w-40 rounded-[2px] border border-[#20302b] bg-[#0c1513] z-10">
                   <button
                     onClick={() => {
                       exportCSV(records);
                       setDropdownOpen(false);
                     }}
-                    className="block w-full px-4 py-3 text-left text-xs text-slate-300 hover:bg-white/[0.05] rounded-t-lg transition-colors min-h-[44px]"
+                    className="block w-full px-4 py-3 text-left text-xs text-[#eaf3ee] hover:bg-[#13201c] border-b border-[#20302b] transition-colors min-h-[44px]"
                   >
                     Download CSV
                   </button>
@@ -137,7 +140,7 @@ export function HistoryPage() {
                       exportJSON(records);
                       setDropdownOpen(false);
                     }}
-                    className="block w-full px-4 py-3 text-left text-xs text-slate-300 hover:bg-white/[0.05] rounded-b-lg transition-colors min-h-[44px]"
+                    className="block w-full px-4 py-3 text-left text-xs text-[#eaf3ee] hover:bg-[#13201c] transition-colors min-h-[44px]"
                   >
                     Download JSON
                   </button>
@@ -148,7 +151,7 @@ export function HistoryPage() {
               onClick={() => {
                 if (confirm('Clear all history?')) clearHistory();
               }}
-              className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/20 transition-colors min-h-[44px]"
+              className="rounded-[2px] border border-[#ff7b72]/50 bg-[#ff7b72]/10 px-3 py-2 text-xs font-medium text-[#ff7b72] hover:bg-[#ff7b72]/20 transition-colors min-h-[44px]"
             >
               Clear All
             </button>
@@ -161,37 +164,37 @@ export function HistoryPage() {
       {records.length === 0 ? (
         <Card>
           <div className="text-center py-12 space-y-3">
-            <p className="text-sm text-slate-400">No assessments yet</p>
-            <p className="text-xs text-slate-500">Run your first assessment to see results here</p>
-            <a href="/assessment" className="inline-block rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-4 py-2 text-sm font-semibold text-dark-900 hover:opacity-90 transition-opacity">
+            <p className="text-sm text-[#eaf3ee]">No assessments yet</p>
+            <p className="text-xs text-[#86958d]">Run your first assessment to see results here</p>
+            <Link to="/assessment" className="inline-block rounded-[2px] bg-[#37f5a0] px-4 py-2.5 text-sm font-semibold text-[#050b0a] hover:bg-[#37f5a0]/90 transition-colors">
               Go to Assessment
-            </a>
+            </Link>
           </div>
         </Card>
       ) : (
-        <div className="glass-card overflow-hidden">
+        <div className="rounded-[2px] border border-[#20302b] bg-[#0c1513] overflow-hidden">
           <div className="overflow-x-auto -mx-0">
             <table className="w-full text-sm min-w-[480px]">
               <thead>
-                <tr className="border-b border-white/[0.06] text-left text-[11px] text-slate-500 uppercase tracking-wider">
-                  <th className="px-4 py-3">Time</th>
-                  <th className="px-4 py-3">Text</th>
-                  <th className="px-4 py-3">Score</th>
-                  <th className="px-4 py-3">Research Tier</th>
+                <tr className="border-b border-[#20302b] bg-[#13201c] text-left font-['Geist_Mono'] text-[11px] text-[#86958d] uppercase tracking-[0.08em]">
+                  <th className="px-4 py-3 font-medium">Time</th>
+                  <th className="px-4 py-3 font-medium">Text</th>
+                  <th className="px-4 py-3 font-medium">Score</th>
+                  <th className="px-4 py-3 font-medium">Research Tier</th>
                 </tr>
               </thead>
               <tbody>
                 {records.map((r) => (
-                  <tr key={r.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                    <td className="px-4 py-3 whitespace-nowrap text-xs text-slate-500">
+                  <tr key={r.id} className="border-b border-[#20302b]/60 hover:bg-[#13201c]/70 transition-colors">
+                    <td className="px-4 py-3 whitespace-nowrap font-['Geist_Mono'] text-xs text-[#86958d]">
                       {new Date(r.timestamp).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 max-w-xs truncate">
-                      <Link to={`/details/${r.id}`} className="text-accent-teal hover:text-accent-cyan transition-colors">
+                      <Link to={`/details/${r.id}`} className="text-[#37f5a0] hover:underline transition-colors">
                         {r.text.slice(0, 80)}{r.text.length > 80 ? '...' : ''}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 font-mono text-slate-300">{r.result.nccs.composite.toFixed(1)}</td>
+                    <td className="px-4 py-3 font-['Geist_Mono'] text-[#eaf3ee]">{r.result.nccs.composite.toFixed(1)}</td>
                     <td className="px-4 py-3">
                       <CertBadge certification={r.result.nccs.certification} composite={r.result.nccs.composite} />
                     </td>

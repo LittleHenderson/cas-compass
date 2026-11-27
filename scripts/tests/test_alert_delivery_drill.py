@@ -43,7 +43,7 @@ def _config() -> drill.DrillProviderConfig:
 
 def _event() -> drill.DrillEvent:
     return drill.DrillEvent(
-        repository="LittleHenderson/noetic-compass",
+        repository="LittleHenderson/cas-compass",
         run_id=123,
         run_attempt=2,
         emitted_at=EMITTED,
@@ -391,7 +391,7 @@ class AlertDeliveryDrillTests(unittest.TestCase):
 
     def test_cli_rejects_noncanonical_or_stale_emission_time(self) -> None:
         args = argparse.Namespace(
-            repository="LittleHenderson/noetic-compass",
+            repository="LittleHenderson/cas-compass",
             run_id=1,
             run_attempt=1,
             emitted_at_utc="2026-07-15T12:00:00.000Z",

@@ -56,27 +56,27 @@ export class SggsErrorBoundary extends Component<
         <div
           role="alert"
           data-testid="sggs-error-fallback"
-          className="flex h-full min-h-[560px] w-full items-center justify-center rounded-lg border border-rose-500/30 bg-rose-500/5 p-6 text-center"
+          className="flex h-full min-h-[560px] w-full items-center justify-center rounded-[2px] border border-[#ff7b72]/50 bg-[#0c1513] p-6 text-center"
         >
-          <div className="flex max-w-md flex-col gap-3 font-mono text-xs text-rose-200">
-            <div className="text-sm font-semibold text-rose-300">
+          <div className="flex max-w-md flex-col gap-3 font-mono text-xs text-[#eaf3ee]">
+            <div className="font-['Space_Grotesk',sans-serif] text-sm font-semibold text-[#ff7b72]">
               3D scene could not start
             </div>
-            <p className="text-slate-300">
+            <p className="font-sans text-[#b3c2ba]">
               Try refreshing, updating your browser, or using the TRACE
               view (2D SVG) instead — it renders the same trace without
               WebGL.
             </p>
-            <details className="text-[10px] text-slate-500">
+            <details className="text-[10px] text-[#86958d]">
               <summary className="cursor-pointer">technical detail</summary>
-              <pre className="mt-2 whitespace-pre-wrap text-left text-slate-500">
+              <pre className="mt-2 whitespace-pre-wrap text-left text-[#86958d]">
                 {this.state.error.message || String(this.state.error)}
               </pre>
             </details>
             <button
               type="button"
               onClick={this.reset}
-              className="self-center rounded border border-rose-400/40 px-3 py-1 text-rose-200 transition-colors hover:bg-rose-500/10"
+              className="self-center rounded-[2px] border border-[#eaf3ee] px-3 py-1 text-[#eaf3ee] transition-colors hover:border-[#37f5a0] hover:text-[#37f5a0]"
             >
               Try again
             </button>

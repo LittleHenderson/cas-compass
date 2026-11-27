@@ -29,73 +29,99 @@ export function WelcomeModal() {
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-lg rounded-2xl border border-white/[0.08] bg-dark-800 p-6 shadow-2xl">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="welcome-modal-title"
+    >
+      <div className="relative w-full max-w-lg rounded-[2px] border border-[#eaf3ee] bg-[#0c1513] p-6 sm:p-7">
         {/* Close */}
         <button
+          type="button"
           onClick={dismiss}
-          className="absolute top-4 right-4 text-slate-500 hover:text-slate-300 transition-colors"
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-[2px] border border-transparent text-[#86958d] transition-colors hover:border-[#20302b] hover:text-[#eaf3ee]"
           aria-label="Close"
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M5 5l10 10M15 5L5 15" strokeLinecap="round" />
           </svg>
         </button>
 
         {/* Header */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-slate-100">Welcome to Noetic Compass</h2>
-          <p className="text-sm text-slate-400 mt-2">
-            This platform measures <span className="text-accent-teal font-medium">HOW</span> AI thinks — not just what it says.
+        <div className="mb-6 border-b border-[#20302b] pb-5">
+          <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#37f5a0]">
+            CAS LAB · EVALUATION WORKBENCH
+          </p>
+          <h2 id="welcome-modal-title" className="mt-2 font-['Space_Grotesk',sans-serif] text-2xl font-bold text-[#eaf3ee]">
+            Welcome to CAS Compass
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-[#b3c2ba]">
+            Inspect cognitive architecture, run structured scenario assessments, and compare models across the CAS framework.
           </p>
         </div>
 
-        {/* Three things to try */}
-        <div className="space-y-4 mb-6">
-          <div className="flex items-start gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
-            <span className="shrink-0 w-7 h-7 rounded-full bg-accent-teal/15 text-accent-teal flex items-center justify-center text-sm font-bold">1</span>
+        {/* Three workflows */}
+        <div className="mb-6 space-y-3">
+          <div className="flex items-start gap-3 rounded-[2px] border border-[#20302b] bg-[#13201c] p-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[2px] border border-[#37f5a0]/50 bg-[#050b0a] font-mono text-xs font-semibold text-[#37f5a0]">
+              01
+            </span>
             <div>
-              <p className="text-sm font-semibold text-slate-200">Run an Assessment</p>
-              <p className="text-xs text-slate-400 mt-0.5">Score any AI on an ethical dilemma and see its cognitive architecture</p>
+              <p className="text-sm font-semibold text-[#eaf3ee]">Run an Assessment</p>
+              <p className="mt-0.5 text-xs text-[#86958d]">
+                Score any model on an ethical or structural scenario and inspect its operator profile.
+              </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
-            <span className="shrink-0 w-7 h-7 rounded-full bg-purple-500/15 text-purple-400 flex items-center justify-center text-sm font-bold">2</span>
+          <div className="flex items-start gap-3 rounded-[2px] border border-[#20302b] bg-[#13201c] p-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[2px] border border-[#37f5a0]/50 bg-[#050b0a] font-mono text-xs font-semibold text-[#37f5a0]">
+              02
+            </span>
             <div>
-              <p className="text-sm font-semibold text-slate-200">Try the Compiler</p>
-              <p className="text-xs text-slate-400 mt-0.5">Type CAS expressions or plain English and watch cognitive structure emerge</p>
+              <p className="text-sm font-semibold text-[#eaf3ee]">Explore the Idea Atlas</p>
+              <p className="mt-0.5 text-xs text-[#86958d]">
+                Capture ideas, view their CAS structural notation, and inspect 3D spatial graphs.
+              </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
-            <span className="shrink-0 w-7 h-7 rounded-full bg-amber-500/15 text-amber-400 flex items-center justify-center text-sm font-bold">3</span>
+          <div className="flex items-start gap-3 rounded-[2px] border border-[#20302b] bg-[#13201c] p-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[2px] border border-[#37f5a0]/50 bg-[#050b0a] font-mono text-xs font-semibold text-[#37f5a0]">
+              03
+            </span>
             <div>
-              <p className="text-sm font-semibold text-slate-200">Compare Models</p>
-              <p className="text-xs text-slate-400 mt-0.5">Run the same prompt against multiple AI providers and see the differences</p>
+              <p className="text-sm font-semibold text-[#eaf3ee]">Compare Models</p>
+              <p className="mt-0.5 text-xs text-[#86958d]">
+                Run the same prompt across multiple providers and review cohort divergences.
+              </p>
             </div>
           </div>
         </div>
 
         <button
+          type="button"
           onClick={startTutorial}
-          className="w-full rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-4 py-3 text-sm font-semibold text-dark-900 hover:opacity-90 transition-opacity min-h-[44px]"
+          className="min-h-[44px] w-full rounded-[2px] bg-[#37f5a0] px-4 py-3 font-mono text-xs font-semibold uppercase tracking-[0.06em] text-[#050b0a] transition-opacity hover:opacity-90"
         >
           Take the 5-minute tour
         </button>
 
         <button
+          type="button"
           onClick={startAssessment}
-          className="w-full mt-2 rounded-lg border border-accent-teal/25 bg-accent-teal/[0.06] px-4 py-2.5 text-xs font-semibold text-accent-teal hover:bg-accent-teal/[0.1] transition-colors min-h-[44px]"
+          className="mt-2 min-h-[44px] w-full rounded-[2px] border border-[#37f5a0]/45 bg-[#13201c] px-4 py-2.5 font-mono text-xs font-medium uppercase tracking-[0.06em] text-[#37f5a0] transition-colors hover:border-[#37f5a0]"
         >
           Skip tour and start an assessment
         </button>
 
         <button
+          type="button"
           onClick={dismiss}
-          className="w-full mt-2 rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/[0.08] transition-colors min-h-[44px]"
+          className="mt-2 min-h-[44px] w-full rounded-[2px] border border-[#20302b] bg-[#050b0a] px-4 py-2.5 font-mono text-xs uppercase tracking-[0.06em] text-[#86958d] transition-colors hover:border-[#62706a] hover:text-[#eaf3ee]"
         >
-          I'll explore on my own
+          I&apos;ll explore on my own
         </button>
       </div>
     </div>

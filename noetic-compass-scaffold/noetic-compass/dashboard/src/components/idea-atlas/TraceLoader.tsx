@@ -820,19 +820,19 @@ export function TraceLoader({ onTraceLoaded, onError }: TraceLoaderProps) {
   return (
     <div
       data-testid="trace-loader"
-      className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6 shadow-lg"
+      className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-6"
     >
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-100">
+        <h2 className="font-['Space_Grotesk',sans-serif] text-lg font-semibold text-[#eaf3ee]">
           Load a CAS trace
         </h2>
-        <span className="font-mono text-xs text-slate-400">
+        <span className="font-mono text-xs text-[#86958d]">
           schema {TRACE_SCHEMA_VERSION}
         </span>
       </div>
 
-      <p className="mb-4 text-sm text-slate-300">
-        Drop a <span className="font-mono text-cyan-300">.json</span> trace,
+      <p className="mb-4 text-sm text-[#b3c2ba]">
+        Drop a <span className="font-mono text-[#37f5a0]">.json</span> trace,
         pick a file, or load the bundled demo. Every trace shows what CAS
         read, what the model emitted, and which source references carried
         over.
@@ -842,7 +842,7 @@ export function TraceLoader({ onTraceLoaded, onError }: TraceLoaderProps) {
         <button
           type="button"
           onClick={handleDemo}
-          className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          className="rounded-[2px] bg-[#37f5a0] px-4 py-2 text-sm font-semibold text-[#050b0a] transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[#37f5a0]"
         >
           Load demo trace
         </button>
@@ -851,12 +851,12 @@ export function TraceLoader({ onTraceLoaded, onError }: TraceLoaderProps) {
           type="button"
           onClick={handleComplexDemo}
           title="A 14-node Θ recipe trace exercising every Atlas capability"
-          className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-400"
+          className="rounded-[2px] border border-[#37f5a0] bg-[#13201c] px-4 py-2 text-sm font-semibold text-[#37f5a0] transition-colors hover:bg-[#37f5a0] hover:text-[#050b0a] focus:outline-none focus:ring-2 focus:ring-[#37f5a0]"
         >
           Load complex demo (Θ recipe)
         </button>
 
-        <label className="inline-flex cursor-pointer items-center rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-100 hover:bg-slate-700 focus-within:ring-2 focus-within:ring-cyan-400">
+        <label className="inline-flex cursor-pointer items-center rounded-[2px] border border-[#eaf3ee] bg-transparent px-4 py-2 text-sm font-medium text-[#eaf3ee] transition-colors hover:border-[#37f5a0] hover:text-[#37f5a0] focus-within:ring-2 focus-within:ring-[#37f5a0]">
           Choose file
           <input
             ref={fileInputRef}
@@ -875,10 +875,10 @@ export function TraceLoader({ onTraceLoaded, onError }: TraceLoaderProps) {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={
-          'mt-4 flex h-28 items-center justify-center rounded-xl border-2 border-dashed text-sm transition-colors ' +
+          'mt-4 flex h-28 items-center justify-center rounded-[2px] border border-dashed text-sm transition-colors ' +
           (dragActive
-            ? 'border-cyan-400 bg-cyan-500/10 text-cyan-100'
-            : 'border-slate-600 bg-slate-900/30 text-slate-400')
+            ? 'border-[#37f5a0] bg-[#13201c] text-[#37f5a0]'
+            : 'border-[#20302b] bg-[#050b0a] text-[#86958d]')
         }
       >
         {dragActive
@@ -886,16 +886,16 @@ export function TraceLoader({ onTraceLoaded, onError }: TraceLoaderProps) {
           : 'Or drag and drop a trace.json here'}
       </div>
 
-      <p className="mt-3 font-mono text-xs text-slate-500">
+      <p className="mt-3 font-mono text-xs text-[#86958d]">
         Tip: open this page with{' '}
-        <code className="text-cyan-300">?trace=&lt;encoded JSON&gt;</code> to
+        <code className="text-[#37f5a0]">?trace=&lt;encoded JSON&gt;</code> to
         load a trace directly from the URL.
       </p>
 
       {lastSource && (
         <p
           data-testid="trace-loaded-source"
-          className="mt-3 text-xs text-emerald-300"
+          className="mt-3 font-mono text-xs text-[#37f5a0]"
         >
           Loaded from {lastSource}.
         </p>

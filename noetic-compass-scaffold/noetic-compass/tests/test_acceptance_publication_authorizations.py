@@ -124,7 +124,7 @@ def _legal_evidence(now: datetime, *, evidence_master: str = MASTER) -> dict[str
         "schema_version": "cas_harness_customer_production_gate_evidence.v3",
         "gate": "legal_publication_approval",
         "environment": "public-production",
-        "repository": "LittleHenderson/noetic-compass",
+        "repository": "LittleHenderson/cas-compass",
         "master_head_sha": evidence_master,
         "deploy_id": DEPLOY,
         "event_at_utc": stamp,
@@ -177,7 +177,7 @@ def _base_evidence(gate: str, now: datetime) -> dict[str, object]:
         ),
         "gate": gate,
         "environment": "public-production",
-        "repository": "LittleHenderson/noetic-compass",
+        "repository": "LittleHenderson/cas-compass",
         "master_head_sha": MASTER,
         "deploy_id": DEPLOY,
         "event_at_utc": stamp,
@@ -192,8 +192,8 @@ def _claim_evidence(now: datetime) -> dict[str, object]:
     stamp = now.strftime("%Y-%m-%dT%H:%M:%SZ")
     evidence = _base_evidence("claim_honesty", now)
     surfaces = {
-        "product_app": "https://atlas.noeticcompass.com",
-        "audit_console": "https://atlas.noeticcompass.com/audit-console",
+        "product_app": "https://compass.caslabai.com",
+        "audit_console": "https://compass.caslabai.com/audit-console",
         "landing": "https://cascompass.ai",
         "legal": "https://cascompass.ai/legal",
         "privacy": "https://cascompass.ai/privacy",

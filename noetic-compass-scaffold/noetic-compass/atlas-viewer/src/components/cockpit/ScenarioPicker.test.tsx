@@ -95,7 +95,7 @@ describe('ScenarioPicker', () => {
       cursor: 'pointer',
     });
     expect(screen.getByTestId('scenario-option-alpha_safe_f5').getAttribute('style')).toContain(
-      '56, 189, 248',
+      '55, 245, 160',
     );
   });
 });

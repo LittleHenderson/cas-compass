@@ -73,9 +73,9 @@ FRAGMENT_SCHEMA_VERSION = "cas_harness_support_crm_acceptance_fragment.v3"
 PRIVATE_LEAD_SELECTOR_SCHEMA_VERSION = (
     "cas_harness_support_crm_lead_selector.v1"
 )
-REPOSITORY = "LittleHenderson/noetic-compass"
-REPOSITORY_URL = "https://github.com/LittleHenderson/noetic-compass"
-PRODUCTION_API_ORIGIN = "https://api.noeticcompass.com"
+REPOSITORY = "LittleHenderson/cas-compass"
+REPOSITORY_URL = "https://github.com/LittleHenderson/cas-compass"
+PRODUCTION_API_ORIGIN = "https://api.caslabai.com"
 PRODUCTION_SERVICE_ID = "i-0bd0a082507a51ae3"
 PRODUCTION_SERVICE_NAME = "cas-harness-customer-api"
 RENDER_API_ORIGIN = "https://api.render.com"

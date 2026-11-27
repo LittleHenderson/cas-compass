@@ -411,7 +411,7 @@ export function NeuralActivityMap({
   return (
     <section
       className={[
-        'overflow-hidden rounded-lg border border-cyan-400/20 bg-slate-950/80',
+        'overflow-hidden rounded-[2px] border border-[#20302b] bg-[#050b0a]',
         'shadow-[0_0_42px_rgba(34,211,238,0.10)]',
         className ?? '',
       ]
@@ -419,9 +419,9 @@ export function NeuralActivityMap({
         .join(' ')}
       data-testid="neural-activity-map"
     >
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/[0.06] px-4 py-3">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#20302b] px-4 py-3">
         <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-cyan-300">
+          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#37f5a0]">
             CAS Neural Activity Map
           </div>
           <h2 className="mt-1 text-lg font-semibold text-slate-100">
@@ -432,8 +432,8 @@ export function NeuralActivityMap({
             evidence into a living computation view.
           </p>
         </div>
-        <div className="rounded-lg border border-cyan-300/20 bg-cyan-500/10 px-3 py-2 text-right">
-          <div className="font-mono text-[10px] uppercase tracking-wider text-cyan-200">
+        <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-2 text-right">
+          <div className="font-mono text-[10px] uppercase tracking-wider text-[#37f5a0]">
             {evidenceLabel(mode)}
           </div>
           <div className="mt-1 text-xs text-slate-300">{evidenceHelp(mode)}</div>
@@ -599,37 +599,37 @@ export function NeuralActivityMap({
             ))}
           </svg>
 
-          <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/[0.08] bg-black/55 px-3 py-2 text-xs text-slate-300 backdrop-blur-sm">
+          <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 rounded-[2px] border border-[#20302b] bg-[#0c1513]/95 px-3 py-2 text-xs text-slate-300 backdrop-blur-sm">
             <span>
               {activeRegions} regions active | {headCommits.length} head commits | {tree.node_count} trace nodes
             </span>
-            <span className="font-mono text-[10px] uppercase tracking-wider text-cyan-300">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-[#37f5a0]">
               click a region or pulse marker
             </span>
           </div>
         </div>
 
-        <aside className="border-t border-white/[0.06] bg-black/25 p-4 lg:border-l lg:border-t-0">
-          <div className="font-mono text-[10px] uppercase tracking-wider text-cyan-300">
+        <aside className="border-t border-[#20302b] bg-[#0c1513] p-4 lg:border-l lg:border-t-0">
+          <div className="font-mono text-[10px] uppercase tracking-wider text-[#37f5a0]">
             Selected Evidence
           </div>
           <h3 className="mt-2 text-lg font-semibold text-slate-100">{summary.label}</h3>
           <p className="mt-2 text-sm leading-relaxed text-slate-400">{summary.detail}</p>
 
           <dl className="mt-5 space-y-3 text-sm">
-            <div className="rounded border border-white/[0.06] bg-white/[0.03] p-3">
+            <div className="rounded border border-[#20302b] bg-white/[0.03] p-3">
               <dt className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
                 Region
               </dt>
               <dd className="mt-1 text-slate-100">{summary.region}</dd>
             </div>
-            <div className="rounded border border-white/[0.06] bg-white/[0.03] p-3">
+            <div className="rounded border border-[#20302b] bg-white/[0.03] p-3">
               <dt className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
                 Evidence source
               </dt>
               <dd className="mt-1 text-slate-100">{summary.source}</dd>
             </div>
-            <div className="rounded border border-white/[0.06] bg-white/[0.03] p-3">
+            <div className="rounded border border-[#20302b] bg-white/[0.03] p-3">
               <dt className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
                 Current mode
               </dt>
@@ -637,8 +637,8 @@ export function NeuralActivityMap({
             </div>
           </dl>
 
-          <div className="mt-5 rounded-lg border border-cyan-300/15 bg-cyan-500/[0.05] p-3">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-cyan-300">
+          <div className="mt-5 rounded-[2px] border border-[#20302b] bg-[#13201c] p-3">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-[#37f5a0]">
               Demo claim
             </div>
             <p className="mt-2 text-sm leading-relaxed text-slate-300">

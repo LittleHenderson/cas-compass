@@ -127,13 +127,13 @@ function extractForecastRequest(text: string, result: WrapResult): ForecastReque
 function bandClasses(band: ForecastRiskBand): string {
   switch (band) {
     case 'low':
-      return 'border-emerald-400/25 bg-emerald-400/[0.06] text-emerald-300';
+      return 'border-[#37f5a0]/40 bg-[#13201c] text-[#37f5a0]';
     case 'watch':
-      return 'border-accent-gold/25 bg-accent-gold/[0.07] text-accent-gold';
+      return 'border-[#f59e0b]/40 bg-[#f59e0b]/10 text-[#f59e0b]';
     case 'elevated':
-      return 'border-orange-400/25 bg-orange-400/[0.07] text-orange-300';
+      return 'border-orange-400/40 bg-orange-400/10 text-orange-300';
     case 'high':
-      return 'border-red-400/25 bg-red-400/[0.07] text-red-300';
+      return 'border-[#ff7b72]/45 bg-[#ff7b72]/10 text-[#ff7b72]';
   }
 }
 
@@ -158,16 +158,16 @@ function PlainLanguageGuide() {
   return (
     <div className="grid gap-3 md:grid-cols-3">
       {[
-        ['1', 'Paste or pick an example', 'Use normal language. CAS extracts the structure behind it.'],
-        ['2', 'Read the top risk first', 'The highest card tells you the most likely failure mode to test.'],
-        ['3', 'Use checks, not guesses', 'Each result gives practical checks that can confirm or falsify the risk.'],
+        ['01', 'Paste or pick an example', 'Use normal language. CAS extracts the structure behind it.'],
+        ['02', 'Read the top risk first', 'The highest card tells you the most likely failure mode to test.'],
+        ['03', 'Use checks, not guesses', 'Each result gives practical checks that can confirm or falsify the risk.'],
       ].map(([step, title, body]) => (
-        <div key={step} className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4">
-          <div className="mb-3 flex h-7 w-7 items-center justify-center rounded-full bg-accent-teal/15 text-xs font-bold text-accent-teal">
+        <div key={step} className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-4">
+          <div className="mb-3 inline-flex items-center justify-center rounded-[2px] border border-[#37f5a0]/35 bg-[#13201c] px-2 py-0.5 font-['Geist_Mono'] text-[11px] font-semibold text-[#37f5a0]">
             {step}
           </div>
-          <p className="text-sm font-semibold text-slate-100">{title}</p>
-          <p className="mt-1 text-xs leading-relaxed text-slate-500">{body}</p>
+          <p className="font-['Space_Grotesk'] text-sm font-semibold text-[#eaf3ee]">{title}</p>
+          <p className="mt-1 text-xs leading-relaxed text-[#86958d]">{body}</p>
         </div>
       ))}
     </div>
@@ -177,18 +177,18 @@ function PlainLanguageGuide() {
 function MetricBars({ title, names, values, max }: { title: string; names: string[]; values: number[]; max: number }) {
   return (
     <div>
-      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">{title}</p>
+      <p className="mb-2 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">{title}</p>
       <div className="space-y-2">
         {names.map((name, index) => {
           const value = values[index] ?? 0;
           const width = Math.max(2, Math.min(100, (value / max) * 100));
           return (
-            <div key={name} className="grid grid-cols-[6rem_1fr_3rem] items-center gap-2 text-[11px]">
-              <span className="truncate text-slate-400">{name}</span>
-              <div className="h-2 overflow-hidden rounded-full bg-white/[0.05]">
-                <div className="h-full rounded-full bg-gradient-to-r from-accent-teal to-accent-cyan" style={{ width: `${width}%` }} />
+            <div key={name} className="grid grid-cols-[6.5rem_1fr_3rem] items-center gap-2 text-xs">
+              <span className="truncate text-[#b3c2ba]">{name}</span>
+              <div className="h-2 overflow-hidden rounded-[2px] bg-[#13201c] border border-[#20302b]">
+                <div className="h-full bg-[#37f5a0]" style={{ width: `${width}%` }} />
               </div>
-              <span className="text-right font-mono text-slate-500">{max === 10 ? value.toFixed(1) : formatPercent(value)}</span>
+              <span className="text-right font-['Geist_Mono'] text-[11px] text-[#86958d]">{max === 10 ? value.toFixed(1) : formatPercent(value)}</span>
             </div>
           );
         })}
@@ -201,43 +201,45 @@ function ForecastSummary({ result }: { result: ForecastResponse }) {
   return (
     <Card className="overflow-hidden">
       <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-xl border border-accent-teal/20 bg-gradient-to-br from-accent-teal/[0.14] via-accent-cyan/[0.08] to-transparent p-5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-accent-teal">Overall risk level</p>
+        <div className="rounded-[2px] border border-[#37f5a0]/35 bg-[#13201c] p-5">
+          <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#37f5a0]">Overall risk level</p>
           <div className="mt-4 flex items-end gap-3">
-            <span className="text-5xl font-black text-slate-100">{result.overall_risk_score.toFixed(1)}</span>
-            <span className="pb-2 text-sm text-slate-500">/ 100</span>
+            <span className="font-['Space_Grotesk'] text-5xl font-bold tracking-[-0.03em] text-[#eaf3ee]">{result.overall_risk_score.toFixed(1)}</span>
+            <span className="pb-2 font-['Geist_Mono'] text-sm text-[#86958d]">/ 100</span>
           </div>
-          <div className={`mt-4 inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${bandClasses(result.risk_band)}`}>
+          <div className={`mt-4 inline-flex rounded-[2px] border px-2.5 py-1 font-['Geist_Mono'] text-[11px] font-semibold uppercase tracking-[0.08em] ${bandClasses(result.risk_band)}`}>
             {result.risk_band}
           </div>
-          <p className="mt-4 text-sm leading-relaxed text-slate-400">
+          <p className="mt-4 text-sm leading-relaxed text-[#b3c2ba]">
             {bandMeaning(result.risk_band)} This is a test-planning signal, not a deterministic prediction or clinical conclusion.
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Gap pattern</p>
-            <p className="mt-2 text-2xl font-bold text-slate-100">{result.lacunarity.classification}</p>
-            <p className="mt-1 text-xs text-slate-500">Technical lacunarity score {result.lacunarity.composite.toFixed(2)}</p>
+          <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-4">
+            <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Gap pattern</p>
+            <p className="mt-2 font-['Space_Grotesk'] text-2xl font-bold text-[#eaf3ee]">{result.lacunarity.classification}</p>
+            <p className="mt-1 font-['Geist_Mono'] text-xs text-[#86958d]">Technical lacunarity score {result.lacunarity.composite.toFixed(2)}</p>
           </div>
-          <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Research status</p>
-            <p className="mt-2 text-sm font-semibold text-accent-gold">{result.validation_status.replace(/_/g, ' ')}</p>
+          <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-4">
+            <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Research status</p>
+            <p className="mt-2 font-['Geist_Mono'] text-xs uppercase tracking-[0.08em] font-semibold text-[#f59e0b]">
+              ◕ {result.validation_status.replace(/_/g, ' ')}
+            </p>
           </div>
-          <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-4 sm:col-span-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Main gaps to inspect</p>
+          <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-4 sm:col-span-2">
+            <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Main gaps to inspect</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {(result.dominant_structural_gaps.weak_noetics ?? []).map((item) => (
-                <span key={`n-${item}`} className="rounded-full border border-cyan-400/20 bg-cyan-400/[0.06] px-2.5 py-1 text-[11px] text-cyan-200">{item}</span>
+                <span key={`n-${item}`} className="rounded-[2px] border border-[#37f5a0]/35 bg-[#0c1513] px-2.5 py-1 font-['Geist_Mono'] text-[11px] text-[#37f5a0]">{item}</span>
               ))}
               {(result.dominant_structural_gaps.weak_domains ?? []).map((item) => (
-                <span key={`d-${item}`} className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-2.5 py-1 text-[11px] text-emerald-200">Domain {item}</span>
+                <span key={`d-${item}`} className="rounded-[2px] border border-[#20302b] bg-[#0c1513] px-2.5 py-1 font-['Geist_Mono'] text-[11px] text-[#eaf3ee]">Domain {item}</span>
               ))}
               {(result.dominant_structural_gaps.weak_drives ?? []).map((item) => (
-                <span key={`f-${item}`} className="rounded-full border border-accent-gold/20 bg-accent-gold/[0.06] px-2.5 py-1 text-[11px] text-accent-gold">{item}</span>
+                <span key={`f-${item}`} className="rounded-[2px] border border-[#f59e0b]/35 bg-[#0c1513] px-2.5 py-1 font-['Geist_Mono'] text-[11px] text-[#f59e0b]">{item}</span>
               ))}
               {result.dominant_structural_gaps.largest_involution_gap && (
-                <span className="rounded-full border border-red-400/20 bg-red-400/[0.06] px-2.5 py-1 text-[11px] text-red-200">
+                <span className="rounded-[2px] border border-[#ff7b72]/40 bg-[#0c1513] px-2.5 py-1 font-['Geist_Mono'] text-[11px] text-[#ff7b72]">
                   Involution gap: {result.dominant_structural_gaps.largest_involution_gap.pair}
                 </span>
               )}
@@ -254,30 +256,30 @@ function ForecastCards({ result }: { result: ForecastResponse }) {
     <div className="grid gap-4 lg:grid-cols-2">
       {result.forecasts.map((forecast, index) => (
         <Card key={forecast.id} className="relative overflow-hidden">
-          <div className="absolute right-4 top-4 text-5xl font-black text-white/[0.03]">{index + 1}</div>
+          <div className="absolute right-4 top-3 font-['Geist_Mono'] text-4xl font-bold text-[#20302b]">{String(index + 1).padStart(2, '0')}</div>
           <div className="relative space-y-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-base font-semibold text-slate-100">{forecast.label}</p>
-                <p className="mt-1 text-sm leading-relaxed text-slate-400">{forecast.summary}</p>
+                <p className="font-['Space_Grotesk'] text-base font-semibold text-[#eaf3ee]">{forecast.label}</p>
+                <p className="mt-1 text-sm leading-relaxed text-[#b3c2ba]">{forecast.summary}</p>
               </div>
-              <div className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${bandClasses(forecast.risk_band)}`}>
+              <div className={`shrink-0 rounded-[2px] border px-2.5 py-1 font-['Geist_Mono'] text-xs font-semibold uppercase tracking-[0.08em] ${bandClasses(forecast.risk_band)}`}>
                 {forecast.risk_score}
               </div>
             </div>
             <div>
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Why this was flagged</p>
+              <p className="mb-2 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Why this was flagged</p>
               <div className="space-y-1.5">
                 {forecast.drivers.map((driver) => (
-                  <p key={driver} className="rounded-lg border border-white/[0.06] bg-white/[0.025] px-3 py-2 text-xs text-slate-400">{driver}</p>
+                  <p key={driver} className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-2 text-xs text-[#b3c2ba]">{driver}</p>
                 ))}
               </div>
             </div>
             <div>
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">What to test next</p>
+              <p className="mb-2 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">What to test next</p>
               <div className="space-y-1.5">
                 {forecast.recommended_checks.map((check) => (
-                  <p key={check} className="rounded-lg border border-accent-teal/15 bg-accent-teal/[0.04] px-3 py-2 text-xs text-slate-300">{check}</p>
+                  <p key={check} className="rounded-[2px] border border-[#37f5a0]/30 bg-[#13201c] px-3 py-2 text-xs text-[#eaf3ee]">{check}</p>
                 ))}
               </div>
             </div>
@@ -337,28 +339,24 @@ export function ForecastPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="relative overflow-hidden rounded-2xl border border-accent-teal/20 bg-gradient-to-br from-dark-800 via-dark-900 to-dark-900 p-6 shadow-[0_0_50px_rgba(45,212,191,0.06)]">
-        <div className="absolute -right-20 -top-28 h-72 w-72 rounded-full bg-accent-cyan/10 blur-3xl" />
-        <div className="absolute -bottom-28 left-1/3 h-64 w-64 rounded-full bg-accent-teal/10 blur-3xl" />
-        <div className="relative">
-          <div className="mb-4 flex flex-wrap gap-2">
-            <span className="rounded-full border border-accent-teal/25 bg-accent-teal/[0.08] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-accent-teal">
-              Research preview
-            </span>
-            <span className="rounded-full border border-accent-gold/25 bg-accent-gold/[0.08] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-accent-gold">
-              Not deterministic
-            </span>
-          </div>
-          <h1 className="max-w-3xl text-3xl font-black tracking-tight text-slate-100 sm:text-4xl">
-            Risk Forecast
-          </h1>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400">
-            Find where a prompt, response pattern, or profile may break under pressure. CAS converts the underlying structure into ranked checks you can actually test.
-          </p>
-          <p className="mt-2 text-xs text-slate-600">
-            Technical name: Predictive Lacunarity Risk.
-          </p>
+      <div className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-6">
+        <div className="mb-4 flex flex-wrap gap-2">
+          <span className="rounded-[2px] border border-[#37f5a0]/35 bg-[#13201c] px-2.5 py-1 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#37f5a0]">
+            ◕ Under evaluation · Research preview
+          </span>
+          <span className="rounded-[2px] border border-[#f59e0b]/35 bg-[#13201c] px-2.5 py-1 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#f59e0b]">
+            Not deterministic
+          </span>
         </div>
+        <h1 className="max-w-3xl font-['Space_Grotesk'] text-3xl font-bold tracking-[-0.03em] text-[#eaf3ee] sm:text-4xl">
+          Risk Forecast
+        </h1>
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-[#b3c2ba]">
+          Find where a prompt, response pattern, or profile may break under pressure. CAS converts the underlying structure into ranked checks you can actually test.
+        </p>
+        <p className="mt-2 font-['Geist_Mono'] text-xs text-[#86958d]">
+          Technical name: Predictive Lacunarity Risk.
+        </p>
       </div>
 
       <PlainLanguageGuide />
@@ -370,17 +368,17 @@ export function ForecastPage() {
               value={text}
               onChange={(event) => setText(event.target.value)}
               rows={5}
-              className="w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm leading-6 text-slate-200 placeholder-slate-600 outline-none transition-colors focus:border-accent-teal/50 focus:ring-1 focus:ring-accent-teal/30"
+              className="w-full resize-none rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3 text-sm leading-6 text-[#eaf3ee] placeholder-[#62706a] outline-none transition-colors focus:border-[#37f5a0]"
               placeholder="Enter a prompt or response pattern to assess..."
             />
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs leading-relaxed text-slate-500">
+              <p className="text-xs leading-relaxed text-[#86958d]">
                 Use normal language. The app handles the CAS metrics in the background.
               </p>
               <button
                 onClick={runTextForecast}
                 disabled={isRunning || !text.trim()}
-                className="rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-5 py-2.5 text-sm font-semibold text-dark-900 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-[2px] bg-[#37f5a0] px-5 py-2.5 text-sm font-semibold text-[#050b0a] transition-colors hover:bg-[#37f5a0]/90 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {textMutation.isPending ? 'Running check...' : 'Run Risk Check'}
               </button>
@@ -395,10 +393,10 @@ export function ForecastPage() {
                 key={preset.label}
                 onClick={() => runPreset(preset.request)}
                 disabled={isRunning}
-                className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 text-left transition-colors hover:border-accent-teal/30 hover:bg-accent-teal/[0.04] disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-[2px] border border-[#20302b] bg-[#13201c] p-4 text-left transition-colors hover:border-[#37f5a0] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <p className="text-sm font-semibold text-slate-100">{preset.label}</p>
-                <p className="mt-1 text-xs leading-relaxed text-slate-500">{preset.description}</p>
+                <p className="font-['Space_Grotesk'] text-sm font-semibold text-[#eaf3ee]">{preset.label}</p>
+                <p className="mt-1 text-xs leading-relaxed text-[#86958d]">{preset.description}</p>
               </button>
             ))}
           </div>
@@ -410,7 +408,7 @@ export function ForecastPage() {
         action={
           <button
             onClick={() => setShowTechnicalInput((value) => !value)}
-            className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-400 transition-colors hover:bg-white/[0.08] hover:text-slate-200"
+            className="rounded-[2px] border border-[#eaf3ee] bg-transparent px-3 py-1.5 text-xs font-medium text-[#eaf3ee] transition-colors hover:bg-[#13201c]"
           >
             {showTechnicalInput ? 'Hide metrics' : 'Show metrics'}
           </button>
@@ -423,14 +421,14 @@ export function ForecastPage() {
             <MetricBars title="Motivational supports" names={DRIVE_NAMES} values={activeRequest.drive_scores} max={1} />
           </div>
         ) : (
-          <p className="text-sm leading-relaxed text-slate-500">
+          <p className="text-sm leading-relaxed text-[#86958d]">
             Hidden by default to keep the page readable. Open this when you need to audit the exact Noetic, domain, and drive inputs used for the forecast.
           </p>
         )}
       </Card>
 
       {isRunning && (
-        <div className="flex items-center gap-3 rounded-xl border border-accent-teal/15 bg-accent-teal/[0.04] px-4 py-3 text-sm text-slate-300">
+        <div role="status" className="flex items-center gap-3 rounded-[2px] border border-[#37f5a0]/35 bg-[#13201c] px-4 py-3 text-sm text-[#eaf3ee]">
           <LoadingSpinner />
           Computing risk forecast...
         </div>
@@ -445,17 +443,17 @@ export function ForecastPage() {
           {wrapSnapshot && (
             <Card title="Wrap Pipeline Source">
               <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">NCCS</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-100">{wrapSnapshot.nccs.composite.toFixed(1)}</p>
+                <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-4">
+                  <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">NCCS</p>
+                  <p className="mt-2 font-['Space_Grotesk'] text-2xl font-bold text-[#eaf3ee]">{wrapSnapshot.nccs.composite.toFixed(1)}</p>
                 </div>
-                <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Certification</p>
-                  <p className="mt-2 text-lg font-semibold text-accent-teal">{wrapSnapshot.nccs.certification}</p>
+                <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-4">
+                  <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Certification</p>
+                  <p className="mt-2 font-['Space_Grotesk'] text-lg font-semibold text-[#37f5a0]">{wrapSnapshot.nccs.certification}</p>
                 </div>
-                <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Scoring</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-200">{wrapSnapshot.scoring_method ?? 'heuristic_fallback'}</p>
+                <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-4">
+                  <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Scoring</p>
+                  <p className="mt-2 font-['Geist_Mono'] text-xs font-semibold text-[#eaf3ee]">{wrapSnapshot.scoring_method ?? 'heuristic_fallback'}</p>
                 </div>
               </div>
             </Card>
@@ -466,11 +464,11 @@ export function ForecastPage() {
           <Card title="What this can and cannot say">
             <div className="space-y-2">
               {result.limitations.map((limitation) => (
-                <p key={limitation} className="rounded-lg border border-accent-gold/15 bg-accent-gold/[0.04] px-3 py-2 text-sm leading-relaxed text-slate-300">
+                <p key={limitation} className="rounded-[2px] border border-[#f59e0b]/35 bg-[#f59e0b]/10 px-3 py-2 text-sm leading-relaxed text-[#eaf3ee]">
                   {limitation}
                 </p>
               ))}
-              <p className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs leading-relaxed text-slate-500">
+              <p className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-2 text-xs leading-relaxed text-[#86958d]">
                 Development stance: this can improve CAS by making gaps testable and actionable. It should not be marketed as mind reading, medical diagnosis, or guaranteed physical-behavior prediction.
               </p>
             </div>

@@ -28,9 +28,9 @@ research artifact as production evidence.
 
 Production authority is limited to these exact lanes:
 
-- repository `LittleHenderson/noetic-compass`;
-- app origin `https://atlas.noeticcompass.com`;
-- API origin `https://api.noeticcompass.com`, the AWS-fronted customer-production lane;
+- repository `LittleHenderson/cas-compass`;
+- app origin `https://compass.caslabai.com`;
+- API origin `https://api.caslabai.com`, the AWS-fronted customer-production lane;
 - AWS account `807562639912`, region `us-west-2`: instance `i-0bd0a082507a51ae3`,
   CloudFront distribution `E1RBLENB7B6YEA`, database `nc-customer-pg`;
 - secret authority `/noetic-compass/customer-production` in AWS Systems Manager
@@ -679,7 +679,7 @@ exact `expires_at_utc`.
 ```powershell
 gh release upload customer-production-evidence `
   'root-ci-protected-deploy.json#Unsigned root CI protected deploy source facts' `
-  --repo LittleHenderson/noetic-compass `
+  --repo LittleHenderson/cas-compass `
   --clobber
 ```
 
@@ -699,7 +699,7 @@ read-only authority endpoints, dispatch
 
 ```powershell
 gh workflow run customer-production-candidate.yml `
-  --repo LittleHenderson/noetic-compass `
+  --repo LittleHenderson/cas-compass `
   --ref master `
   -f root_ci_receipt_run_id=<receipt-run-id> `
   -f root_ci_receipt_artifact_name=root-ci-protected-deploy-receipt-<receipt-run-id> `

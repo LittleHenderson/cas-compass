@@ -26,9 +26,9 @@ export interface WordTokenStreamProps {
 const wrapperStyle: CSSProperties = {
   width: '100%',
   padding: '10px 14px',
-  borderRadius: 6,
-  background: 'rgba(2, 6, 23, 0.45)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
+  borderRadius: 2,
+  background: COLORS.ground,
+  border: `1px solid ${COLORS.rule}`,
   fontFamily: THEME.fontMono,
   fontSize: 12.5,
   lineHeight: 1.6,
@@ -41,8 +41,8 @@ const wrapperStyle: CSSProperties = {
 
 const wordBaseStyle: CSSProperties = {
   display: 'inline',
-  padding: '0 1px',
-  borderRadius: 3,
+  padding: '0 2px',
+  borderRadius: 2,
   cursor: 'pointer',
   transition: 'background 0.12s ease, color 0.12s ease',
 };
@@ -131,9 +131,7 @@ export function WordTokenStream(props: WordTokenStreamProps): JSX.Element {
     const isActive = activeSpan === span;
     const wordStyle: CSSProperties = {
       ...wordBaseStyle,
-      background: isActive
-        ? 'rgba(45, 212, 191, 0.18)'
-        : 'transparent',
+      background: isActive ? COLORS.stripe : 'transparent',
       color: isActive ? ATLAS_STATUS_COLORS.activeTrace : COLORS.textPrimary,
       outline: isActive
         ? `1px solid ${ATLAS_STATUS_COLORS.activeTrace}`
@@ -161,8 +159,7 @@ export function WordTokenStream(props: WordTokenStreamProps): JSX.Element {
           }}
           onMouseEnter={(e) => {
             if (!isActive) {
-              (e.currentTarget as HTMLSpanElement).style.background =
-                'rgba(45, 212, 191, 0.08)';
+              (e.currentTarget as HTMLSpanElement).style.background = COLORS.stripe;
             }
           }}
           onMouseLeave={(e) => {

@@ -3,27 +3,48 @@ import { useAccountAuth } from '../auth/AccountAuthProvider';
 import { GlassPanel } from '../components/ui/GlassPanel';
 import { PageShell } from '../components/ui/PageShell';
 import { generateAccountCredential } from '../lib/accountAuthApi';
-import { ACCENT_TEAL, COLORS, THEME } from '../lib/designTokens';
+import { ACCENT_AMBER, ACCENT_ERROR, ACCENT_TEAL, COLORS, FONT_DISPLAY, FONT_MONO } from '../lib/designTokens';
+
+const eyebrowStyle: CSSProperties = {
+  margin: '0 0 8px 0',
+  fontFamily: FONT_MONO,
+  fontSize: 11,
+  fontWeight: 500,
+  letterSpacing: 1.2,
+  textTransform: 'uppercase',
+  color: ACCENT_TEAL,
+};
 
 const textStyle: CSSProperties = {
   margin: '7px 0',
   color: COLORS.textSecondary,
-  fontSize: 13,
+  fontSize: 13.5,
   lineHeight: 1.5,
+};
+
+const dtStyle: CSSProperties = {
+  fontFamily: FONT_MONO,
+  fontSize: 11,
+  textTransform: 'uppercase',
+  letterSpacing: 0.8,
+  color: COLORS.textMuted,
+  alignSelf: 'center',
 };
 
 const buttonStyle = (primary = false, disabled = false): CSSProperties => ({
   minHeight: 38,
-  padding: '8px 13px',
-  borderRadius: 6,
-  border: primary ? `1px solid ${ACCENT_TEAL}` : '1px solid rgba(255,255,255,0.12)',
-  background: primary ? 'rgba(45,212,191,0.10)' : 'rgba(255,255,255,0.03)',
-  color: primary ? ACCENT_TEAL : COLORS.textSecondary,
+  padding: '8px 14px',
+  borderRadius: 2,
+  border: primary ? `1px solid ${ACCENT_TEAL}` : `1px solid ${COLORS.rule}`,
+  background: primary ? ACCENT_TEAL : COLORS.stripe,
+  color: primary ? COLORS.ground : COLORS.textPrimary,
   cursor: disabled ? 'not-allowed' : 'pointer',
-  opacity: disabled ? 0.5 : 1,
-  fontFamily: THEME.fontFamily,
-  fontSize: 12.5,
+  opacity: disabled ? 0.48 : 1,
+  fontFamily: primary ? FONT_DISPLAY : FONT_MONO,
+  fontSize: primary ? 13 : 11.5,
   fontWeight: 700,
+  letterSpacing: primary ? 0.2 : 0.6,
+  textTransform: primary ? undefined : 'uppercase',
 });
 
 function downloadCredential(credential: string): void {
@@ -87,19 +108,36 @@ export default function AccountSecurityPage(): JSX.Element {
   return (
     <PageShell cardMaxWidth={680}>
       <GlassPanel intensity="regular" padding={24} ariaLabel="Account security">
-        <h1 style={{ margin: 0, color: COLORS.textPrimary, fontSize: 24 }}>Account security</h1>
+        <p style={eyebrowStyle}>CAS Compass · Account Claims</p>
+        <h1 style={{ margin: 0, fontFamily: FONT_DISPLAY, color: COLORS.textPrimary, fontSize: 26 }}>
+          Account security
+        </h1>
         <p style={textStyle}>
-          Signed in as <strong>{auth.claims?.sub}</strong>. Tenant and role are taken from the
+          Signed in as <strong style={{ color: COLORS.textPrimary }}>{auth.claims?.sub}</strong>. Tenant and role are taken from the
           server-signed session, never from an editable browser field.
         </p>
-        <dl style={{ display: 'grid', gridTemplateColumns: 'max-content 1fr', gap: '6px 14px', ...textStyle }}>
-          <dt>Account</dt><dd style={{ margin: 0, fontFamily: THEME.fontMono }}>{auth.claims?.account_id}</dd>
-          <dt>Tenant</dt><dd style={{ margin: 0, fontFamily: THEME.fontMono }}>{auth.claims?.tenant_id}</dd>
-          <dt>Role</dt><dd style={{ margin: 0 }}>{auth.claims?.role}</dd>
+        <dl style={{
+          display: 'grid',
+          gridTemplateColumns: 'max-content 1fr',
+          gap: '8px 16px',
+          padding: 12,
+          borderRadius: 2,
+          border: `1px solid ${COLORS.rule}`,
+          background: COLORS.stripe,
+          ...textStyle,
+        }}>
+          <dt style={dtStyle}>Account</dt>
+          <dd style={{ margin: 0, fontFamily: FONT_MONO, color: COLORS.textPrimary }}>{auth.claims?.account_id}</dd>
+          <dt style={dtStyle}>Tenant</dt>
+          <dd style={{ margin: 0, fontFamily: FONT_MONO, color: COLORS.textPrimary }}>{auth.claims?.tenant_id}</dd>
+          <dt style={dtStyle}>Role</dt>
+          <dd style={{ margin: 0, fontFamily: FONT_MONO, color: ACCENT_TEAL }}>{auth.claims?.role}</dd>
         </dl>
 
-        <section style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          <h2 style={{ margin: 0, color: COLORS.textPrimary, fontSize: 17 }}>Rotate my credential</h2>
+        <section style={{ marginTop: 24, paddingTop: 18, borderTop: `1px solid ${COLORS.rule}` }}>
+          <h2 style={{ margin: 0, fontFamily: FONT_DISPLAY, color: COLORS.textPrimary, fontSize: 18 }}>
+            Rotate my credential
+          </h2>
           <p style={textStyle}>
             Rotation replaces the current credential and revokes every existing session for this
             account. CAS Harness stores only a verifier, so the new credential cannot be recovered.
@@ -113,11 +151,11 @@ export default function AccountSecurityPage(): JSX.Element {
               <code style={{
                 display: 'block',
                 padding: 12,
-                borderRadius: 6,
-                border: '1px solid rgba(251,191,36,0.30)',
-                background: 'rgba(251,191,36,0.06)',
-                color: '#fef3c7',
-                fontFamily: THEME.fontMono,
+                borderRadius: 2,
+                border: `1px dashed ${ACCENT_AMBER}`,
+                background: COLORS.stripe,
+                color: COLORS.textPrimary,
+                fontFamily: FONT_MONO,
                 fontSize: 11.5,
                 overflowWrap: 'anywhere',
                 userSelect: 'all',
@@ -138,11 +176,11 @@ export default function AccountSecurityPage(): JSX.Element {
               </button>
             </div>
           )}
-          {error ? <p role="alert" style={{ ...textStyle, color: '#fecaca' }}>{error}</p> : null}
+          {error ? <p role="alert" style={{ ...textStyle, color: ACCENT_ERROR }}>{error}</p> : null}
           {notice ? <p role="status" style={textStyle}>{notice}</p> : null}
         </section>
 
-        <p style={{ ...textStyle, marginTop: 22, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <p style={{ ...textStyle, marginTop: 22, paddingTop: 14, borderTop: `1px dashed ${COLORS.dash}`, fontSize: 12, color: COLORS.textMuted }}>
           First-owner bootstrap, owner recovery, and cross-tenant provisioning remain operator-only
           deployment workflows. Contact the platform operator if every owner credential is lost.
         </p>

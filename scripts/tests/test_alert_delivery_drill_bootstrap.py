@@ -577,7 +577,7 @@ class AlertDeliveryDrillBootstrapTests(unittest.TestCase):
 
             delivery_environment = environment | {
                 "CAS_ALERT_DRILL_PROVIDER_MODE": "disabled",
-                "GITHUB_REPOSITORY": "LittleHenderson/noetic-compass",
+                "GITHUB_REPOSITORY": "LittleHenderson/cas-compass",
                 "GITHUB_RUN_ID": "123456",
                 "GITHUB_RUN_ATTEMPT": "1",
             }

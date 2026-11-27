@@ -4,20 +4,32 @@ import { useAccountAuth } from '../auth/AccountAuthProvider';
 import { GlassPanel } from '../components/ui/GlassPanel';
 import { PageShell } from '../components/ui/PageShell';
 import { generateAccountCredential } from '../lib/accountAuthApi';
-import { ACCENT_TEAL, COLORS, THEME } from '../lib/designTokens';
+import { ACCENT_AMBER, ACCENT_ERROR, ACCENT_TEAL, COLORS, FONT_DISPLAY, FONT_MONO, THEME } from '../lib/designTokens';
 
 type LoginMode = 'sign-in' | 'redeem';
 
+const eyebrowStyle: CSSProperties = {
+  margin: '0 0 8px 0',
+  fontFamily: FONT_MONO,
+  fontSize: 11,
+  fontWeight: 500,
+  letterSpacing: 1.2,
+  textTransform: 'uppercase',
+  color: ACCENT_TEAL,
+};
+
 const headingStyle: CSSProperties = {
   margin: 0,
-  fontSize: 24,
-  fontWeight: 800,
+  fontFamily: FONT_DISPLAY,
+  fontSize: 26,
+  fontWeight: 700,
+  letterSpacing: -0.3,
   color: COLORS.textPrimary,
 };
 
 const textStyle: CSSProperties = {
   margin: '8px 0 18px',
-  fontSize: 13,
+  fontSize: 13.5,
   lineHeight: 1.55,
   color: COLORS.textSecondary,
 };
@@ -25,23 +37,24 @@ const textStyle: CSSProperties = {
 const fieldStyle: CSSProperties = {
   display: 'grid',
   gap: 6,
-  marginBottom: 12,
+  marginBottom: 14,
 };
 
 const labelStyle: CSSProperties = {
   color: COLORS.textMuted,
-  fontSize: 10.5,
-  fontWeight: 700,
-  letterSpacing: 0.8,
+  fontFamily: FONT_MONO,
+  fontSize: 11,
+  fontWeight: 500,
+  letterSpacing: 0.9,
   textTransform: 'uppercase',
 };
 
 const inputStyle: CSSProperties = {
   width: '100%',
   padding: '10px 12px',
-  borderRadius: 6,
-  border: '1px solid rgba(255,255,255,0.10)',
-  background: 'rgba(255,255,255,0.03)',
+  borderRadius: 2,
+  border: `1.5px solid ${COLORS.borderInk}`,
+  background: COLORS.ground,
   color: COLORS.textPrimary,
   fontFamily: THEME.fontFamily,
   fontSize: 14,
@@ -49,28 +62,30 @@ const inputStyle: CSSProperties = {
 
 const buttonStyle = (primary = false, disabled = false): CSSProperties => ({
   minHeight: 38,
-  padding: '8px 13px',
-  borderRadius: 6,
+  padding: '8px 14px',
+  borderRadius: 2,
   border: primary
     ? `1px solid ${ACCENT_TEAL}`
-    : '1px solid rgba(255,255,255,0.12)',
-  background: primary ? 'rgba(45,212,191,0.10)' : 'rgba(255,255,255,0.03)',
-  color: primary ? ACCENT_TEAL : COLORS.textSecondary,
+    : `1px solid ${COLORS.rule}`,
+  background: primary ? ACCENT_TEAL : COLORS.stripe,
+  color: primary ? COLORS.ground : COLORS.textPrimary,
   cursor: disabled ? 'not-allowed' : 'pointer',
-  opacity: disabled ? 0.5 : 1,
-  fontFamily: THEME.fontFamily,
-  fontSize: 12.5,
+  opacity: disabled ? 0.48 : 1,
+  fontFamily: primary ? FONT_DISPLAY : FONT_MONO,
+  fontSize: primary ? 13 : 11.5,
   fontWeight: 700,
+  letterSpacing: primary ? 0.2 : 0.6,
+  textTransform: primary ? undefined : 'uppercase',
 });
 
 const credentialStyle: CSSProperties = {
   display: 'block',
   padding: 12,
-  borderRadius: 6,
-  border: '1px solid rgba(251,191,36,0.30)',
-  background: 'rgba(251,191,36,0.06)',
-  color: '#fef3c7',
-  fontFamily: THEME.fontMono,
+  borderRadius: 2,
+  border: `1px dashed ${ACCENT_AMBER}`,
+  background: COLORS.stripe,
+  color: COLORS.textPrimary,
+  fontFamily: FONT_MONO,
   fontSize: 11.5,
   lineHeight: 1.5,
   overflowWrap: 'anywhere',
@@ -187,6 +202,7 @@ export default function LoginPage(): JSX.Element {
   return (
     <PageShell showNav={auth.isAuthenticated} cardMaxWidth={560}>
       <GlassPanel intensity="regular" padding={24} ariaLabel="CAS Harness customer account access">
+        <p style={eyebrowStyle}>CAS Compass · CAS Lab</p>
         <h1 style={headingStyle}>Customer account access</h1>
         <p style={textStyle}>
           Use your account identity and private <code>casak_</code> credential. The credential is
@@ -197,11 +213,11 @@ export default function LoginPage(): JSX.Element {
           <section role="alert" style={{
             marginBottom: 18,
             padding: 12,
-            borderRadius: 6,
-            border: '1px solid rgba(251,191,36,0.36)',
-            background: 'rgba(251,191,36,0.08)',
+            borderRadius: 2,
+            border: `1px dashed ${ACCENT_AMBER}`,
+            background: COLORS.stripe,
           }}>
-            <p style={{ ...textStyle, margin: 0, color: '#fef3c7' }}>{auth.logoutWarning}</p>
+            <p style={{ ...textStyle, margin: 0, color: ACCENT_AMBER }}>{auth.logoutWarning}</p>
             <button type="button" style={{ ...buttonStyle(), marginTop: 8 }} onClick={auth.clearLogoutWarning}>
               Dismiss warning
             </button>
@@ -210,7 +226,7 @@ export default function LoginPage(): JSX.Element {
 
         {auth.credentialHandoff ? (
           <section aria-label="Rotated account credential" style={{ marginBottom: 18 }}>
-            <p role="alert" style={{ ...textStyle, color: '#fef3c7' }}>
+            <p role="alert" style={{ ...textStyle, color: ACCENT_AMBER }}>
               Credential rotation succeeded and revoked the old session. Save this new credential,
               then sign in again. It will disappear on reload.
             </p>
@@ -271,7 +287,7 @@ export default function LoginPage(): JSX.Element {
                 spellCheck={false}
                 pattern="casak_[A-Za-z0-9_-]{43,128}"
                 required
-                style={{ ...inputStyle, fontFamily: THEME.fontMono }}
+                style={{ ...inputStyle, fontFamily: FONT_MONO }}
               />
             </div>
             <button type="submit" disabled={busy} style={buttonStyle(true, busy)}>
@@ -299,7 +315,7 @@ export default function LoginPage(): JSX.Element {
               </button>
             ) : (
               <section aria-label="Generated account credential">
-                <p style={{ ...textStyle, color: '#fef3c7' }}>
+                <p style={{ ...textStyle, color: ACCENT_AMBER }}>
                   This is the only copy. CAS Harness cannot recover it. A failed or interrupted
                   redemption retry must reuse this exact value.
                 </p>
@@ -326,9 +342,9 @@ export default function LoginPage(): JSX.Element {
           </form>
         )}
 
-        {error ? <p role="alert" style={{ ...textStyle, color: '#fecaca' }}>{error}</p> : null}
+        {error ? <p role="alert" style={{ ...textStyle, color: ACCENT_ERROR }}>{error}</p> : null}
         {notice ? <p role="status" style={textStyle}>{notice}</p> : null}
-        <p style={{ ...textStyle, marginTop: 20, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <p style={{ ...textStyle, marginTop: 20, paddingTop: 14, borderTop: `1px dashed ${COLORS.dash}`, fontSize: 12, color: COLORS.textMuted }}>
           First-owner bootstrap, owner recovery, and platform tenant provisioning are operator-only
           deployment workflows. Their secrets are never accepted or exposed by this customer UI.
         </p>

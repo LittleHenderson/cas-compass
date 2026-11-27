@@ -1511,7 +1511,7 @@ describe('AuditConsolePage', () => {
       return screen.findByRole('status', { name: /Live worker status:/i });
     }
 
-    it('shows a teal "real Pythia weights" chip only when real weights are confirmed', async () => {
+    it('shows an accent "real Pythia weights" chip only when real weights are confirmed', async () => {
       await renderWithLiveWorkerHealth({
         configured: true,
         reachable: true,
@@ -1523,8 +1523,8 @@ describe('AuditConsolePage', () => {
 
       const chip = await findLiveWorkerChip();
       expect(chip).toHaveTextContent('Live worker connected · real Pythia weights');
-      // ACCENT_TEAL = #2dd4bf -> rgb(45, 212, 191)
-      expect(chip).toHaveStyle({ color: 'rgb(45, 212, 191)' });
+      // ACCENT_TEAL = #37f5a0 -> rgb(55, 245, 160)
+      expect(chip).toHaveStyle({ color: 'rgb(55, 245, 160)' });
     });
 
     it('shows an amber chip for a reachable-but-demo worker (no real weights)', async () => {
@@ -1539,8 +1539,8 @@ describe('AuditConsolePage', () => {
 
       const chip = await findLiveWorkerChip();
       expect(chip).toHaveTextContent('Live worker reachable · demo mode (not real weights)');
-      // ACCENT_AMBER = #fbbf24 -> rgb(251, 191, 36)
-      expect(chip).toHaveStyle({ color: 'rgb(251, 191, 36)' });
+      // ACCENT_AMBER = #f59e0b -> rgb(245, 158, 11)
+      expect(chip).toHaveStyle({ color: 'rgb(245, 158, 11)' });
     });
 
     it('shows an amber chip when the worker is configured but unreachable', async () => {
@@ -1555,7 +1555,7 @@ describe('AuditConsolePage', () => {
 
       const chip = await findLiveWorkerChip();
       expect(chip).toHaveTextContent('Live worker unavailable · no live audit will run');
-      expect(chip).toHaveStyle({ color: 'rgb(251, 191, 36)' });
+      expect(chip).toHaveStyle({ color: 'rgb(245, 158, 11)' });
     });
 
     it('shows a muted chip when the live worker is not configured', async () => {
@@ -1570,8 +1570,8 @@ describe('AuditConsolePage', () => {
 
       const chip = await findLiveWorkerChip();
       expect(chip).toHaveTextContent('Live worker not configured');
-      // COLORS.textMuted = #64748b -> rgb(100, 116, 139)
-      expect(chip).toHaveStyle({ color: 'rgb(100, 116, 139)' });
+      // COLORS.textMuted = #86958d -> rgb(134, 149, 141)
+      expect(chip).toHaveStyle({ color: 'rgb(134, 149, 141)' });
     });
 
     it('renders a calm "checking" chip before the health probe resolves and never blocks the page', async () => {
@@ -1582,7 +1582,7 @@ describe('AuditConsolePage', () => {
 
       const chip = screen.getByRole('status', { name: /Live worker status:/i });
       expect(chip).toHaveTextContent('Checking live worker…');
-      expect(chip).toHaveStyle({ color: 'rgb(100, 116, 139)' });
+      expect(chip).toHaveStyle({ color: 'rgb(134, 149, 141)' });
       // Page still renders its core controls.
       expect(customerAction('Run CAS audit')).toBeInTheDocument();
     });

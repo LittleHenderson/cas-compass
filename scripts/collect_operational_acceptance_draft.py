@@ -32,11 +32,11 @@ from typing import Any, Callable, Mapping, Sequence
 
 
 REPORT_SCHEMA_VERSION = "cas_harness_operational_acceptance_machine_draft.v1"
-REPOSITORY = "LittleHenderson/noetic-compass"
+REPOSITORY = "LittleHenderson/cas-compass"
 REPOSITORY_ID = 1203465584
 REPOSITORY_API_ORIGIN = "https://api.github.com"
-PRODUCTION_APP_ORIGIN = "https://atlas.noeticcompass.com"
-PRODUCTION_API_ORIGIN = "https://api.noeticcompass.com"
+PRODUCTION_APP_ORIGIN = "https://compass.caslabai.com"
+PRODUCTION_API_ORIGIN = "https://api.caslabai.com"
 LANDING_ORIGIN = "https://cascompass.ai"
 PRODUCTION_SERVICE_ID = "i-0bd0a082507a51ae3"
 RUNTIME_MONITOR_WORKFLOW_PATH = ".github/workflows/production-runtime-monitor.yml"

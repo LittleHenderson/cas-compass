@@ -56,9 +56,9 @@ const wrapperStyle: CSSProperties = {
   flexDirection: 'column',
   gap: 6,
   padding: '10px 12px',
-  borderRadius: 8,
-  background: 'rgba(15, 23, 42, 0.55)',
-  border: '1px solid rgba(255,255,255,0.06)',
+  borderRadius: 2,
+  background: COLORS.stripe,
+  border: `1px solid ${COLORS.rule}`,
 };
 
 const headlineStyle: CSSProperties = {
@@ -66,7 +66,7 @@ const headlineStyle: CSSProperties = {
   fontSize: 15,
   lineHeight: 1.45,
   fontWeight: 600,
-  color: COLORS.textPrimary ?? '#e5e7eb',
+  color: COLORS.textPrimary,
 };
 
 const shortLeadStyle: CSSProperties = {
@@ -74,33 +74,33 @@ const shortLeadStyle: CSSProperties = {
   fontSize: 15,
   lineHeight: 1.4,
   fontWeight: 700,
-  color: COLORS.textPrimary ?? '#e5e7eb',
+  color: COLORS.textPrimary,
 };
 
 const supportingSentenceStyle: CSSProperties = {
   margin: 0,
   fontSize: 13,
   lineHeight: 1.45,
-  color: '#cbd5e1',
+  color: COLORS.textSecondary,
 };
 
 const provenanceStyle: CSSProperties = {
   margin: 0,
   fontSize: 11,
-  color: '#94a3b8',
+  color: COLORS.textMuted,
   letterSpacing: 0.2,
 };
 
 const confidenceStyle: CSSProperties = {
   margin: 0,
   fontSize: 12,
-  color: '#cbd5e1',
+  color: COLORS.textSecondary,
 };
 
 const evidenceStyle: CSSProperties = {
   margin: 0,
   fontSize: 12,
-  color: '#94a3b8',
+  color: COLORS.textMuted,
   fontStyle: 'italic',
 };
 
@@ -113,13 +113,13 @@ const actionRowStyle: CSSProperties = {
 
 const focusButtonStyle: CSSProperties = {
   flexShrink: 0,
-  border: '1px solid rgba(45, 212, 191, 0.45)',
-  background: 'rgba(20, 184, 166, 0.12)',
-  color: '#ccfbf1',
-  borderRadius: 7,
+  border: `1px solid ${COLORS.accent}`,
+  background: COLORS.card,
+  color: COLORS.accent,
+  borderRadius: 2,
   padding: '5px 8px',
   fontSize: 11,
-  fontWeight: 700,
+  fontWeight: 600,
   cursor: 'pointer',
 };
 

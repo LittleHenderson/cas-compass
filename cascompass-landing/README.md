@@ -12,13 +12,16 @@ treated as customer-production `ACCEPT`.
 
 Netlify internally rewrites `/legal`, `/privacy`, `/terms`, and `/contact` to
 their static HTML files with status 200. This preserves the exact requested URL
-for the fail-closed claim-honesty collector.
+for the fail-closed claim-honesty collector until Pattern A DNS cutover
+(`cascompass.ai` → `https://compass.caslabai.com` 301 rules documented in
+`netlify.toml` and `docs/CAS_COMPASS_CUTOVER_RUNBOOK.md`). The contact form
+submits to `https://api.caslabai.com`.
 
 Verify the source from the repository root:
 
-```powershell
-python -m unittest scripts.tests.test_cascompass_landing
-python scripts/collect_claim_honesty_evidence.py --output C:\tmp\claim-honesty-draft.json --pretty
+```bash
+python3 -m unittest scripts.tests.test_cascompass_landing
+python3 scripts/collect_claim_honesty_evidence.py --output /tmp/claim-honesty-draft.json --pretty
 ```
 
 Production deployment must use the exact protected commit being released, not

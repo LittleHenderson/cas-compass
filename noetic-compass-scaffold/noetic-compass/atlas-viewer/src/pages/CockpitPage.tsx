@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
+import { MotionConfig } from 'framer-motion';
 import AtlasViewerShell from '../components/cockpit/AtlasViewerShell';
+import { CasLabHeader } from '../components/ui/PageShell';
+import { COLORS, FONT_FAMILY, FONT_MONO } from '../lib/designTokens';
+import { useMotionPaused } from '../lib/motionPause';
 import {
   loadPythiaTrace,
   loadSpatialEvidenceDemos,
@@ -39,9 +43,17 @@ const viewportStyle: CSSProperties = {
   overflow: 'hidden',
   display: 'flex',
   flexDirection: 'column',
-  background: '#05070d',
-  color: '#e5e7eb',
-  fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
+  background: COLORS.ground,
+  color: COLORS.textPrimary,
+  fontFamily: FONT_FAMILY,
+};
+
+const shellFrameStyle: CSSProperties = {
+  flex: 1,
+  minHeight: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
 };
 
 const messageStyle: CSSProperties = {
@@ -50,7 +62,10 @@ const messageStyle: CSSProperties = {
   justifyContent: 'center',
   width: '100%',
   height: '100%',
-  fontSize: 14,
+  fontFamily: FONT_MONO,
+  fontSize: 13,
+  letterSpacing: 0.4,
+  color: COLORS.textSecondary,
 };
 
 interface FixtureBundle {
@@ -60,6 +75,7 @@ interface FixtureBundle {
 }
 
 export default function CockpitPage(): JSX.Element {
+  const { motionPaused } = useMotionPaused();
   const [bundle, setBundle] = useState<FixtureBundle | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [runtimeMode, setRuntimeMode] = useState<RuntimeMode>('replay');
@@ -306,51 +322,69 @@ export default function CockpitPage(): JSX.Element {
 
   if (error) {
     return (
-      <main style={viewportStyle} data-testid="cockpit-page">
-        <div style={messageStyle} role="alert">
-          Failed to load Atlas Viewer fixtures: {error}
+      <MotionConfig reducedMotion={motionPaused ? 'always' : 'user'}>
+        <div style={viewportStyle} data-testid="cockpit-page">
+          <a className="skip-link" href="#cockpit-main">Skip to 3D cockpit</a>
+          <CasLabHeader showNav compact />
+          <main id="cockpit-main" style={shellFrameStyle}>
+            <div style={messageStyle} role="alert">
+              Failed to load CAS Compass fixtures: {error}
+            </div>
+          </main>
         </div>
-      </main>
+      </MotionConfig>
     );
   }
 
   if (!bundle) {
     return (
-      <main style={viewportStyle} data-testid="cockpit-page">
-        <div style={messageStyle} role="status">
-          Loading Atlas Viewer fixtures…
+      <MotionConfig reducedMotion={motionPaused ? 'always' : 'user'}>
+        <div style={viewportStyle} data-testid="cockpit-page">
+          <a className="skip-link" href="#cockpit-main">Skip to 3D cockpit</a>
+          <CasLabHeader showNav compact />
+          <main id="cockpit-main" style={shellFrameStyle}>
+            <div style={messageStyle} role="status">
+              Loading CAS Compass fixtures…
+            </div>
+          </main>
         </div>
-      </main>
+      </MotionConfig>
     );
   }
 
   const displayedTrace = runtimeMode === 'live' && liveTrace ? liveTrace : bundle.trace;
 
   return (
-    <main style={viewportStyle} data-testid="cockpit-page">
-      <AtlasViewerShell
-        trace={displayedTrace}
-        spatialEvidence={bundle.spatial}
-        spatialEvidenceOptions={bundle.spatialOptions}
-        architecture={PYTHIA_160M_PRESET}
-        methods={LIVE_WORKER_METHODS}
-        runtimeMode={runtimeMode}
-        liveStatus={liveStatus}
-        liveVerified={liveVerified}
-        liveProof={liveProof}
-        liveProofChecking={liveProofChecking}
-        liveError={liveError}
-        liveSession={liveSession}
-        liveManifest={liveManifest}
-        liveEventCount={liveEventCount}
-        liveLastEventAt={liveLastEventAt}
-        liveCompleteTotalTokens={liveCompleteTotalTokens}
-        onStartLive={startLive}
-        onRefreshLiveProof={refreshLiveProof}
-        onLiveControlsChange={handleLiveControlsChange}
-        onUseReplay={useReplay}
-        resolvedKnobs={resolvedKnobs}
-      />
-    </main>
+    <MotionConfig reducedMotion={motionPaused ? 'always' : 'user'}>
+      <div style={viewportStyle} data-testid="cockpit-page">
+        <a className="skip-link" href="#cockpit-main">Skip to 3D cockpit</a>
+        <CasLabHeader showNav compact />
+        <main id="cockpit-main" style={shellFrameStyle}>
+          <AtlasViewerShell
+            trace={displayedTrace}
+            spatialEvidence={bundle.spatial}
+            spatialEvidenceOptions={bundle.spatialOptions}
+            architecture={PYTHIA_160M_PRESET}
+            methods={LIVE_WORKER_METHODS}
+            runtimeMode={runtimeMode}
+            liveStatus={liveStatus}
+            liveVerified={liveVerified}
+            liveProof={liveProof}
+            liveProofChecking={liveProofChecking}
+            liveError={liveError}
+            liveSession={liveSession}
+            liveManifest={liveManifest}
+            liveEventCount={liveEventCount}
+            liveLastEventAt={liveLastEventAt}
+            liveCompleteTotalTokens={liveCompleteTotalTokens}
+            onStartLive={startLive}
+            onRefreshLiveProof={refreshLiveProof}
+            onLiveControlsChange={handleLiveControlsChange}
+            onUseReplay={useReplay}
+            resolvedKnobs={resolvedKnobs}
+          />
+        </main>
+      </div>
+    </MotionConfig>
   );
 }

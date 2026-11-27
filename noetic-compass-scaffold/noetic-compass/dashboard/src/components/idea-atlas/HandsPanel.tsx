@@ -114,12 +114,14 @@ export function HandsPanel(props: HandsPanelProps) {
   return (
     <div
       className={
-        'sggs-hands-panel relative inline-block rounded-md border border-slate-300 bg-slate-50 p-3 text-sm ' +
+        'sggs-hands-panel relative inline-block rounded-[2px] border border-[#20302b] bg-[#0c1513] p-3 text-sm text-[#eaf3ee] ' +
         (className ?? '')
       }
       data-testid="sggs-hands-panel"
     >
-      <div className="mb-2 font-medium text-slate-800">SGGS — Hands</div>
+      <div className="mb-2 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#37f5a0]">
+        SGGS — Hands
+      </div>
 
       {/* Permission gate. Required before any webcam access — explicit
           user opt-in is the privacy contract. */}
@@ -128,16 +130,16 @@ export function HandsPanel(props: HandsPanelProps) {
           <button
             type="button"
             onClick={() => setActive(true)}
-            className="w-fit rounded bg-slate-800 px-3 py-1.5 text-white hover:bg-slate-700"
+            className="w-fit rounded-[2px] bg-[#37f5a0] px-3 py-1.5 font-mono text-xs font-semibold text-[#050b0a] transition-opacity hover:opacity-90"
             data-testid="sggs-hands-activate"
           >
             Activate Camera
           </button>
           <div className="space-y-1" data-testid="sggs-hands-privacy">
-            <p className="text-xs text-slate-700">
+            <p className="text-xs text-[#b3c2ba]">
               Video stays on this machine. No camera frames are uploaded.
             </p>
-            <p className="text-[10px] text-slate-600">
+            <p className="text-[10px] text-[#86958d]">
               MediaPipe model files may load from a CDN on first use unless
               self-hosted.
             </p>
@@ -154,11 +156,11 @@ export function HandsPanel(props: HandsPanelProps) {
             autoPlay
             playsInline
             muted
-            className="block h-48 w-64 rounded bg-black object-cover"
+            className="block h-48 w-64 rounded-[2px] border border-[#20302b] bg-[#050b0a] object-cover"
             data-testid="sggs-hands-video"
           />
           <div
-            className="rounded border border-slate-200 bg-white p-2 text-xs text-slate-700"
+            className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-2 font-mono text-xs text-[#eaf3ee]"
             data-testid="sggs-hands-overlay"
           >
             <div data-testid="sggs-hands-status">{statusLabel}</div>
@@ -170,7 +172,7 @@ export function HandsPanel(props: HandsPanelProps) {
             </div>
             {error && (
               <div
-                className="text-red-600"
+                className="text-[#ff7b72]"
                 data-testid="sggs-hands-error"
               >
                 {error}
@@ -184,7 +186,7 @@ export function HandsPanel(props: HandsPanelProps) {
               setLatestGesture(null);
               setZoom(1.0);
             }}
-            className="w-fit rounded border border-slate-400 px-2 py-1 text-xs hover:bg-slate-100"
+            className="w-fit rounded-[2px] border border-[#eaf3ee] px-2.5 py-1 font-mono text-xs text-[#eaf3ee] transition-colors hover:border-[#37f5a0] hover:text-[#37f5a0]"
             data-testid="sggs-hands-deactivate"
           >
             Turn off camera

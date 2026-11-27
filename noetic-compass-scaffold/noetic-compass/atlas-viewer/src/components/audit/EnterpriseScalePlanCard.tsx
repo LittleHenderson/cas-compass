@@ -94,10 +94,12 @@ const metricValueStyle: CSSProperties = {
 
 const sectionTitleStyle: CSSProperties = {
   margin: 0,
-  color: '#f8fafc',
-  fontSize: 13,
-  fontWeight: 750,
-  letterSpacing: 0,
+  color: COLORS.textPrimary,
+  fontFamily: FONT_MONO,
+  fontSize: 11.5,
+  fontWeight: 500,
+  letterSpacing: 0.7,
+  textTransform: 'uppercase',
 };
 
 const sectionStyle: CSSProperties = {
@@ -117,16 +119,14 @@ const sizeButtonStyle = (active: boolean): CSSProperties => ({
   padding: '6px 10px',
   borderRadius: RADIUS.sm,
   border: active
-    ? '1px solid rgba(45, 212, 191, 0.58)'
-    : `1px solid ${COLORS.borderSubtle}`,
-  background: active
-    ? 'rgba(45, 212, 191, 0.16)'
-    : 'rgba(255, 255, 255, 0.04)',
-  color: active ? '#ccfbf1' : COLORS.textSecondary,
+    ? `1px solid ${COLORS.accent}`
+    : `1px solid ${COLORS.rule}`,
+  background: active ? COLORS.accent : COLORS.card,
+  color: active ? COLORS.ground : COLORS.textSecondary,
   cursor: 'pointer',
   fontFamily: FONT_MONO,
   fontSize: 12,
-  fontWeight: 800,
+  fontWeight: 600,
 });
 
 const noticeStyle = (tone: 'info' | 'error'): CSSProperties => ({
@@ -135,13 +135,10 @@ const noticeStyle = (tone: 'info' | 'error'): CSSProperties => ({
   borderRadius: RADIUS.md,
   border:
     tone === 'error'
-      ? '1px solid rgba(251, 191, 36, 0.38)'
-      : '1px solid rgba(45, 212, 191, 0.22)',
-  color: tone === 'error' ? '#fef3c7' : COLORS.textSecondary,
-  background:
-    tone === 'error'
-      ? 'rgba(251, 191, 36, 0.08)'
-      : 'rgba(45, 212, 191, 0.07)',
+      ? `1px dashed ${COLORS.warn}`
+      : `1px solid ${COLORS.rule}`,
+  color: tone === 'error' ? COLORS.warn : COLORS.textSecondary,
+  background: COLORS.card,
   fontSize: 12,
   lineHeight: 1.45,
 });
@@ -158,8 +155,8 @@ const assignmentCardStyle: CSSProperties = {
   gap: 7,
   padding: 10,
   borderRadius: RADIUS.md,
-  border: `1px solid ${COLORS.borderSubtle}`,
-  background: 'rgba(15, 23, 42, 0.44)',
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.stripe,
   minWidth: 0,
 };
 
@@ -171,10 +168,10 @@ const workerHeaderStyle: CSSProperties = {
 };
 
 const monoLabelStyle: CSSProperties = {
-  color: '#ccfbf1',
+  color: COLORS.accent,
   fontFamily: FONT_MONO,
   fontSize: 12,
-  fontWeight: 700,
+  fontWeight: 600,
   lineHeight: 1.3,
 };
 
@@ -183,10 +180,11 @@ const workerCountStyle: CSSProperties = {
   padding: '2px 6px',
   borderRadius: RADIUS.sm,
   color: COLORS.textSecondary,
-  border: `1px solid ${COLORS.borderSubtle}`,
-  background: 'rgba(255, 255, 255, 0.03)',
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.ground,
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 650,
+  fontWeight: 500,
 };
 
 const rangeRowStyle: CSSProperties = {
@@ -199,10 +197,11 @@ const rangePillStyle: CSSProperties = {
   padding: '3px 7px',
   borderRadius: RADIUS.sm,
   color: COLORS.textPrimary,
-  background: 'rgba(45, 212, 191, 0.1)',
-  border: '1px solid rgba(45, 212, 191, 0.18)',
-  fontSize: 12,
-  fontWeight: 650,
+  background: COLORS.card,
+  border: `1px solid ${COLORS.rule}`,
+  fontFamily: FONT_MONO,
+  fontSize: 11.5,
+  fontWeight: 500,
 };
 
 const listStyle: CSSProperties = {

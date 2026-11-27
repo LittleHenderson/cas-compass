@@ -1,6 +1,8 @@
 /*
  * Styles for the Radial Architecture Display (CAS v7.5 Phase A).
  * Non-interactive: no hover/transition state changes beyond focus rings.
+ * Container chrome uses CAS Lab Biolume tokens while preserving Okabe-Ito
+ * colorblind-safe data-visualization hues inside the SVG.
  */
 
 .radial-architecture-display {
@@ -8,8 +10,8 @@
   flex-direction: column;
   align-items: stretch;
   gap: 0.75rem;
-  color: #e2e8f0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #eaf3ee;
+  font-family: 'Geist', system-ui, -apple-system, sans-serif;
 }
 
 .radial-architecture-display__header {
@@ -21,11 +23,12 @@
 }
 
 .radial-architecture-display__title {
-  font-size: 0.85rem;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #cbd5e1;
+  color: #86958d;
   margin: 0;
 }
 
@@ -35,17 +38,23 @@
 }
 
 .radial-architecture-display__button {
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(15, 23, 42, 0.6);
-  color: #e2e8f0;
-  padding: 0.25rem 0.6rem;
-  font-size: 0.75rem;
-  border-radius: 4px;
+  border: 1px solid #20302b;
+  background: #13201c;
+  color: #eaf3ee;
+  padding: 0.3rem 0.65rem;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  border-radius: 2px;
   cursor: pointer;
 }
 
+.radial-architecture-display__button:hover {
+  border-color: #eaf3ee;
+}
+
 .radial-architecture-display__button:focus-visible {
-  outline: 2px solid #22d3ee;
+  outline: 2px solid #37f5a0;
   outline-offset: 2px;
 }
 
@@ -55,19 +64,22 @@
   max-width: 820px;
   aspect-ratio: 1 / 1;
   display: block;
-  background: radial-gradient(circle at center, #0b1220 0%, #020617 100%);
-  border-radius: 12px;
+  background: #050b0a;
+  border: 1px solid #20302b;
+  border-radius: 2px;
 }
 
 .radial-architecture-display__ring-label {
-  fill: #94a3b8;
+  fill: #86958d;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .radial-architecture-display__domain-label {
-  fill: #e2e8f0;
+  fill: #eaf3ee;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
   font-size: 14px;
   font-weight: 600;
   text-anchor: middle;
@@ -75,63 +87,64 @@
 }
 
 .radial-architecture-display__domain-band--active path {
-  stroke: #2dd4bf;
+  stroke: #37f5a0;
   stroke-width: 3;
-  filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.75));
 }
 
 .radial-architecture-display__drive-marker circle {
-  stroke: #e2e8f0;
+  stroke: #eaf3ee;
   stroke-width: 1;
 }
 
 .radial-architecture-display__drive-label {
-  fill: #cbd5e1;
+  fill: #b3c2ba;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
   font-size: 10px;
   text-anchor: middle;
   dominant-baseline: middle;
 }
 
 .radial-architecture-display__petal {
-  stroke: rgba(255, 255, 255, 0.12);
+  stroke: rgba(234, 243, 238, 0.14);
   stroke-width: 0.5;
 }
 
 .radial-architecture-display__quadrant {
-  stroke: rgba(15, 23, 42, 0.8);
+  stroke: rgba(5, 11, 10, 0.85);
   stroke-width: 0.25;
 }
 
 .radial-architecture-display__void {
   fill: transparent;
-  stroke: #64748b;
+  stroke: #62706a;
   stroke-width: 1;
   stroke-dasharray: 3 2;
 }
 
 .radial-architecture-display__center-glyph {
-  stroke: #f1f5f9;
+  stroke: #eaf3ee;
   stroke-width: 1;
 }
 
 .radial-architecture-display__text-alt {
   margin: 0;
   padding: 0.75rem;
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  border-radius: 6px;
+  background: #0c1513;
+  border: 1px solid #20302b;
+  border-radius: 2px;
   font-size: 0.8rem;
-  color: #cbd5e1;
+  color: #b3c2ba;
   max-height: 320px;
   overflow: auto;
 }
 
 .radial-architecture-display__text-alt h4 {
-  margin: 0.25rem 0 0.25rem;
-  font-size: 0.75rem;
+  margin: 0.35rem 0 0.25rem;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #94a3b8;
+  color: #37f5a0;
 }
 
 .radial-architecture-display__text-alt ul {
