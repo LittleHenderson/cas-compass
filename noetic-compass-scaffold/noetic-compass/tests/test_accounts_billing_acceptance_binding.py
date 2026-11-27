@@ -238,7 +238,7 @@ def _evidence(invoice: PaidInvoiceReconciliationRecord) -> dict[str, object]:
         "artifact_uri": acceptance_authority_url("accounts_billing"),
         "artifact_sha256": hashlib.sha256(b"accounts-billing-artifact").hexdigest(),
         "api_base_url": "https://api.caslabai.com",
-        "service_id": "i-0bd0a082507a51ae3",
+        "service_id": "i-0dd650b53f8cb52e7",
         "customer_lane": "public-customer",
         **PSEUDONYMIZER.metadata(),
         "tenant_subject": PSEUDONYMIZER.subject(

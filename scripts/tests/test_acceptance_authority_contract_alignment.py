@@ -332,7 +332,7 @@ class AcceptanceAuthorityContractAlignmentTests(unittest.TestCase):
 
     def test_customer_provider_identity_is_aligned_across_active_contracts(self) -> None:
         origin = "https://api.caslabai.com"
-        service_id = "i-0bd0a082507a51ae3"
+        service_id = "i-0dd650b53f8cb52e7"
         service_name = "cas-harness-customer-api"
         disk_id = "vol-056e0897eb5b72c4c"
         disk_name = "customer-support"

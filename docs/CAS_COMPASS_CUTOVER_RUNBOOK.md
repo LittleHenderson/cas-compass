@@ -45,9 +45,9 @@
 
 > [!WARNING]
 > **4. NEVER expose private lanes or databases:**
-> - `accounts-canary` EC2 (`i-02137d196e671b5c1`) MUST keep **0 inbound security-group rules** and remain SSM Session Manager only.
+> - `accounts-canary` EC2 (`i-0026b4c0da5d69efe`) MUST keep **0 inbound security-group rules** and remain SSM Session Manager only.
 > - RDS instances `nc-customer-pg` and `nc-canary-pg` MUST keep `PubliclyAccessible=false`.
-> - `customer-production` EC2 (`i-0bd0a082507a51ae3`) MUST restrict HTTP ingress strictly to CloudFront origin-facing prefix lists (`cloudfront-origin-facing`).
+> - `customer-production` EC2 (`i-0dd650b53f8cb52e7`) MUST restrict HTTP ingress strictly to CloudFront origin-facing prefix lists (`cloudfront-origin-facing`).
 
 ---
 
@@ -215,7 +215,7 @@ Under Pattern A, **Vercel** hosts the canonical `compass.caslabai.com` CAS Compa
   - If removing `atlas.noeticcompass.com` (returning `E3S21FTH7DN5N5` to default CloudFront domain while Vercel serves `compass.caslabai.com`), set `.Aliases = {"Quantity": 0}` and `.ViewerCertificate = {"CloudFrontDefaultCertificate": true, "MinimumProtocolVersion": "TLSv1.2_2021", "CertificateSource": "cloudfront"}`.
   - If routing `compass.caslabai.com` directly to `E3S21FTH7DN5N5` instead of Vercel, attach `compass.caslabai.com` + `$NEW_CERT_ARN` using the exact same `update-distribution` pattern as `E1RBLENB7B6YEA`.
 
-### 2.3 Update SSM CORS Parameters & Restart Customer-Production EC2 (`i-0bd0a082507a51ae3`)
+### 2.3 Update SSM CORS Parameters & Restart Customer-Production EC2 (`i-0dd650b53f8cb52e7`)
 
 > [!IMPORTANT]
 > **Modify ONLY `ATLAS_ALLOWED_ORIGINS` (and `NC_CORS_ORIGINS` if present). NEVER touch the 10 continuity secrets.**
@@ -244,29 +244,29 @@ aws ssm put-parameter \
 #   --value "https://compass.caslabai.com,https://www.caslabai.com,https://cascompass.ai,https://www.cascompass.ai"
 ```
 
-Restart the customer-production API container on EC2 `i-0bd0a082507a51ae3` via SSM so it reloads SSM parameters cleanly:
+Restart the customer-production API container on EC2 `i-0dd650b53f8cb52e7` via SSM so it reloads SSM parameters cleanly:
 
 ```bash
-# Inspect running systemd unit / docker service name on i-0bd0a082507a51ae3
+# Inspect running systemd unit / docker service name on i-0dd650b53f8cb52e7
 CMD_ID="$(aws ssm send-command \
   --region us-west-2 \
-  --instance-ids i-0bd0a082507a51ae3 \
+  --instance-ids i-0dd650b53f8cb52e7 \
   --document-name AWS-RunShellScript \
   --parameters 'commands=["systemctl list-units --type=service | grep -iE \"noetic|cas|compass\" || true","docker ps --format \"table {{.Names}}\t{{.Image}}\t{{.Status}}\""]' \
   --query 'Command.CommandId' --output text)"
 sleep 5
-aws ssm get-command-invocation --region us-west-2 --command-id "$CMD_ID" --instance-id i-0bd0a082507a51ae3 \
+aws ssm get-command-invocation --region us-west-2 --command-id "$CMD_ID" --instance-id i-0dd650b53f8cb52e7 \
   --query '{Status:Status,Stdout:StandardOutputContent,Stderr:StandardErrorContent}'
 
 # Restart the API service (replace <service-name> with the unit printed above, e.g. cas-harness-customer-api.service)
 CMD_ID="$(aws ssm send-command \
   --region us-west-2 \
-  --instance-ids i-0bd0a082507a51ae3 \
+  --instance-ids i-0dd650b53f8cb52e7 \
   --document-name AWS-RunShellScript \
   --parameters 'commands=["sudo systemctl restart <service-name>","sleep 4","curl -fsS http://127.0.0.1:8000/health"]' \
   --query 'Command.CommandId' --output text)"
 sleep 8
-aws ssm get-command-invocation --region us-west-2 --command-id "$CMD_ID" --instance-id i-0bd0a082507a51ae3 \
+aws ssm get-command-invocation --region us-west-2 --command-id "$CMD_ID" --instance-id i-0dd650b53f8cb52e7 \
   --query '{Status:Status,Stdout:StandardOutputContent,Stderr:StandardErrorContent}'
 ```
 

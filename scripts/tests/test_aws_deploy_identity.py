@@ -31,7 +31,7 @@ OTHER_COMMIT = "d" * 40
 
 RUNNING = {
     "provider": "aws",
-    "service_id": "i-0bd0a082507a51ae3",
+    "service_id": "i-0dd650b53f8cb52e7",
     "service_name": "cas-harness-customer-api",
     "image_digest": DIGEST,
     "build_id": "nc-api-image-build:1234",
@@ -164,7 +164,7 @@ class VerifyDeploymentTests(unittest.TestCase):
         self.assertEqual(facts.image_digest, DIGEST)
         self.assertEqual(facts.commit_sha, COMMIT)
         record = facts.as_record()
-        self.assertEqual(record["service_id"], "i-0bd0a082507a51ae3")
+        self.assertEqual(record["service_id"], "i-0dd650b53f8cb52e7")
         self.assertEqual(record["build_started_at"], "2026-09-25T23:21:51Z")
 
     def test_digest_mismatch_fails(self) -> None:

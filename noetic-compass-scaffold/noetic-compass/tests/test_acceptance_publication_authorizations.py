@@ -333,7 +333,7 @@ def _incident_evidence(now: datetime) -> dict[str, object]:
     evidence.update(
         {
             "api_base_url": publisher.PRODUCTION_API_ORIGIN,
-            "service_id": "i-0bd0a082507a51ae3",
+            "service_id": "i-0dd650b53f8cb52e7",
             "incident": {
                 "record_id": "IR-2026-07-15-001",
                 "status": "CLOSED",
