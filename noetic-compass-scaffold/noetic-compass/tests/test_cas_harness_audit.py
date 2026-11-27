@@ -22,6 +22,14 @@ _TEST_WORM_REQUESTED_AT = "2026-01-01T00:00:00+00:00"
 
 def setup_function() -> None:
     reset_audit_sessions_for_tests()
+    from api.main import app
+    from api.middleware.rate_limit import RateLimitMiddleware
+
+    current = getattr(app, "middleware_stack", None)
+    while current is not None and not isinstance(current, RateLimitMiddleware):
+        current = getattr(current, "app", None)
+    if isinstance(current, RateLimitMiddleware):
+        current.reset_public_audit_buckets_for_tests()
 
 
 @pytest.fixture(autouse=True)
@@ -1364,7 +1372,12 @@ def test_reference_target_trace_from_public_alpha_console_stays_review_only_with
         },
     )
     audit_id = created.json()["audit_id"]
-    ran = client.post(f"/api/cas-harness/audit/session/{audit_id}/run")
+    session_token = created.headers.get("X-Audit-Session-Token")
+    assert session_token
+    ran = client.post(
+        f"/api/cas-harness/audit/session/{audit_id}/run",
+        headers={"X-Audit-Session-Token": session_token},
+    )
 
     assert verified.status_code == 200
     assert created.status_code == 200
@@ -1805,27 +1818,68 @@ def test_unauthenticated_caller_cannot_see_authenticated_sessions(client):
     assert anon_get.status_code == 404
 
 
-def test_anonymous_callers_share_only_the_anonymous_bucket(client):
-    # Two identity-less callers both land in the anonymous-owned bucket, so an
-    # anonymous list returns anonymous-created sessions (own-only) but still
-    # never an authenticated caller's session.
+def test_anonymous_callers_are_isolated_by_per_session_capability(client):
+    # Two independent anonymous callers must never share a bucket:
+    # - GET /sessions returns an empty list for identity-less callers
+    # - Each creation returns a unique audit_id and per-session X-Audit-Session-Token
+    # - Status/run requires the matching capability token (404 without or with wrong token)
     headers_a = _headers_for("caller-a", "key-a")
 
-    anon_created = client.post(
+    anon_one = client.post(
         "/api/cas-harness/audit/session", json=_valid_payload()
-    ).json()
+    )
+    anon_two = client.post(
+        "/api/cas-harness/audit/session", json=_valid_payload()
+    )
     auth_created = client.post(
         "/api/cas-harness/audit/session",
         json={**_valid_payload(), "prompt": "Authenticated-only scenario."},
         headers=headers_a,
-    ).json()
+    )
+    assert anon_one.status_code == 200
+    assert anon_two.status_code == 200
+    assert auth_created.status_code == 200
 
+    one_id = anon_one.json()["audit_id"]
+    two_id = anon_two.json()["audit_id"]
+    one_token = anon_one.headers["X-Audit-Session-Token"]
+    two_token = anon_two.headers["X-Audit-Session-Token"]
+    assert one_id != two_id
+    assert one_token != two_token
+    assert anon_one.json()["session_access_token"] == one_token
+    assert "session_access_token" not in auth_created.json()
+
+    # Identity-less listing never enumerates anonymous or authenticated sessions.
     anon_list = client.get("/api/cas-harness/audit/sessions")
     assert anon_list.status_code == 200
-    anon_ids = {s["audit_id"] for s in anon_list.json()["sessions"]}
+    assert anon_list.json() == {"sessions": []}
 
-    assert anon_created["audit_id"] in anon_ids
-    assert auth_created["audit_id"] not in anon_ids
+    # Caller 2 cannot fetch or run Caller 1's session (missing or wrong token -> 404).
+    assert client.get(f"/api/cas-harness/audit/session/{one_id}/status").status_code == 404
+    assert (
+        client.get(
+            f"/api/cas-harness/audit/session/{one_id}/status",
+            headers={"X-Audit-Session-Token": two_token},
+        ).status_code
+        == 404
+    )
+    assert (
+        client.post(
+            f"/api/cas-harness/audit/session/{one_id}/run",
+            headers={"X-Audit-Session-Token": two_token},
+        ).status_code
+        == 404
+    )
+
+    # Caller 1 WITH its own capability token succeeds and never receives the token again on status.
+    own_status = client.get(
+        f"/api/cas-harness/audit/session/{one_id}/status",
+        headers={"X-Audit-Session-Token": one_token},
+    )
+    assert own_status.status_code == 200
+    assert own_status.json()["audit_id"] == one_id
+    assert "session_access_token" not in own_status.json()
+    assert one_token not in own_status.text
 
 
 def test_audit_session_response_never_leaks_owner_identity(client):
@@ -1839,5 +1893,7 @@ def test_audit_session_response_never_leaks_owner_identity(client):
     body = created.json()
     assert "owner_sub" not in body
     assert "owner_api_key" not in body
+    assert "owner_key" not in body
+    assert "capability_token_sha256" not in body
     assert "caller-a" not in created.text
     assert "key-a" not in created.text

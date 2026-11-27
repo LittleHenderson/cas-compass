@@ -226,24 +226,52 @@ def test_create_token_embeds_server_derived_account_claims():
     assert payload["role"] == "member"
 
 
-def test_auth_token_route_uses_per_username_api_key(client):
+def test_auth_token_route_assigns_unguessable_session_principal(client):
     # The suite runs with NC_DEBUG=true (see root conftest), so the credential-free
-    # local/dev mint path is open. This documents that dev-only behavior.
-    resp = client.post("/auth/token", json={"username": "StakeholderA"})
-    assert resp.status_code == 200
-    token = resp.json()["token"]
-    payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
-    assert payload["sub"] == "StakeholderA"
-    assert payload["api_key"] == "dashboard:stakeholdera"
+    # local/dev mint path is open. Even in dev mode, caller-supplied usernames must
+    # never control predictable dashboard:<username> namespaces.
+    first = client.post("/auth/token", json={"username": "StakeholderA"})
+    second = client.post("/auth/token", json={"username": "StakeholderA"})
+    assert first.status_code == 200
+    assert second.status_code == 200
+    payload_a = jwt.decode(
+        first.json()["token"], settings.jwt_secret, algorithms=[settings.jwt_algorithm]
+    )
+    payload_b = jwt.decode(
+        second.json()["token"], settings.jwt_secret, algorithms=[settings.jwt_algorithm]
+    )
+    assert payload_a["api_key"].startswith("dashboard:session-")
+    assert payload_a["sub"] == payload_a["api_key"]
+    assert payload_b["api_key"].startswith("dashboard:session-")
+    assert payload_a["api_key"] != payload_b["api_key"]
 
 
-def test_dashboard_tokens_skip_monthly_cap(client):
-    token = create_token(sub="StakeholderA", api_key="dashboard:stakeholdera")
+def test_dashboard_tokens_enforce_finite_interactive_monthly_cap():
+    isolated = FastAPI()
+
+    @isolated.get("/notation/grammar")
+    def grammar() -> dict[str, bool]:
+        return {"ok": True}
+
+    isolated.add_middleware(
+        RateLimitMiddleware, rpm=1000, interactive_monthly_limit=55
+    )
+
+    from api.middleware.auth import JWTAuthMiddleware
+
+    isolated.add_middleware(JWTAuthMiddleware)
+
+    token = create_token(sub="dashboard:session-cap", api_key="dashboard:session-cap")
     headers = {"Authorization": f"Bearer {token}"}
 
-    for _ in range(51):
-        resp = client.get("/notation/grammar", headers=headers)
-        assert resp.status_code == 200
+    with TestClient(isolated) as isolated_client:
+        # Interactive cap is higher than the 50-request community cap, but strictly finite.
+        for _ in range(55):
+            resp = isolated_client.get("/notation/grammar", headers=headers)
+            assert resp.status_code == 200
+        blocked = isolated_client.get("/notation/grammar", headers=headers)
+        assert blocked.status_code == 429
+        assert "monthly limit exceeded" in blocked.json()["detail"].lower()
 
 
 # --- CAS Harness scoped-beta Phase 1: /auth/token mint lock --------------------
@@ -278,7 +306,7 @@ def test_auth_token_refused_in_prod_with_wrong_credential(client, monkeypatch):
 
 
 def test_auth_token_mint_with_credential_header(client, monkeypatch):
-    """With the configured mint secret presented (header), minting works in prod."""
+    """With the configured mint secret presented (header), minting works in prod with an unguessable principal."""
     monkeypatch.setattr(settings, "debug", False)
     monkeypatch.setattr(settings, "auth_mint_secret", "real-shared-secret")
 
@@ -290,8 +318,9 @@ def test_auth_token_mint_with_credential_header(client, monkeypatch):
     assert resp.status_code == 200
     token = resp.json()["token"]
     payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
-    assert payload["sub"] == "StakeholderA"
-    assert payload["api_key"] == "dashboard:stakeholdera"
+    assert payload["api_key"].startswith("dashboard:session-")
+    assert payload["sub"] == payload["api_key"]
+    assert payload["api_key"] != "dashboard:stakeholdera"
 
 
 def test_auth_token_mint_with_credential_body(client, monkeypatch):

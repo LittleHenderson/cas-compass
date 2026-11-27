@@ -153,9 +153,8 @@ def test_prefix_tuples_are_disjoint_and_correctly_split():
 
 
 def test_dark_mode_run_route_reachable_without_token(client):
-    """Default posture: create + run an audit-session with NO Authorization header and it is
-    reachable (not 401/403 from auth). Proves the route stays public in dark mode for the live
-    console, which calls it without a login today."""
+    """Default posture: create + run an audit-session with NO Authorization header using the
+    per-session capability token issued on creation, while rejecting runs without it."""
     created = client.post(
         _AUDIT_SESSION_PATH,
         json={
@@ -167,17 +166,27 @@ def test_dark_mode_run_route_reachable_without_token(client):
     )
     assert created.status_code == 200, created.text
     audit_id = created.json()["audit_id"]
+    session_token = created.headers.get("X-Audit-Session-Token")
+    assert session_token
 
-    ran = client.post(f"{_AUDIT_SESSION_PATH}/{audit_id}/run")
+    # Without the capability token, an independent anonymous caller cannot run it.
+    missing_cap = client.post(f"{_AUDIT_SESSION_PATH}/{audit_id}/run")
+    assert missing_cap.status_code == 404
+
+    ran = client.post(
+        f"{_AUDIT_SESSION_PATH}/{audit_id}/run",
+        headers={"X-Audit-Session-Token": session_token},
+    )
     # No model artifacts on this host, but the point is auth-reachability: never 401/403.
     assert ran.status_code not in (401, 403), ran.text
     assert ran.status_code == 200, ran.text
 
 
 def test_dark_mode_list_route_reachable_without_token(client):
-    """List endpoint stays public in dark mode (no token -> reachable, anonymous-owned bucket)."""
+    """List endpoint stays public in dark mode but returns empty list for identity-less callers."""
     resp = client.get(_AUDIT_SESSIONS_PATH)
     assert resp.status_code == 200, resp.text
+    assert resp.json() == {"sessions": []}
 
 
 # ===========================================================================

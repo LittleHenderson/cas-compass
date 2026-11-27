@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field, StrictBool, StrictStr
 
 from api.config import settings
-from api.dependencies.authz import require_role_in_account_mode
+from api.dependencies.authz import require_verified_role
 from api.services.crm.abuse import PublicLeadAbuseGuard
 from api.services.crm.privacy import (
     CRMPrivacyNoticeConfigError,
@@ -28,10 +28,11 @@ from api.services.support_public_intake_receipts import (
 
 router = APIRouter(prefix="/api/support", tags=["support"])
 logger = logging.getLogger(__name__)
-# Tickets are one platform-global queue containing customer PII. ``system`` is service-only and
-# cannot be minted by any customer invite/provisioning route, so account-mode tenant roles (even
-# owner/admin/support) cannot turn their tenant authority into access to this global queue.
-_platform_support_gate = require_role_in_account_mode("system")
+# Tickets are one platform-global queue containing customer PII. Enforce the
+# server-assigned ``system`` platform role UNCONDITIONALLY (even when
+# accounts_enabled is False) so legacy accounts-off JWTs and tenant-scoped
+# roles both receive 403 Forbidden.
+_platform_support_gate = require_verified_role("system")
 _FALLBACK_SERVICE: SupportTicketService | None = None
 _FALLBACK_GUARD: PublicLeadAbuseGuard | None = None
 

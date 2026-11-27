@@ -212,10 +212,10 @@ impl DomainCoherence {
             .domain_averages
             .iter()
             .enumerate()
-            .min_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
-            .unwrap()
-            .0;
-        Domain::from_index(min_idx).unwrap()
+            .min_by(|(_, a), (_, b)| a.total_cmp(b))
+            .map(|(idx, _)| idx)
+            .unwrap_or(0);
+        Domain::from_index(min_idx).unwrap_or(Domain::Principled)
     }
 
     /// Which domain has the strongest average.
@@ -224,10 +224,10 @@ impl DomainCoherence {
             .domain_averages
             .iter()
             .enumerate()
-            .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
-            .unwrap()
-            .0;
-        Domain::from_index(max_idx).unwrap()
+            .max_by(|(_, a), (_, b)| a.total_cmp(b))
+            .map(|(idx, _)| idx)
+            .unwrap_or(0);
+        Domain::from_index(max_idx).unwrap_or(Domain::Principled)
     }
 }
 

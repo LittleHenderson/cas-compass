@@ -363,6 +363,7 @@ UTC_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 AUDIT_ID_RE = re.compile(r"^cas-audit-[0-9a-f]{16}$")
 PROBE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$")
 INCIDENT_ID_RE = re.compile(r"^IR-\d{4}-\d{2}-\d{2}-\d{3}$")
+RELEASE_ASSET_ID_RE = re.compile(r"^[1-9][0-9]*$")
 MAX_EVIDENCE_BYTES = 2_000_000
 RSA_SHA256_DIGEST_INFO_PREFIX = bytes.fromhex("3031300d060960864801650304020105000420")
 PROHIBITED_SECRET_FIELD_NAMES = frozenset(
@@ -1006,7 +1007,21 @@ def _validate_receipt(
         "evidence",
         "signature_base64url",
     }
+    has_release_asset_id = (
+        gate == "root_ci_protected_deploy" and "release_asset_id" in receipt
+    )
+    if has_release_asset_id:
+        expected_keys.add("release_asset_id")
     _exact_keys(receipt, expected_keys, path, errors)
+    release_asset_id = receipt.get("release_asset_id") if has_release_asset_id else None
+    if has_release_asset_id:
+        _require(
+            isinstance(release_asset_id, str)
+            and RELEASE_ASSET_ID_RE.fullmatch(release_asset_id) is not None,
+            f"{path}.release_asset_id",
+            "must be a positive base-10 numeric GitHub release asset ID string",
+            errors,
+        )
     _require(
         receipt.get("schema_version") == RECEIPT_SCHEMA_VERSION,
         f"{path}.schema_version",
@@ -1098,13 +1113,16 @@ def _validate_receipt(
     if subject_hash is not None:
         _require(evidence.get("artifact_sha256") == subject_hash, f"{path}.evidence.artifact_sha256", "must be bound to the signed subject_sha256", errors)
         context.subject_hashes[gate] = subject_hash
-    context.authorities[gate] = {
+    authority_record: dict[str, Any] = {
         "mode": "signed_receipt",
         "issuer": issuer_name,
         "key_id": key_id,
         "subject_origin": _origin(subject_uri) if subject_uri else None,
         "subject_uri": subject_uri,
     }
+    if has_release_asset_id and isinstance(release_asset_id, str):
+        authority_record["release_asset_id"] = release_asset_id
+    context.authorities[gate] = authority_record
     return evidence
 
 

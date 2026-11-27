@@ -14,7 +14,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import random
+import threading
 from typing import AsyncIterator
 
 from ..schemas.events import (
@@ -316,20 +318,89 @@ async def stream_real_trace(req: CreateSessionRequest) -> AsyncIterator[LiveTrac
 
 
 # ---------------------------------------------------------------------------
+# Global generation concurrency limiter (prevents parallel GPU exhaustion).
+# ---------------------------------------------------------------------------
+
+MAX_CONCURRENT_STREAMS_ENV = "ATLAS_WORKER_MAX_CONCURRENT_STREAMS"
+DEFAULT_MAX_CONCURRENT_STREAMS = 4
+
+_CONCURRENCY_LOCK = threading.Lock()
+_ACTIVE_GENERATIONS = 0
+
+
+class GenerationCapacityError(RuntimeError):
+    """Raised when the worker's global concurrent generation budget is full."""
+
+
+def max_concurrent_streams() -> int:
+    raw = os.environ.get(MAX_CONCURRENT_STREAMS_ENV, "").strip()
+    if raw:
+        try:
+            parsed = int(raw)
+            if parsed >= 1:
+                return parsed
+        except ValueError:
+            pass
+    return DEFAULT_MAX_CONCURRENT_STREAMS
+
+
+def try_acquire_generation_slot() -> bool:
+    """Atomically reserve one generation concurrency slot; returns False if full."""
+    global _ACTIVE_GENERATIONS
+    with _CONCURRENCY_LOCK:
+        if _ACTIVE_GENERATIONS >= max_concurrent_streams():
+            return False
+        _ACTIVE_GENERATIONS += 1
+        return True
+
+
+def release_generation_slot() -> None:
+    """Release a previously acquired generation concurrency slot."""
+    global _ACTIVE_GENERATIONS
+    with _CONCURRENCY_LOCK:
+        if _ACTIVE_GENERATIONS > 0:
+            _ACTIVE_GENERATIONS -= 1
+
+
+def active_generation_count() -> int:
+    with _CONCURRENCY_LOCK:
+        return _ACTIVE_GENERATIONS
+
+
+def reset_generation_slots_for_test() -> None:
+    """Test helper: reset active generation counter."""
+    global _ACTIVE_GENERATIONS
+    with _CONCURRENCY_LOCK:
+        _ACTIVE_GENERATIONS = 0
+
+
+# ---------------------------------------------------------------------------
 # Public entry — picks real vs fake based on whether weights are loaded.
 # ---------------------------------------------------------------------------
 
 
-async def stream_trace(req: CreateSessionRequest) -> AsyncIterator[LiveTraceEvent]:
+async def stream_trace(
+    req: CreateSessionRequest,
+    *,
+    _slot_already_acquired: bool = False,
+) -> AsyncIterator[LiveTraceEvent]:
     """Dispatcher: real Pythia if loaded, fake otherwise.
 
     Routes / tests that want to force one mode can call stream_real_trace
-    or stream_fake_trace directly.
+    or stream_fake_trace directly. Enforces the global generation concurrency
+    budget unless the caller has already reserved a slot.
     """
-    loaded = get_loaded_model()
-    if loaded.is_real:
-        async for event in stream_real_trace(req):
-            yield event
-    else:
-        async for event in stream_fake_trace(req):
-            yield event
+    if not _slot_already_acquired and not try_acquire_generation_slot():
+        raise GenerationCapacityError("Worker concurrent stream capacity exceeded")
+
+    try:
+        loaded = get_loaded_model()
+        if loaded.is_real:
+            async for event in stream_real_trace(req):
+                yield event
+        else:
+            async for event in stream_fake_trace(req):
+                yield event
+    finally:
+        if not _slot_already_acquired:
+            release_generation_slot()

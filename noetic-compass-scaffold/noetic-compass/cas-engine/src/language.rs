@@ -142,7 +142,7 @@ fn language_error_from_syntax(error: SyntaxLanguageError) -> LanguageError {
     LanguageError::new(
         stage_from_syntax(error.stage_label()),
         error.message().to_string(),
-        None,
+        error.position_offset(),
     )
 }
 
@@ -328,7 +328,9 @@ fn meta_set_elements(name: &str) -> Option<Vec<String>> {
             .collect(),
         "EmptySet" => Vec::new(),
         foundation if foundation.starts_with("Foundation_") => {
-            let drive = foundation["Foundation_".len()..].parse::<u8>().ok()?;
+            let drive = foundation
+                .strip_prefix("Foundation_")
+                .and_then(|digits| digits.parse::<u8>().ok())?;
             if !(1..=7).contains(&drive) {
                 return None;
             }
@@ -1097,8 +1099,27 @@ fn infer(
                         "relation right operand",
                     )?;
                     if left_type.domains.len() == 1 && right_type.domains.len() == 1 {
-                        let left_domain = parse_domain_code(&left_type.domains[0]).unwrap();
-                        let right_domain = parse_domain_code(&right_type.domains[0]).unwrap();
+                        let left_domain = parse_domain_code(&left_type.domains[0]).ok_or_else(|| {
+                            LanguageError::new(
+                                Stage::Typecheck,
+                                format!(
+                                    "domain must be one of [P, C, E, O], got {}",
+                                    left_type.domains[0]
+                                ),
+                                None,
+                            )
+                        })?;
+                        let right_domain =
+                            parse_domain_code(&right_type.domains[0]).ok_or_else(|| {
+                                LanguageError::new(
+                                    Stage::Typecheck,
+                                    format!(
+                                        "domain must be one of [P, C, E, O], got {}",
+                                        right_type.domains[0]
+                                    ),
+                                    None,
+                                )
+                            })?;
                         if left_domain.index() > right_domain.index() {
                             return Err(LanguageError::new(
                                 Stage::Typecheck,
@@ -1278,16 +1299,17 @@ fn infer(
     }
 }
 
+const MAX_CALL_DEPTH: usize = 64;
+
 fn compose_sequence(sequence: &[u8]) -> Result<u8, LanguageError> {
-    if sequence.is_empty() {
+    let mut iter = sequence.iter();
+    let Some(&first) = iter.next() else {
         return Err(LanguageError::new(
             Stage::Execution,
             "fractal sequence cannot be empty",
             None,
         ));
-    }
-    let mut iter = sequence.iter();
-    let first = *iter.next().unwrap();
+    };
     let mut composed = parse_operator_index(first)?;
     for operator in iter {
         composed = composed.compose(parse_operator_index(*operator)?);
@@ -1319,6 +1341,7 @@ struct RuntimeEnv {
     module_cache: HashMap<PathBuf, LoadedModule>,
     module_stack: HashSet<PathBuf>,
     exports: HashSet<String>,
+    call_depth: usize,
 }
 
 impl RuntimeEnv {
@@ -1330,6 +1353,7 @@ impl RuntimeEnv {
             module_cache: HashMap::new(),
             module_stack: HashSet::new(),
             exports: HashSet::new(),
+            call_depth: 0,
         }
     }
 }
@@ -1420,11 +1444,13 @@ fn lower(node: &AstNode, out: &mut Vec<Instruction>) {
         AstNode::ExportStatement(stmt) => {
             lower(&stmt.statement, out);
             let name = match stmt.statement.as_ref() {
-                AstNode::LetStatement(binding) => binding.name.clone(),
-                AstNode::FunctionDef(function) => function.name.clone(),
-                _ => unreachable!(),
+                AstNode::LetStatement(binding) => Some(binding.name.clone()),
+                AstNode::FunctionDef(function) => Some(function.name.clone()),
+                _ => None,
             };
-            out.push(Instruction::ExportName(name));
+            if let Some(name) = name {
+                out.push(Instruction::ExportName(name));
+            }
         }
         AstNode::Program { statements } => {
             for (index, statement) in statements.iter().enumerate() {
@@ -1617,7 +1643,9 @@ fn execute(bytecode: &[Instruction], env: &mut RuntimeEnv) -> Result<Value, Lang
             None,
         ));
     }
-    Ok(stack.pop().unwrap())
+    stack.pop().ok_or_else(|| {
+        LanguageError::new(Stage::Execution, "vm halted with empty stack", None)
+    })
 }
 
 fn execute_instruction(
@@ -1831,7 +1859,9 @@ fn execute_instruction(
                     }
                     let mut temp = vec![args[0].clone()];
                     execute_instruction(&mut temp, &Instruction::Rpm, env)?;
-                    stack.push(temp.pop().unwrap());
+                    stack.push(temp.pop().ok_or_else(|| {
+                        LanguageError::new(Stage::Execution, "rpm_of produced no value", None)
+                    })?);
                 }
                 "fractal" => {
                     if args.len() < 2 {
@@ -1908,7 +1938,17 @@ fn execute_instruction(
                             ));
                         }
                     }
+                    if env.call_depth >= MAX_CALL_DEPTH {
+                        return Err(LanguageError::new(
+                            Stage::Execution,
+                            format!(
+                                "maximum function call depth ({MAX_CALL_DEPTH}) exceeded calling `{name}`"
+                            ),
+                            None,
+                        ));
+                    }
                     let mut child = env.clone();
+                    child.call_depth += 1;
                     for (param, arg) in function.params.iter().zip(args.into_iter()) {
                         child.vars.insert(param.clone(), arg);
                     }
@@ -2030,7 +2070,9 @@ fn execute_binary(stack: &mut Vec<Value>, instruction: &Instruction) -> Result<(
         },
         Instruction::Divide => match (left, right) {
             (Value::State(left), Value::State(right)) => {
-                let operator = (10 + left.operator as i16 - right.operator as i16) % 10;
+                let left_op = parse_operator_index(left.operator)?.index() as i16;
+                let right_op = parse_operator_index(right.operator)?.index() as i16;
+                let operator = (left_op - right_op).rem_euclid(10);
                 stack.push(Value::State(StateValue {
                     operator: operator as u8,
                     domain: left.domain,
@@ -2108,8 +2150,20 @@ fn execute_binary(stack: &mut Vec<Value>, instruction: &Instruction) -> Result<(
         },
         Instruction::Arrow => match (left, right) {
             (Value::State(left), Value::State(right)) => {
-                let source_domain = parse_domain_code(&left.domain).unwrap();
-                let target_domain = parse_domain_code(&right.domain).unwrap();
+                let source_domain = parse_domain_code(&left.domain).ok_or_else(|| {
+                    LanguageError::new(
+                        Stage::Execution,
+                        format!("unknown domain {}", left.domain),
+                        None,
+                    )
+                })?;
+                let target_domain = parse_domain_code(&right.domain).ok_or_else(|| {
+                    LanguageError::new(
+                        Stage::Execution,
+                        format!("unknown domain {}", right.domain),
+                        None,
+                    )
+                })?;
                 let source = crate::ontology::CognitiveStateId::new(
                     parse_operator_index(left.operator)?,
                     source_domain,
@@ -2136,7 +2190,11 @@ fn execute_binary(stack: &mut Vec<Value>, instruction: &Instruction) -> Result<(
                 None,
             )),
         },
-        _ => unreachable!(),
+        _ => Err(LanguageError::new(
+            Stage::Execution,
+            "unsupported binary instruction",
+            None,
+        )),
     }
 }
 
@@ -2409,5 +2467,40 @@ mod tests {
         let artifact = compile_expression("fn id(x) = x; id(\"hello\")");
         assert!(artifact.valid, "{:?}", artifact.error);
         assert_eq!(artifact.to_json()["type"]["kind"], "string");
+    }
+
+    #[test]
+    fn adversarial_numeric_and_nested_inputs_return_invalid_artifact() {
+        let deep = format!("{}CO-2{}", "(".repeat(400), ")".repeat(400));
+        for input in [
+            "CO-256",
+            "P256",
+            "F999",
+            "999999999999999999999999999999",
+            "-999999999999999999999999999999",
+            "Φ<256:999>",
+            "\"",
+            deep.as_str(),
+        ] {
+            let artifact = compile_expression(input);
+            assert!(!artifact.valid, "expected invalid artifact for `{input}`");
+            let err = artifact.error.unwrap_or_default();
+            assert!(!err.is_empty(), "expected error message for `{input}`");
+            assert!(
+                err.contains('@'),
+                "expected byte offset preserved in error for `{input}`: {err}"
+            );
+        }
+    }
+
+    #[test]
+    fn unbounded_user_function_recursion_fails_cleanly() {
+        let artifact = compile_expression("fn loop_fn(x: state): state = loop_fn(x); loop_fn(C2)");
+        assert!(!artifact.valid);
+        let err = artifact.error.unwrap_or_default();
+        assert!(
+            err.contains("maximum function call depth"),
+            "unexpected error: {err}"
+        );
     }
 }

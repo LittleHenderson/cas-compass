@@ -2,7 +2,13 @@ import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { apiFetch, ApiError } from '../../api/client';
-import { setToken, clearToken, getToken, isAuthenticated } from '../../api/auth';
+import {
+  setToken,
+  clearToken,
+  getToken,
+  isAuthenticated,
+  loginWithCredentials,
+} from '../../api/auth';
 
 const server = setupServer();
 
@@ -42,6 +48,65 @@ describe('auth', () => {
     expect(isAuthenticated()).toBe(false);
     expect(getToken()).toBeNull();
   });
+
+  it('submits user-supplied account credentials without persisting them in localStorage', async () => {
+    let capturedBody: Record<string, unknown> = {};
+    let capturedMintHeader: string | null = null;
+    server.use(
+      http.post('/api/auth/token', async ({ request }) => {
+        capturedBody = (await request.json()) as Record<string, unknown>;
+        capturedMintHeader = request.headers.get('X-Auth-Mint-Secret');
+        return HttpResponse.json({ token: 'account-jwt' });
+      }),
+    );
+
+    const token = await loginWithCredentials({
+      username: 'user@example.com',
+      apiCredential: 'casak_secret_test_credential_12345',
+    });
+
+    expect(token).toBe('account-jwt');
+    expect(getToken()).toBe('account-jwt');
+    expect(capturedBody).toEqual({
+      username: 'user@example.com',
+      api_credential: 'casak_secret_test_credential_12345',
+    });
+    expect(capturedMintHeader).toBeNull();
+    expect(JSON.stringify(localStorage)).not.toContain('casak_secret_test_credential_12345');
+  });
+
+  it('never reads a build-time mint secret from environment variables', async () => {
+    vi.stubEnv('VITE_AUTH_MINT_SECRET', 'should-never-be-sent');
+    let capturedMintHeader: string | null = null;
+    server.use(
+      http.post('/api/auth/token', ({ request }) => {
+        capturedMintHeader = request.headers.get('X-Auth-Mint-Secret');
+        return HttpResponse.json({ token: 'jwt-without-env-secret' });
+      }),
+    );
+
+    await loginWithCredentials({ username: 'user@example.com' });
+    expect(capturedMintHeader).toBeNull();
+  });
+
+  it('forwards explicit runtime mint secret only for the single login POST and never stores it', async () => {
+    let capturedMintHeader: string | null = null;
+    server.use(
+      http.post('/api/auth/token', ({ request }) => {
+        capturedMintHeader = request.headers.get('X-Auth-Mint-Secret');
+        return HttpResponse.json({ token: 'runtime-jwt' });
+      }),
+    );
+
+    await loginWithCredentials({
+      username: 'operator',
+      runtimeMintSecret: 'ephemeral-runtime-secret',
+    });
+
+    expect(capturedMintHeader).toBe('ephemeral-runtime-secret');
+    expect(getToken()).toBe('runtime-jwt');
+    expect(JSON.stringify(localStorage)).not.toContain('ephemeral-runtime-secret');
+  });
 });
 
 describe('apiFetch', () => {
@@ -58,12 +123,14 @@ describe('apiFetch', () => {
     expect(capturedAuth).toBe('Bearer my-jwt');
   });
 
-  it('throws ApiError on 401', async () => {
+  it('clears token and throws ApiError on 401 without silently re-minting', async () => {
     setToken('my-jwt');
+    let mintCalls = 0;
     server.use(
-      http.post('/api/auth/token', () =>
-        HttpResponse.json({ detail: 'Token mint failed' }, { status: 500 }),
-      ),
+      http.post('/api/auth/token', () => {
+        mintCalls += 1;
+        return HttpResponse.json({ token: 'should-not-be-called' });
+      }),
       http.get('/api/config', () =>
         HttpResponse.json({ detail: 'Invalid token', error_type: 'auth_error' }, { status: 401 }),
       ),
@@ -78,60 +145,8 @@ describe('apiFetch', () => {
       expect(err.detail).toBe('Invalid token');
       expect(err.errorType).toBe('auth_error');
       expect(getToken()).toBeNull();
+      expect(mintCalls).toBe(0);
     }
-  });
-
-  it('refreshes the dashboard token once when Authorization is missing or invalid', async () => {
-    setToken('stale-jwt');
-    const authHeaders: string[] = [];
-    server.use(
-      http.post('/api/auth/token', () => HttpResponse.json({ token: 'fresh-jwt' })),
-      http.get('/api/config', ({ request }) => {
-        const auth = request.headers.get('Authorization') ?? '';
-        authHeaders.push(auth);
-        if (auth !== 'Bearer fresh-jwt') {
-          return HttpResponse.json(
-            { detail: 'Missing or invalid Authorization header', error_type: 'auth_error' },
-            { status: 401 },
-          );
-        }
-        return HttpResponse.json({ ok: true });
-      }),
-    );
-
-    const result = await apiFetch<{ ok: boolean }>('/config');
-
-    expect(result.ok).toBe(true);
-    expect(authHeaders).toEqual(['Bearer stale-jwt', 'Bearer fresh-jwt']);
-    expect(getToken()).toBe('fresh-jwt');
-  });
-
-  it('sends the configured mint secret when refreshing the dashboard token', async () => {
-    vi.stubEnv('VITE_AUTH_MINT_SECRET', 'mint-secret-123');
-    setToken('stale-jwt');
-    let capturedMintSecret = '';
-    server.use(
-      http.post('/api/auth/token', ({ request }) => {
-        capturedMintSecret = request.headers.get('X-Auth-Mint-Secret') ?? '';
-        return HttpResponse.json({ token: 'fresh-jwt' });
-      }),
-      http.get('/api/config', ({ request }) => {
-        const auth = request.headers.get('Authorization') ?? '';
-        if (auth !== 'Bearer fresh-jwt') {
-          return HttpResponse.json(
-            { detail: 'Missing or invalid Authorization header', error_type: 'auth_error' },
-            { status: 401 },
-          );
-        }
-        return HttpResponse.json({ ok: true });
-      }),
-    );
-
-    const result = await apiFetch<{ ok: boolean }>('/config');
-
-    expect(result.ok).toBe(true);
-    expect(capturedMintSecret).toBe('mint-secret-123');
-    expect(getToken()).toBe('fresh-jwt');
   });
 
   it('throws ApiError on 422', async () => {
@@ -165,31 +180,33 @@ describe('apiFetch', () => {
     }
   });
 
-  it('refreshes the dashboard token once when the monthly cap is exhausted', async () => {
+  it('surfaces 429 monthly limit errors without silently minting a new identity', async () => {
     setToken('old-jwt');
-    const authHeaders: string[] = [];
+    let mintCalls = 0;
     server.use(
-      http.post('/api/auth/token', () => HttpResponse.json({ token: 'fresh-jwt' })),
-      http.post('/api/notation/compile', ({ request }) => {
-        const auth = request.headers.get('Authorization') ?? '';
-        authHeaders.push(auth);
-        if (auth === 'Bearer old-jwt') {
-          return HttpResponse.json(
-            { detail: 'Monthly limit exceeded (50 assessments). Upgrade tier or wait until next month.' },
-            { status: 429 },
-          );
-        }
-        return HttpResponse.json({ valid: true });
+      http.post('/api/auth/token', () => {
+        mintCalls += 1;
+        return HttpResponse.json({ token: 'fresh-jwt' });
       }),
+      http.post('/api/notation/compile', () =>
+        HttpResponse.json(
+          { detail: 'Monthly limit exceeded (500 assessments). Upgrade tier or wait until next month.' },
+          { status: 429 },
+        ),
+      ),
     );
 
-    const result = await apiFetch<{ valid: boolean }>('/notation/compile', {
-      method: 'POST',
-      body: JSON.stringify({ expression: 'Phi<3:8:5:2>' }),
-    });
-
-    expect(result.valid).toBe(true);
-    expect(authHeaders).toEqual(['Bearer old-jwt', 'Bearer fresh-jwt']);
-    expect(getToken()).toBe('fresh-jwt');
+    try {
+      await apiFetch('/notation/compile', {
+        method: 'POST',
+        body: JSON.stringify({ expression: 'Phi<3:8:5:2>' }),
+      });
+      expect.fail('Should have thrown');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ApiError);
+      expect((e as ApiError).status).toBe(429);
+      expect(mintCalls).toBe(0);
+      expect(getToken()).toBe('old-jwt');
+    }
   });
 });

@@ -21,6 +21,7 @@ from fastapi import APIRouter, Query
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field, field_validator
 
+from api.utils.csv_safety import csv_download_headers, sanitize_csv_row
 from api.validation.correlation import (
     compute_calibration_review,
     compute_inter_rater_kappa,
@@ -68,7 +69,7 @@ class LabelSubmit(BaseModel):
     rater: str = Field(..., min_length=1, max_length=80)
     operator_scores: list[int] = Field(..., description="10 scores, each 0-10")
     domain_scores: list[int] = Field(..., description="4 scores, each 0-10")
-    notes: str = ""
+    notes: str = Field(default="", max_length=4000)
 
     @field_validator("operator_scores")
     @classmethod
@@ -120,7 +121,7 @@ class ScorerAgreementSubmit(BaseModel):
     prompt_excerpt: str = Field(..., min_length=1, max_length=1000)
     machine_score: float = Field(..., ge=0.0, le=10.0)
     scorer_score: float = Field(..., ge=0.0, le=10.0)
-    notes: str = ""
+    notes: str = Field(default="", max_length=4000)
     item_index: int | None = None
 
 
@@ -136,7 +137,7 @@ class BenchmarkSuiteSubmit(BaseModel):
     cases_run: int = Field(..., ge=1, le=10000)
     mean_score: float = Field(..., ge=0.0, le=100.0)
     variance: float = Field(..., ge=0.0)
-    notes: str = ""
+    notes: str = Field(default="", max_length=4000)
 
 
 class ErrorCaseSubmit(BaseModel):
@@ -148,7 +149,7 @@ class ErrorCaseSubmit(BaseModel):
     prompt_excerpt: str = Field(..., min_length=1, max_length=1000)
     expected_tier: str = Field(..., min_length=1, max_length=80)
     observed_tier: str = Field(..., min_length=1, max_length=80)
-    notes: str = ""
+    notes: str = Field(default="", max_length=4000)
     item_index: int | None = None
 
 
@@ -580,6 +581,7 @@ async def export_evidence(
     return PlainTextResponse(
         export_evidence_csv(store, kind=kind, provider=provider, model=model, q=q),
         media_type="text/csv",
+        headers=csv_download_headers("validation_evidence.csv"),
     )
 
 
@@ -593,7 +595,11 @@ async def export_labels(format: str = Query("json", pattern="^(json|csv)$")):
     # CSV export
     buf = io.StringIO()
     if not labels:
-        return PlainTextResponse("no labels\n", media_type="text/csv")
+        return PlainTextResponse(
+            "no labels\n",
+            media_type="text/csv",
+            headers=csv_download_headers("validation_labels.csv"),
+        )
 
     fields = ["item_index", "rater", "timestamp"] + [f"CO-{i}" for i in range(10)] + ["P", "C", "E", "O", "notes"]
     writer = csv.writer(buf)
@@ -602,13 +608,19 @@ async def export_labels(format: str = Query("json", pattern="^(json|csv)$")):
         ops = label.get("operator_scores") or [""] * 10
         doms = label.get("domain_scores") or [""] * 4
         writer.writerow(
-            [
-                label.get("item_index", ""),
-                label.get("rater", ""),
-                label.get("timestamp", ""),
-                *ops,
-                *doms,
-                label.get("notes", ""),
-            ]
+            sanitize_csv_row(
+                [
+                    label.get("item_index", ""),
+                    label.get("rater", ""),
+                    label.get("timestamp", ""),
+                    *ops,
+                    *doms,
+                    label.get("notes", ""),
+                ]
+            )
         )
-    return PlainTextResponse(buf.getvalue(), media_type="text/csv")
+    return PlainTextResponse(
+        buf.getvalue(),
+        media_type="text/csv",
+        headers=csv_download_headers("validation_labels.csv"),
+    )

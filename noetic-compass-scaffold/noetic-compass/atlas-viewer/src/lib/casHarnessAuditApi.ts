@@ -484,6 +484,26 @@ export function resolveCasHarnessAuditBaseUrl(explicit?: string): string {
   return DEFAULT_BASE_URL;
 }
 
+const _MAX_CACHED_SESSION_TOKENS = 64;
+const _SESSION_ACCESS_TOKENS = new Map<string, string>();
+
+function _rememberSessionAccessToken(auditId: string, token: unknown): void {
+  if (typeof token !== 'string' || token.trim().length === 0) return;
+  if (_SESSION_ACCESS_TOKENS.size >= _MAX_CACHED_SESSION_TOKENS && !_SESSION_ACCESS_TOKENS.has(auditId)) {
+    const oldest = _SESSION_ACCESS_TOKENS.keys().next().value;
+    if (oldest !== undefined) _SESSION_ACCESS_TOKENS.delete(oldest);
+  }
+  _SESSION_ACCESS_TOKENS.set(auditId, token.trim());
+}
+
+function _sessionAccessTokenHeaders(auditId: string, explicitToken?: string | null): Record<string, string> {
+  const token =
+    typeof explicitToken === 'string' && explicitToken.trim().length > 0
+      ? explicitToken.trim()
+      : _SESSION_ACCESS_TOKENS.get(auditId);
+  return token ? { 'X-Audit-Session-Token': token } : {};
+}
+
 export async function createCasHarnessAuditSession(
   request: CasHarnessAuditSessionRequest,
   options?: CasHarnessAuditApiOptions,
@@ -494,7 +514,11 @@ export async function createCasHarnessAuditSession(
     body: JSON.stringify(request),
     signal: options?.signal,
   }, options);
-  return parseAuditSessionResponse(response);
+  const parsed = parseAuditSessionResponse(response);
+  if (isRecord(response) && typeof response.session_access_token === 'string') {
+    _rememberSessionAccessToken(parsed.audit_id, response.session_access_token);
+  }
+  return parsed;
 }
 
 export async function verifyCasHarnessModelTarget(
@@ -812,7 +836,7 @@ export async function getCasHarnessAuditSessionStatus(
     `${baseUrl(options)}/session/${encodeURIComponent(auditId)}/status`,
     {
       method: 'GET',
-      headers: { Accept: 'application/json' },
+      headers: { Accept: 'application/json', ..._sessionAccessTokenHeaders(auditId) },
       signal: options?.signal,
     },
     options,
@@ -883,13 +907,18 @@ export async function startCasHarnessAuditSession(
     typeof options?.apiKey === 'string' && options.apiKey.trim().length > 0
       ? options.apiKey.trim()
       : null;
+  const sessionTokenHeaders = _sessionAccessTokenHeaders(auditId);
   const init: RequestInit = {
     method: 'POST',
-    headers: { Accept: 'application/json' },
+    headers: { Accept: 'application/json', ...sessionTokenHeaders },
     signal: options?.signal,
   };
   if (trimmedKey) {
-    init.headers = { Accept: 'application/json', 'Content-Type': 'application/json' };
+    init.headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...sessionTokenHeaders,
+    };
     init.body = JSON.stringify({ api_key: trimmedKey });
   }
   const response = await requestJson(

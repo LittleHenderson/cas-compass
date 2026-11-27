@@ -55,6 +55,7 @@ class PinnedReceipt:
     sha256: str
     issuer: str
     key_id: str
+    release_asset_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -261,6 +262,13 @@ def _preflight_receipt_identity(
         raise AssemblyError("root-CI receipt subject URI binding mismatches")
     if evidence.get("artifact_sha256") != receipt.get("subject_sha256"):
         raise AssemblyError("root-CI receipt subject SHA-256 binding mismatches")
+    if "release_asset_id" in receipt:
+        release_asset_id = receipt.get("release_asset_id")
+        if (
+            not isinstance(release_asset_id, str)
+            or acceptance.RELEASE_ASSET_ID_RE.fullmatch(release_asset_id) is None
+        ):
+            raise AssemblyError("root-CI receipt release_asset_id is invalid")
     return issuer, key_id
 
 
@@ -323,11 +331,14 @@ def _load_pinned_root_receipt(
             "root-CI signed receipt failed authoritative validation: "
             + "; ".join(sorted(set(context.errors)))
         )
+    raw_asset_id = receipt.get("release_asset_id")
+    release_asset_id = raw_asset_id if isinstance(raw_asset_id, str) else None
     return PinnedReceipt(
         raw=raw,
         sha256=actual_hash,
         issuer=issuer,
         key_id=key_id,
+        release_asset_id=release_asset_id,
     )
 
 
@@ -623,6 +634,8 @@ def assemble_candidate(
             "final_workflow_dispatched": False,
             "final_release_effect": "none",
         }
+        if receipt.release_asset_id is not None:
+            metadata["root_ci_release_asset_id"] = receipt.release_asset_id
         _write_json(output_dir / "candidate-assembly.json", metadata)
         return metadata
     except Exception:

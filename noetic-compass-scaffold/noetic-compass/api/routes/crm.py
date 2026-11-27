@@ -20,9 +20,10 @@ from __future__ import annotations
 
 from typing import Mapping
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, StrictBool
 
+from api.dependencies.authz import require_verified_role
 from api.services.crm.abuse import PublicLeadAbuseGuard, build_public_lead_abuse_guard
 from api.services.crm.models import LeadSubmission, LeadValidationError
 from api.services.crm.privacy import (
@@ -34,6 +35,10 @@ from api.services.crm.service import CRMService, build_dark_crm_service
 from api.config import settings
 
 router = APIRouter(prefix="/api/crm", tags=["crm"])
+# Unconditional operator authorization on private CRM lead views/mutations even
+# when accounts_enabled is False: legacy accounts-off JWTs lack a verified
+# server-assigned role and receive 403 Forbidden.
+_crm_operator_gate = require_verified_role("operator", "admin", "owner", "system")
 
 # Lazy dark fallback for environments where the lifespan never installed a service (e.g. a minimal
 # test client). Built once on first use; in-memory and null-provider, so it captures but never
@@ -232,16 +237,23 @@ async def capture_public_lead(request: Request, payload: LeadSubmissionRequest) 
 
 
 @router.get("/leads")
-async def list_leads(request: Request) -> dict[str, object]:
-    """List captured leads, newest first. Authed (sales view)."""
+async def list_leads(
+    request: Request,
+    _role: str = Depends(_crm_operator_gate),
+) -> dict[str, object]:
+    """List captured leads, newest first. Operator-authorized sales view."""
     service = _service(request)
     leads = service.list_leads()
     return {"count": len(leads), "leads": [lead.to_dict() for lead in leads]}
 
 
 @router.get("/leads/{lead_id}")
-async def get_lead(request: Request, lead_id: str) -> dict[str, object]:
-    """Fetch one captured lead by id, or 404. Authed (sales view)."""
+async def get_lead(
+    request: Request,
+    lead_id: str,
+    _role: str = Depends(_crm_operator_gate),
+) -> dict[str, object]:
+    """Fetch one captured lead by id, or 404. Operator-authorized sales view."""
     service = _service(request)
     lead = service.get_lead(lead_id)
     if lead is None:
@@ -254,8 +266,9 @@ async def update_lead_pipeline_status(
     request: Request,
     lead_id: str,
     payload: LeadPipelineStatusUpdateRequest,
+    _role: str = Depends(_crm_operator_gate),
 ) -> dict[str, object]:
-    """Move one captured lead through the sales pipeline. Authed (sales view)."""
+    """Move one captured lead through the sales pipeline. Operator-authorized sales view."""
     service = _service(request)
     try:
         lead = service.update_pipeline_status(lead_id, payload.pipeline_status)

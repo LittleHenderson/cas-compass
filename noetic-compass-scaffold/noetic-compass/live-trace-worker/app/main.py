@@ -15,7 +15,7 @@ from typing import AsyncIterator
 
 from fastapi import FastAPI
 
-from .auth import WorkerTokenMiddleware
+from .auth import WorkerTokenMiddleware, validate_startup_auth_config
 from .routes import health, live_trace
 from .runtime import warm_load
 
@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    """Warm-load the model once at startup; tear down would go here."""
+    """Validate fail-closed auth configuration, then warm-load the model."""
+    validate_startup_auth_config()
     loaded = warm_load()
     logger.info(
         "startup: model_id=%s is_real=%s load_error=%s",
@@ -49,11 +50,9 @@ def create_app() -> FastAPI:
         ),
         lifespan=_lifespan,
     )
-    # Optional app-level auth. No-op unless ATLAS_LIVE_WORKER_TOKEN is set, so
-    # local dev / CI / the existing SSH-tunnel deploy are unaffected. When the
-    # worker's HTTP port is exposed (RunPod proxy), set the env var on both the
-    # worker and the API so only our API can reach it. See
-    # docs/working/atlas_live_worker_launch_grade_exposure_2026_05_31.md.
+    # Fail-closed app-level auth. ATLAS_LIVE_WORKER_TOKEN is required by
+    # default; tokenless operation is allowed only on loopback with explicit
+    # ATLAS_LIVE_ALLOW_INSECURE_LOCAL_DEV=1 and LIVE_TRACE_USE_FAKE=1.
     app.add_middleware(WorkerTokenMiddleware)
     app.include_router(health.router, tags=["health"])
     app.include_router(live_trace.router, tags=["live-trace"])

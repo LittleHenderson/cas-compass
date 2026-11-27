@@ -73,11 +73,14 @@ class ReceiptSignerTests(unittest.TestCase):
 
     def _sign(self, **overrides):
         payload = overrides.pop("payload", _draft_payload())
+        subject_bytes = overrides.pop("subject_bytes", _subject_bytes(payload))
         options = {
             "payload": payload,
-            "subject_bytes": _subject_bytes(payload),
+            "subject_bytes": subject_bytes,
             "expected_master_head": collector_test.MASTER_SHA,
             "expected_deploy_id": collector_test.DEPLOY_ID,
+            "expected_subject_sha256": hashlib.sha256(subject_bytes).hexdigest(),
+            "release_asset_id": "987654321",
             "private_key_pem": self.pem,
             "trusted_issuers": self._trusted(),
             "now": NOW,
@@ -96,6 +99,7 @@ class ReceiptSignerTests(unittest.TestCase):
         self.assertEqual(receipt["gate"], "root_ci_protected_deploy")
         self.assertEqual(receipt["subject_uri"], signer.SUBJECT_URI)
         self.assertEqual(receipt["subject_sha256"], hashlib.sha256(subject).hexdigest())
+        self.assertEqual(receipt["release_asset_id"], "987654321")
         self.assertEqual(receipt["evidence"]["artifact_uri"], signer.SUBJECT_URI)
         self.assertEqual(
             receipt["evidence"]["artifact_sha256"], receipt["subject_sha256"]
@@ -127,6 +131,10 @@ class ReceiptSignerTests(unittest.TestCase):
         assert evidence is not None
         acceptance._validate_root_ci(evidence, context)
         self.assertEqual(context.errors, [])
+        self.assertEqual(
+            context.authorities["root_ci_protected_deploy"]["release_asset_id"],
+            "987654321",
+        )
 
     def test_private_key_must_match_pinned_ephemeral_public_key(self) -> None:
         _, other_pem, _ = _ephemeral_key()

@@ -15,7 +15,7 @@ import logging
 from typing import Any, Callable, Literal, Mapping
 from urllib.parse import urlparse
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 from jose import JWTError, jwt
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, SecretStr, field_validator, model_validator
 
@@ -30,13 +30,16 @@ from api.routes.evidence import (
 from api.services.cas_harness_audit_sessions import (
     AuditRunInProgress,
     AuditRunReconciliationRequired,
+    AuditSessionCapacityExceeded,
     ProviderRunClaim,
+    _normalize_identity,
     checkpoint_provider_completed,
     checkpoint_provider_evidence_persisted,
     claim_provider_run,
     claim_run_attempt,
     attach_runner_evidence,
     create_session,
+    create_session_with_token,
     fail_session,
     finalize_provider_run,
     get_session,
@@ -760,6 +763,11 @@ class AuditSessionResponse(BaseModel):
     verifier_decision: VerifierDecision | None = None
     audit_scope: AuditScope | None = None
     lifecycle: list[AuditLifecycleEvent]
+    session_access_token: str | None = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+        description="Per-session capability token returned once on anonymous session creation; never returned on status/list.",
+    )
 
 
 class AuditSessionListResponse(BaseModel):
@@ -2139,7 +2147,9 @@ async def list_distributed_fleet_runs(request: Request) -> FleetRunListResponse:
 
 
 @router.post("/session", response_model=AuditSessionResponse)
-async def create_audit_session(req: AuditSessionRequest, request: Request) -> AuditSessionResponse:
+async def create_audit_session(
+    req: AuditSessionRequest, request: Request, response: Response
+) -> AuditSessionResponse:
     """Validate the CAS Harness audit contract and create a stored M1 session."""
     _require_locked_tks_definitions()
     owner_sub, owner_api_key = _caller_identity(request)
@@ -2171,22 +2181,42 @@ async def create_audit_session(req: AuditSessionRequest, request: Request) -> Au
             raise HTTPException(
                 status_code=503, detail="Evidence Packet storage is unavailable."
             ) from exc
-    record = create_session(
-        payload, owner_sub=owner_sub, owner_api_key=owner_api_key, **_audit_storage_scope(request)
-    )
-    return AuditSessionResponse.model_validate(record.to_dict())
+    try:
+        record, capability_token = create_session_with_token(
+            payload,
+            owner_sub=owner_sub,
+            owner_api_key=owner_api_key,
+            **_audit_storage_scope(request),
+        )
+    except AuditSessionCapacityExceeded as exc:
+        raise HTTPException(
+            status_code=429,
+            detail=str(exc),
+            headers={"Retry-After": "60"},
+        ) from exc
+    result_dict = record.to_dict()
+    if capability_token is not None:
+        response.headers["X-Audit-Session-Token"] = capability_token
+        response.headers["Cache-Control"] = "no-store"
+        result_dict["session_access_token"] = capability_token
+    return AuditSessionResponse.model_validate(result_dict)
 
 
 @router.get("/session/{audit_id}/status", response_model=AuditSessionResponse)
 async def get_audit_session_status(audit_id: str, request: Request) -> AuditSessionResponse:
     """Return the stored session state instead of fabricating by audit id.
 
-    Phase-1 identity-scope stopgap: a caller can only read a session they own;
-    another caller's session reads as 404, never disclosed.
+    Authenticated sessions require matching caller ownership; anonymous sessions
+    require the per-session capability token in ``X-Audit-Session-Token``.
     """
     owner_sub, owner_api_key = _caller_identity(request)
+    capability_token = request.headers.get("X-Audit-Session-Token")
     record = get_session(
-        audit_id, owner_sub=owner_sub, owner_api_key=owner_api_key, **_audit_storage_scope(request)
+        audit_id,
+        owner_sub=owner_sub,
+        owner_api_key=owner_api_key,
+        capability_token=capability_token,
+        **_audit_storage_scope(request),
     )
     if record is None:
         raise HTTPException(status_code=404, detail="Audit session not found")
@@ -2204,11 +2234,13 @@ async def run_audit_session(
     An optional body may carry a customer bring-your-own-key (BYOK) ephemeral
     secret used only for this run (closed-API targets) and never persisted.
 
-    Phase-1 identity-scope stopgap: the run is gated on ownership — a caller
-    cannot run (or even confirm) another caller's session.
+    Authenticated sessions require caller ownership; anonymous sessions require
+    the per-session ``X-Audit-Session-Token`` capability header and cannot use
+    server-configured provider credentials or hosted live workers.
     """
     _require_locked_tks_definitions()
     owner_sub, owner_api_key = _caller_identity(request)
+    capability_token = request.headers.get("X-Audit-Session-Token")
     # Per-tenant evidence ownership is now WIRED (see _record_audit_evidence_ownership, called at each
     # RUN-point below once the evidence trace_id is known). In account mode these routes have left the
     # auth allowlist, so the middleware decoded the jti token and set request.state.tenant_id/
@@ -2218,7 +2250,11 @@ async def run_audit_session(
     # pre-existing evidence_packet_trace_id supplied by the caller and produces no new trace to own.
     storage_scope = _audit_storage_scope(request)
     existing = get_session(
-        audit_id, owner_sub=owner_sub, owner_api_key=owner_api_key, **storage_scope
+        audit_id,
+        owner_sub=owner_sub,
+        owner_api_key=owner_api_key,
+        capability_token=capability_token,
+        **storage_scope,
     )
     if existing is None:
         raise HTTPException(status_code=404, detail="Audit session not found")
@@ -2258,6 +2294,32 @@ async def run_audit_session(
         if completed is None:
             raise HTTPException(status_code=404, detail="Audit session not found")
         return AuditSessionResponse.model_validate(completed.to_dict())
+
+    ephemeral_api_key = (
+        req.api_key.get_secret_value() if req is not None and req.api_key is not None else None
+    )
+    is_authenticated = bool(storage_scope) or (
+        _normalize_identity(owner_sub) is not None
+        or _normalize_identity(owner_api_key) is not None
+    )
+    if _should_run_hosted_open_weight(existing) and not is_authenticated:
+        raise HTTPException(
+            status_code=403,
+            detail="Authentication is required to run audits against hosted open-weight live workers.",
+        )
+    if (
+        _should_run_api_endpoint(existing)
+        and not is_authenticated
+        and (existing.provider or "").strip().lower() != "mock"
+        and not ephemeral_api_key
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Anonymous audit runs cannot use server-configured provider credentials; "
+                "supply an explicit BYOK api_key or sign in."
+            ),
+        )
 
     is_external_run = _should_run_hosted_open_weight(
         existing
@@ -2384,9 +2446,6 @@ async def run_audit_session(
         if run_attempt_id is None:
             raise HTTPException(status_code=404, detail="Audit session not found")
 
-    ephemeral_api_key = (
-        req.api_key.get_secret_value() if req is not None and req.api_key is not None else None
-    )
     if _should_run_hosted_open_weight(existing):
         prompt = existing.prompt_text or existing.scenario_text or ""
         checkpoint_state: dict[str, bool] | None = None

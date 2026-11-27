@@ -53,7 +53,7 @@ pub fn divide_states(
     } else {
         // Midpoint difference: captures the "distance" between two operators
         let idx = ((lo.index() + ro.index()) / 2) % 10;
-        CognitiveOperator::from_index(idx).unwrap()
+        CognitiveOperator::from_index(idx).unwrap_or(CognitiveOperator::CO0)
     };
 
     // 3. Domain preserved

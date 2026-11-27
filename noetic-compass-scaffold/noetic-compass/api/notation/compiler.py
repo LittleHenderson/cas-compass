@@ -18,10 +18,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
+import errno
 import math
 import os
 import re
+import stat
 from typing import Any
+
+MAX_IMPORT_FILE_BYTES = 256 * 1024
+MAX_IMPORT_COUNT = 32
+MAX_IMPORT_DEPTH = 16
+MAX_TOTAL_IMPORT_BYTES = 1024 * 1024
 
 try:
     import cas_engine
@@ -325,11 +332,20 @@ class FunctionSignature:
 
 
 @dataclass
+class _ImportBudget:
+    import_count: int = 0
+    total_bytes: int = 0
+
+
+@dataclass
 class TypeEnv:
     vars: dict[str, TypeInfo] = field(default_factory=dict)
     funcs: dict[str, FunctionSignature] = field(default_factory=dict)
     module_dir: str | None = None
+    module_root: str | None = None
+    allow_imports: bool = False
     import_stack: set[str] = field(default_factory=set)
+    import_budget: _ImportBudget | None = None
     exports: set[str] = field(default_factory=set)
 
 
@@ -347,6 +363,152 @@ class CompilerError(ValueError):
         if position is not None:
             prefix = f"{prefix}@{position}"
         super().__init__(f"{prefix}: {message}")
+
+
+def _resolve_import_path(
+    import_path: str,
+    *,
+    stage: CompilerStage,
+    allow_imports: bool,
+    module_dir: str | None,
+    module_root: str | None,
+) -> str:
+    """Resolve and validate a relative module import strictly inside module_root.
+
+    When ``allow_imports`` is False, raises immediately BEFORE any filesystem
+    stat, path resolution, or open call to prevent both DoS (e.g. ``/dev/zero``)
+    and file-existence oracle leaks.
+    """
+    if not allow_imports:
+        raise CompilerError(
+            stage,
+            "File imports ('use') are disabled in request-facing compilation.",
+        )
+    if module_dir is None:
+        raise CompilerError(stage, "File imports require an explicit module directory.")
+    if not import_path or "\x00" in import_path:
+        raise CompilerError(stage, "invalid import path")
+    drive, _ = os.path.splitdrive(import_path)
+    if drive or os.path.isabs(import_path) or import_path.startswith(("/", "\\")):
+        raise CompilerError(stage, f"absolute import paths are not permitted: {import_path}")
+
+    raw_segments = re.split(r"[/\\]", import_path)
+    if any(seg == ".." for seg in raw_segments):
+        raise CompilerError(stage, f"import path traversal is not permitted: {import_path}")
+    segments = [seg for seg in raw_segments if seg not in ("", ".")]
+    if not segments:
+        raise CompilerError(stage, f"invalid import path: {import_path}")
+
+    real_root = os.path.realpath(module_root if module_root is not None else module_dir)
+    real_dir = os.path.realpath(module_dir)
+    try:
+        if os.path.commonpath([real_root, real_dir]) != real_root:
+            raise CompilerError(stage, f"import path escapes module directory: {import_path}")
+    except ValueError:
+        raise CompilerError(stage, f"import path escapes module directory: {import_path}") from None
+
+    current = real_dir
+    for seg in segments:
+        current = os.path.join(current, seg)
+        if os.path.islink(current):
+            raise CompilerError(stage, f"symbolic links are not permitted in imports: {import_path}")
+
+    real_target = os.path.realpath(current)
+    try:
+        if os.path.commonpath([real_root, real_target]) != real_root or real_target == real_root:
+            raise CompilerError(stage, f"import path escapes module directory: {import_path}")
+    except ValueError:
+        raise CompilerError(stage, f"import path escapes module directory: {import_path}") from None
+
+    return real_target
+
+
+def _read_regular_file(
+    resolved: str,
+    *,
+    stage: CompilerStage,
+    max_bytes: int,
+    remaining_total_bytes: int | None = None,
+) -> tuple[str, int]:
+    """Open a regular file with O_NOFOLLOW + O_NONBLOCK, verify fstat, and perform a bounded read."""
+    open_flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+    try:
+        fd = os.open(resolved, open_flags)
+    except FileNotFoundError:
+        raise CompilerError(stage, f"import target not found: {resolved}") from None
+    except OSError as exc:
+        if exc.errno == errno.ELOOP:
+            raise CompilerError(stage, f"symbolic links are not permitted in imports: {resolved}") from None
+        raise CompilerError(stage, f"cannot open import target: {resolved}") from None
+
+    fd_owned = True
+    try:
+        st = os.fstat(fd)
+        if not stat.S_ISREG(st.st_mode):
+            raise CompilerError(stage, f"import target must be a regular file: {resolved}")
+        if st.st_size > max_bytes:
+            raise CompilerError(
+                stage,
+                f"import target exceeds maximum size ({max_bytes} bytes): {resolved}",
+            )
+        if remaining_total_bytes is not None and st.st_size > remaining_total_bytes:
+            raise CompilerError(
+                stage,
+                f"total imported bytes limit exceeded (max {MAX_TOTAL_IMPORT_BYTES} bytes)",
+            )
+        read_limit = max_bytes if remaining_total_bytes is None else min(max_bytes, remaining_total_bytes)
+        handle = os.fdopen(fd, "rb")
+        fd_owned = False
+        with handle:
+            raw = handle.read(read_limit + 1)
+        if len(raw) > max_bytes:
+            raise CompilerError(
+                stage,
+                f"import target exceeds maximum size ({max_bytes} bytes): {resolved}",
+            )
+        if remaining_total_bytes is not None and len(raw) > remaining_total_bytes:
+            raise CompilerError(
+                stage,
+                f"total imported bytes limit exceeded (max {MAX_TOTAL_IMPORT_BYTES} bytes)",
+            )
+        try:
+            return raw.decode("utf-8"), len(raw)
+        except UnicodeDecodeError as exc:
+            raise CompilerError(stage, f"import target is not valid UTF-8: {resolved}") from exc
+    finally:
+        if fd_owned:
+            os.close(fd)
+
+
+def _read_import_file(
+    resolved: str,
+    *,
+    stage: CompilerStage,
+    budget: _ImportBudget,
+    active_stack: set[str],
+) -> str:
+    """Enforce cycle, depth, count, and byte budgets before reading an imported module."""
+    if resolved in active_stack:
+        raise CompilerError(stage, f"cyclic import detected for {resolved}")
+    if len(active_stack) >= MAX_IMPORT_DEPTH:
+        raise CompilerError(stage, f"import depth limit exceeded (max {MAX_IMPORT_DEPTH})")
+    if budget.import_count >= MAX_IMPORT_COUNT:
+        raise CompilerError(stage, f"import count limit exceeded (max {MAX_IMPORT_COUNT})")
+    remaining = MAX_TOTAL_IMPORT_BYTES - budget.total_bytes
+    if remaining <= 0:
+        raise CompilerError(
+            stage,
+            f"total imported bytes limit exceeded (max {MAX_TOTAL_IMPORT_BYTES} bytes)",
+        )
+    source, byte_count = _read_regular_file(
+        resolved,
+        stage=stage,
+        max_bytes=MAX_IMPORT_FILE_BYTES,
+        remaining_total_bytes=remaining,
+    )
+    budget.import_count += 1
+    budget.total_bytes += byte_count
+    return source
 
 
 @dataclass
@@ -1099,8 +1261,11 @@ class RuntimeEnv:
     funcs: dict[str, UserFunction] = field(default_factory=dict)
     parent: "RuntimeEnv | None" = None
     module_dir: str | None = None
+    module_root: str | None = None
+    allow_imports: bool = False
     module_cache: dict[str, LoadedModule] = field(default_factory=dict)
     module_stack: set[str] = field(default_factory=set)
+    import_budget: _ImportBudget | None = None
     exports: set[str] = field(default_factory=set)
 
     def resolve_var(self, name: str) -> Any:
@@ -3404,7 +3569,15 @@ def _infer(node: Any, warnings: list[str], env: TypeEnv | None = None) -> TypeIn
         param_types = tuple(node.param_types or [TypeInfo(kind=TypeKind.ANY) for _ in node.params])
         provisional_return = node.return_type or TypeInfo(kind=TypeKind.ANY)
         env.funcs[node.name] = FunctionSignature(param_types=param_types, return_type=provisional_return)
-        local_env = TypeEnv(vars=dict(env.vars), funcs=dict(env.funcs), module_dir=env.module_dir, import_stack=env.import_stack)
+        local_env = TypeEnv(
+            vars=dict(env.vars),
+            funcs=dict(env.funcs),
+            module_dir=env.module_dir,
+            module_root=env.module_root,
+            allow_imports=env.allow_imports,
+            import_stack=env.import_stack,
+            import_budget=env.import_budget,
+        )
         for param, param_type in zip(node.params, param_types, strict=True):
             local_env.vars[param] = param_type
         body_type = _infer(node.body, warnings, local_env)
@@ -3419,21 +3592,29 @@ def _infer(node: Any, warnings: list[str], env: TypeEnv | None = None) -> TypeIn
         return inner_type
 
     if isinstance(node, UseStatement):
-        resolved = node.path
-        if env.module_dir is not None and not os.path.isabs(resolved):
-            resolved = os.path.join(env.module_dir, resolved)
-        resolved = os.path.abspath(resolved)
-        if resolved in env.import_stack:
-            raise CompilerError(CompilerStage.TYPECHECK, f"cyclic import detected for {resolved}")
-        if not os.path.exists(resolved):
-            raise CompilerError(CompilerStage.TYPECHECK, f"import target not found: {resolved}")
+        resolved = _resolve_import_path(
+            node.path,
+            stage=CompilerStage.TYPECHECK,
+            allow_imports=env.allow_imports,
+            module_dir=env.module_dir,
+            module_root=env.module_root,
+        )
+        budget = env.import_budget if env.import_budget is not None else _ImportBudget()
+        env.import_budget = budget
+        source = _read_import_file(
+            resolved,
+            stage=CompilerStage.TYPECHECK,
+            budget=budget,
+            active_stack=env.import_stack,
+        )
         env.import_stack.add(resolved)
         try:
-            with open(resolved, encoding="utf-8") as handle:
-                source = handle.read()
             imported_env = TypeEnv(
                 module_dir=os.path.dirname(resolved),
+                module_root=env.module_root or env.module_dir,
+                allow_imports=env.allow_imports,
                 import_stack=env.import_stack,
+                import_budget=budget,
             )
             imported_ast = Parser(lex(source)).parse()
             _infer(imported_ast, warnings, imported_env)
@@ -4276,10 +4457,13 @@ def _execute_instruction(stack: list[Any], instruction: Instruction, env: Runtim
 
     if opcode == "IMPORT":
         import_path = str(instruction.arg)
-        resolved = import_path
-        if env.module_dir is not None and not os.path.isabs(resolved):
-            resolved = os.path.join(env.module_dir, resolved)
-        resolved = os.path.abspath(resolved)
+        resolved = _resolve_import_path(
+            import_path,
+            stage=CompilerStage.EXECUTION,
+            allow_imports=env.allow_imports,
+            module_dir=env.module_dir,
+            module_root=env.module_root,
+        )
         if resolved in env.module_stack:
             raise CompilerError(CompilerStage.EXECUTION, f"cyclic import detected for {resolved}")
         if resolved in env.module_cache:
@@ -4291,19 +4475,42 @@ def _execute_instruction(stack: list[Any], instruction: Instruction, env: Runtim
                     env.funcs[key] = loaded.funcs[key]
             stack.append(ModuleValue(path=resolved, exports=list(loaded.exports)))
         else:
+            budget = env.import_budget if env.import_budget is not None else _ImportBudget()
+            env.import_budget = budget
+            source = _read_import_file(
+                resolved,
+                stage=CompilerStage.EXECUTION,
+                budget=budget,
+                active_stack=env.module_stack,
+            )
             env.module_stack.add(resolved)
             try:
-                with open(resolved, encoding="utf-8") as handle:
-                    source = handle.read()
+                child_root = env.module_root or env.module_dir
                 child_env = RuntimeEnv(
                     parent=env,
                     module_dir=os.path.dirname(resolved),
+                    module_root=child_root,
+                    allow_imports=env.allow_imports,
                     module_cache=env.module_cache,
                     module_stack=env.module_stack,
+                    import_budget=budget,
                 )
                 child_tokens = lex(source)
                 child_ast = Parser(child_tokens).parse()
-                _infer(child_ast, [], TypeEnv(module_dir=os.path.dirname(resolved)))
+                _infer(
+                    child_ast,
+                    [],
+                    TypeEnv(
+                        module_dir=os.path.dirname(resolved),
+                        module_root=child_root,
+                        allow_imports=env.allow_imports,
+                        import_stack=set(env.module_stack),
+                        import_budget=_ImportBudget(
+                            import_count=budget.import_count,
+                            total_bytes=budget.total_bytes,
+                        ),
+                    ),
+                )
                 child_bytecode = lower(child_ast)
                 child_result = execute(child_bytecode, env=child_env)
                 exports = sorted(child_env.exports or (set(child_env.vars) | set(child_env.funcs)))
@@ -4527,7 +4734,15 @@ def _execute_instruction(stack: list[Any], instruction: Instruction, env: Runtim
                     CompilerStage.EXECUTION,
                     f"function {name} argument {param} violated type {_format_typeinfo(expected_type)}",
                 )
-        child_env = RuntimeEnv(parent=env, module_dir=env.module_dir, module_cache=env.module_cache)
+        child_env = RuntimeEnv(
+            parent=env,
+            module_dir=env.module_dir,
+            module_root=env.module_root,
+            allow_imports=env.allow_imports,
+            module_cache=env.module_cache,
+            module_stack=env.module_stack,
+            import_budget=env.import_budget,
+        )
         for param, arg in zip(func.params, args, strict=True):
             child_env.vars[param] = arg
         result = execute(func.bytecode, env=child_env)
@@ -5759,19 +5974,48 @@ def _walk(
     return
 
 
-def _compile_source(source: str, *, module_dir: str | None = None) -> CompilationArtifact:
+def _compile_source(
+    source: str,
+    *,
+    module_dir: str | None = None,
+    allow_imports: bool = False,
+    module_root: str | None = None,
+    initial_import_stack: set[str] | None = None,
+) -> CompilationArtifact:
     try:
         tokens = lex(source)
         parser = Parser(tokens)
         ast = parser.parse()
         warnings: list[str] = []
+        effective_dir = os.path.realpath(module_dir) if (allow_imports and module_dir is not None) else None
+        effective_root = (
+            os.path.realpath(module_root)
+            if (allow_imports and module_root is not None)
+            else effective_dir
+        )
+        seed_stack = set(initial_import_stack) if initial_import_stack else set()
         type_info = _infer(
             ast,
             warnings,
-            TypeEnv(module_dir=module_dir),
+            TypeEnv(
+                module_dir=effective_dir,
+                module_root=effective_root,
+                allow_imports=allow_imports,
+                import_stack=set(seed_stack),
+                import_budget=_ImportBudget(),
+            ),
         )
         bytecode = lower(ast)
-        result = execute(bytecode, env=RuntimeEnv(module_dir=module_dir))
+        result = execute(
+            bytecode,
+            env=RuntimeEnv(
+                module_dir=effective_dir,
+                module_root=effective_root,
+                allow_imports=allow_imports,
+                module_stack=set(seed_stack),
+                import_budget=_ImportBudget(),
+            ),
+        )
         return CompilationArtifact(
             source=source,
             tokens=tokens[:-1],
@@ -5781,6 +6025,18 @@ def _compile_source(source: str, *, module_dir: str | None = None) -> Compilatio
             result=result,
             warnings=warnings,
             valid=True,
+            engine="rust+python" if cas_engine is not None else "python",
+        )
+    except RecursionError:
+        return CompilationArtifact(
+            source=source,
+            tokens=[],
+            ast=None,
+            type_info=None,
+            bytecode=[],
+            result=None,
+            valid=False,
+            error="parsing: expression nesting exceeds maximum recursion depth",
             engine="rust+python" if cas_engine is not None else "python",
         )
     except CompilerError as exc:
@@ -5802,11 +6058,58 @@ def _compile_source(source: str, *, module_dir: str | None = None) -> Compilatio
         )
 
 
-def compile_expression(source: str) -> CompilationArtifact:
-    return _compile_source(source)
+def compile_expression(
+    source: str,
+    *,
+    allow_imports: bool = False,
+    module_dir: str | None = None,
+) -> CompilationArtifact:
+    return _compile_source(
+        source,
+        module_dir=module_dir if allow_imports else None,
+        allow_imports=allow_imports,
+        module_root=module_dir if allow_imports else None,
+    )
 
 
 def compile_file(path: str) -> CompilationArtifact:
-    resolved = os.path.abspath(path)
-    with open(resolved, encoding="utf-8") as handle:
-        return _compile_source(handle.read(), module_dir=os.path.dirname(resolved))
+    abs_path = os.path.abspath(path)
+    if os.path.islink(abs_path):
+        return CompilationArtifact(
+            source="",
+            tokens=[],
+            ast=None,
+            type_info=None,
+            bytecode=[],
+            result=None,
+            valid=False,
+            error=f"lexing: symbolic links are not permitted: {abs_path}",
+            engine="rust+python" if cas_engine is not None else "python",
+        )
+    real_path = os.path.realpath(abs_path)
+    try:
+        source, _ = _read_regular_file(
+            real_path,
+            stage=CompilerStage.LEXING,
+            max_bytes=MAX_IMPORT_FILE_BYTES,
+        )
+    except CompilerError as exc:
+        return CompilationArtifact(
+            source="",
+            tokens=[],
+            ast=None,
+            type_info=None,
+            bytecode=[],
+            result=None,
+            valid=False,
+            error=str(exc),
+            engine="rust+python" if cas_engine is not None else "python",
+        )
+    module_dir = os.path.dirname(real_path)
+    return _compile_source(
+        source,
+        module_dir=module_dir,
+        allow_imports=True,
+        module_root=module_dir,
+        initial_import_stack={real_path},
+    )

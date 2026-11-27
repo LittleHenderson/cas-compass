@@ -10,6 +10,7 @@ from api.routes import atlas_live
 def reset_live_state(monkeypatch):
     atlas_live._ip_opens.clear()
     atlas_live._code_opens.clear()
+    atlas_live._STREAM_TOKENS.clear()
     monkeypatch.setattr(atlas_live.settings, "atlas_live_invite_codes", "alpha-code")
     monkeypatch.setattr(atlas_live.settings, "atlas_live_worker_url", "https://worker.example")
     monkeypatch.setattr(atlas_live.settings, "atlas_live_worker_token", "test-worker-secret")

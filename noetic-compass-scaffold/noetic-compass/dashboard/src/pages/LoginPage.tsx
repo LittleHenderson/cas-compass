@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { setToken } from '../api/auth';
-import { API_BASE, authMintHeaders } from '../api/config';
+import { loginWithCredentials } from '../api/auth';
 import { CasLabBrandMark } from '../components/layout/Header';
 
 export function LoginPage() {
-  const [username, setUsername] = useState('dashboard-user');
+  const [username, setUsername] = useState('');
+  const [apiCredential, setApiCredential] = useState('');
+  const [runtimeMintSecret, setRuntimeMintSecret] = useState('');
+  const [showLegacyCredential, setShowLegacyCredential] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -17,19 +19,14 @@ export function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/auth/token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authMintHeaders() },
-        body: JSON.stringify({ username: name }),
+      await loginWithCredentials({
+        username: name,
+        apiCredential: apiCredential.trim() || undefined,
+        runtimeMintSecret: runtimeMintSecret.trim() || undefined,
       });
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({ detail: res.statusText }));
-        throw new Error(body.detail ?? 'Failed to get token');
-      }
-
-      const data: { token: string } = await res.json();
-      setToken(data.token);
+      // Clear raw credentials from memory immediately after token issuance.
+      setApiCredential('');
+      setRuntimeMintSecret('');
       navigate('/scenarios');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Connection failed');
@@ -84,7 +81,8 @@ export function LoginPage() {
               Sign in to CAS Compass
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-[#b3c2ba]">
-              Enter a session label to mint an evaluation workbench token against the CAS Lab API.
+              Sign in with your account email/username and issued API credential. Credentials are
+              sent directly to the API over TLS and are never persisted in browser storage.
             </p>
           </div>
 
@@ -111,17 +109,66 @@ export function LoginPage() {
                 htmlFor="cas-username"
                 className="mb-1.5 block font-mono text-[11px] uppercase tracking-[0.08em] text-[#86958d]"
               >
-                Session Username
+                Account Email or Username
               </label>
               <input
                 id="cas-username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
+                placeholder="you@organization.com"
                 autoComplete="username"
                 className="w-full rounded-[2px] border-[1.5px] border-[#eaf3ee] bg-[#050b0a] px-3.5 py-3 text-sm text-[#eaf3ee] placeholder-[#62706a] focus:border-[#37f5a0] focus:outline-none"
               />
+            </div>
+
+            <div>
+              <label
+                htmlFor="cas-api-credential"
+                className="mb-1.5 block font-mono text-[11px] uppercase tracking-[0.08em] text-[#86958d]"
+              >
+                Account Credential (casak_…)
+              </label>
+              <input
+                id="cas-api-credential"
+                type="password"
+                value={apiCredential}
+                onChange={(e) => setApiCredential(e.target.value)}
+                placeholder="casak_…"
+                autoComplete="current-password"
+                className="w-full rounded-[2px] border-[1.5px] border-[#20302b] bg-[#050b0a] px-3.5 py-3 text-sm text-[#eaf3ee] placeholder-[#62706a] focus:border-[#37f5a0] focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowLegacyCredential((prev) => !prev)}
+                className="font-mono text-[11px] text-[#86958d] underline-offset-2 hover:text-[#b3c2ba] hover:underline"
+              >
+                {showLegacyCredential
+                  ? 'Hide runtime mint credential'
+                  : 'Use runtime mint credential (dev / legacy lane)'}
+              </button>
+              {showLegacyCredential && (
+                <div className="mt-2">
+                  <label
+                    htmlFor="cas-runtime-mint-secret"
+                    className="mb-1.5 block font-mono text-[11px] uppercase tracking-[0.08em] text-[#86958d]"
+                  >
+                    Runtime Mint Credential (in-memory only)
+                  </label>
+                  <input
+                    id="cas-runtime-mint-secret"
+                    type="password"
+                    value={runtimeMintSecret}
+                    onChange={(e) => setRuntimeMintSecret(e.target.value)}
+                    placeholder="Enter operator-supplied mint secret"
+                    autoComplete="off"
+                    className="w-full rounded-[2px] border-[1.5px] border-[#20302b] bg-[#050b0a] px-3.5 py-3 text-sm text-[#eaf3ee] placeholder-[#62706a] focus:border-[#37f5a0] focus:outline-none"
+                  />
+                </div>
+              )}
             </div>
 
             {error && (

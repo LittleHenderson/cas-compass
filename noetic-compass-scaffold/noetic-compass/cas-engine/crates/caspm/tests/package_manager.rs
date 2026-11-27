@@ -93,3 +93,46 @@ fn package_manager_adds_local_dependency_to_manifest() {
     assert!(manifest.contains("dep"));
     assert!(manifest.contains("path"));
 }
+
+#[test]
+fn package_manager_rejects_oversized_numeric_source_without_panic() {
+    let binary = env!("CARGO_BIN_EXE_caspm");
+    let root = tmp_dir();
+    let bad_pkg = root.join("bad_pkg");
+    fs::create_dir_all(bad_pkg.join("src")).expect("bad_pkg src");
+    fs::write(
+        bad_pkg.join("Cas.toml"),
+        "[package]\nname = \"bad_pkg\"\nversion = \"0.1.0\"\nentry = \"src/main.cas\"\n\n[dependencies]\n",
+    )
+    .expect("bad_pkg manifest");
+    fs::write(
+        bad_pkg.join("src").join("main.cas"),
+        "let x = CO-256; let y = Φ<256:999>; x\n",
+    )
+    .expect("bad_pkg source");
+
+    for subcmd in ["check", "graph"] {
+        let output = Command::new(binary)
+            .args([subcmd, bad_pkg.to_str().unwrap()])
+            .output()
+            .expect("caspm runs on malformed package");
+        assert!(
+            !output.status.success(),
+            "caspm {subcmd} must exit nonzero on oversized numeric tokens"
+        );
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            !stderr.contains("panicked at"),
+            "caspm {subcmd} panicked on malformed package: {stderr}"
+        );
+        if subcmd == "check" {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let parsed: serde_json::Value = serde_json::from_str(&stdout)
+                .expect("caspm check emits valid JSON on syntax error");
+            assert_eq!(parsed["valid"], serde_json::json!(false));
+            assert!(parsed["error"].as_str().unwrap_or("").contains("0..=9"));
+        } else {
+            assert!(!stderr.trim().is_empty());
+        }
+    }
+}

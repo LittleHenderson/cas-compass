@@ -223,9 +223,12 @@ def test_exported_symbols_survive_cached_reimport():
             'export let base: state[C] = CO-2^C_{F2}; export fn bridge(x: state[C], y: state[E]): relation = x -> y',
             encoding="utf-8",
         )
-        artifact = compile_expression(
-            f'use "{helper}"; use "{helper}"; bridge(base, E5)'
+        main = tmp_dir / "main.cas"
+        main.write_text(
+            f'use "{helper.name}"; use "{helper.name}"; bridge(base, E5)',
+            encoding="utf-8",
         )
+        artifact = compile_file(str(main))
         assert artifact.valid
         result = artifact.to_dict()["result"]
         assert result["kind"] == "program"

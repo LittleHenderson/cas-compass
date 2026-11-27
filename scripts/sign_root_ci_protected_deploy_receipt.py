@@ -15,9 +15,11 @@ import base64
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 import hashlib
+import hmac
 import json
 import os
 from pathlib import Path
+import re
 import sys
 from typing import Any, Mapping
 
@@ -41,10 +43,50 @@ SUBJECT_URI = (
 )
 PRIVATE_KEY_ENV = "CUSTOMER_PRODUCTION_SIGNING_KEY_PEM"
 DEFAULT_EXPIRY_MINUTES = acceptance.ROOT_CI_RECEIPT_TTL_MINUTES
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+RELEASE_ASSET_ID_RE = re.compile(r"^[1-9][0-9]*$")
 
 
 class SigningError(RuntimeError):
     """The draft, issuer authority, or private key failed closed."""
+
+
+class SubjectIntegrityError(SigningError, ValueError):
+    """The unsigned subject digest or immutable release asset binding failed closed."""
+
+
+def _validate_expected_subject_sha256(value: Any) -> str:
+    if not isinstance(value, str) or SHA256_RE.fullmatch(value) is None:
+        raise SubjectIntegrityError(
+            "expected_subject_sha256 must be a lowercase 64-character hex SHA-256 digest"
+        )
+    return value
+
+
+def _validate_release_asset_id(value: Any) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        raise SubjectIntegrityError(
+            "release_asset_id must be a positive base-10 numeric GitHub release asset ID"
+        )
+    if isinstance(value, int):
+        if value <= 0:
+            raise SubjectIntegrityError(
+                "release_asset_id must be a positive base-10 numeric GitHub release asset ID"
+            )
+        normalized = str(value)
+    elif isinstance(value, str):
+        normalized = value
+    else:
+        raise SubjectIntegrityError(
+            "release_asset_id must be a positive base-10 numeric GitHub release asset ID"
+        )
+    if RELEASE_ASSET_ID_RE.fullmatch(normalized) is None:
+        raise SubjectIntegrityError(
+            "release_asset_id must be a positive base-10 numeric GitHub release asset ID"
+        )
+    return normalized
 
 
 def _canonical_bytes(value: Mapping[str, Any]) -> bytes:
@@ -101,13 +143,24 @@ def sign_root_ci_protected_deploy_receipt(
     subject_bytes: bytes,
     expected_master_head: str,
     expected_deploy_id: str,
+    expected_subject_sha256: str,
     private_key_pem: str,
     trusted_issuers: Mapping[tuple[str, str], Mapping[str, Any]],
+    release_asset_id: str | int | None = None,
     now: datetime | None = None,
     expiry_minutes: int = DEFAULT_EXPIRY_MINUTES,
     issuer: str = ISSUER,
     key_id: str = KEY_ID,
 ) -> dict[str, Any]:
+    pinned_subject_sha256 = _validate_expected_subject_sha256(
+        expected_subject_sha256
+    )
+    pinned_release_asset_id = _validate_release_asset_id(release_asset_id)
+    subject_sha256 = hashlib.sha256(subject_bytes).hexdigest()
+    if not hmac.compare_digest(subject_sha256, pinned_subject_sha256):
+        raise SubjectIntegrityError(
+            "release subject SHA-256 does not match expected_subject_sha256"
+        )
     if expiry_minutes != acceptance.ROOT_CI_RECEIPT_TTL_MINUTES:
         raise SigningError(
             "root-CI receipt expiry must be exactly "
@@ -144,7 +197,6 @@ def sign_root_ci_protected_deploy_receipt(
         )
 
     evidence = deepcopy(dict(payload))
-    subject_sha256 = hashlib.sha256(subject_bytes).hexdigest()
     evidence["artifact_uri"] = SUBJECT_URI
     evidence["artifact_sha256"] = subject_sha256
     context.errors.clear()
@@ -194,6 +246,8 @@ def sign_root_ci_protected_deploy_receipt(
         "subject_sha256": subject_sha256,
         "evidence": evidence,
     }
+    if pinned_release_asset_id is not None:
+        unsigned["release_asset_id"] = pinned_release_asset_id
     assert hashes is not None and padding is not None
     signature = private_key.sign(
         _canonical_bytes(unsigned), padding.PKCS1v15(), hashes.SHA256()
@@ -245,12 +299,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--subject-file", type=Path, required=True)
     parser.add_argument("--expected-master-head", required=True)
     parser.add_argument("--expected-deploy-id", required=True)
+    parser.add_argument("--expected-subject-sha256", required=True)
+    parser.add_argument("--release-asset-id", default=None)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
         "--expiry-minutes", type=int, default=DEFAULT_EXPIRY_MINUTES
     )
     args = parser.parse_args(argv)
     try:
+        _validate_expected_subject_sha256(args.expected_subject_sha256)
+        _validate_release_asset_id(args.release_asset_id)
         payload_raw = _read_bounded(args.payload, "draft payload")
         payload = collector._strict_json(payload_raw, "draft payload")
         subject_bytes = _read_bounded(args.subject_file, "release subject")
@@ -260,12 +318,19 @@ def main(argv: list[str] | None = None) -> int:
             subject_bytes=subject_bytes,
             expected_master_head=args.expected_master_head,
             expected_deploy_id=args.expected_deploy_id,
+            expected_subject_sha256=args.expected_subject_sha256,
+            release_asset_id=args.release_asset_id,
             private_key_pem=os.environ.get(PRIVATE_KEY_ENV, ""),
             trusted_issuers=trusted_issuers,
             expiry_minutes=args.expiry_minutes,
         )
         _write_exclusive(args.output, receipt)
-    except (SigningError, acceptance.ManifestLoadError, collector.CollectorError) as exc:
+    except (
+        SigningError,
+        ValueError,
+        acceptance.ManifestLoadError,
+        collector.CollectorError,
+    ) as exc:
         print(f"root-CI receipt signing failed: {exc}", file=sys.stderr)
         return 1
     print(
