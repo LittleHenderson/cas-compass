@@ -3,6 +3,7 @@ export interface FaqTopic {
   label: string;
   summary: string;
   routePrefixes: string[];
+  externalUrl?: string;
 }
 
 export interface FaqReturnPoint {
@@ -18,10 +19,10 @@ export const FAQ_RESTORE_SCROLL_KEY = 'casFaqRestoreScrollTop';
 export const FAQ_TOPICS: FaqTopic[] = [
   {
     id: 'what-is-noetic-compass',
-    label: 'Noetic Compass',
+    label: 'CAS Compass',
     summary:
-      'Noetic Compass scores AI responses through CAS so users can see structure, risk, and evidence instead of relying on a raw chat answer.',
-    routePrefixes: ['/tutorial', '/visualization'],
+      'CAS Compass by CAS Lab scores AI responses through CAS so users can see structure, risk, and evidence instead of relying on a raw chat answer.',
+    routePrefixes: ['/tutorial', '/visualization', '/support', '/legal', '/privacy', '/terms'],
   },
   {
     id: 'scenario-browser',
@@ -46,10 +47,11 @@ export const FAQ_TOPICS: FaqTopic[] = [
   },
   {
     id: 'notation-composer',
-    label: 'CAS notation',
+    label: 'CAS Compiler ↗',
     summary:
-      'CAS notation lets users state exactly which operators, domains, drives, or pathways should be tested instead of burying intent in prose.',
-    routePrefixes: ['/compiler'],
+      'CAS notation lets users state exactly which operators, domains, drives, or pathways should be tested instead of burying intent in prose. Open CAS Compiler at https://www.caslabai.com/compiler/.',
+    routePrefixes: [],
+    externalUrl: 'https://www.caslabai.com/compiler/',
   },
   {
     id: 'inversion',

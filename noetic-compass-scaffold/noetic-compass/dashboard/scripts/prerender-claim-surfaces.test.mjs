@@ -12,8 +12,8 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const CONTENT_PATH = resolve(HERE, '..', 'src', 'claimSurfaces.json');
 const BASE_HTML = [
   '<!doctype html><html lang="en"><head><meta charset="UTF-8" />',
-  '<title>Noetic Compass</title>',
-  '<meta name="description" content="AI Psychology & Ethics Assessment Platform" />',
+  '<title>CAS Compass | CAS Lab</title>',
+  '<meta name="description" content="CAS Compass — Cognitive architecture assessment, audit, and interpretability workbench by CAS Lab." />',
   '</head><body><div id="root"></div>',
   '<script type="module" crossorigin src="/assets/index-abc123.js"></script>',
   '</body></html>',
@@ -47,15 +47,23 @@ test('writes two exact route documents and a neutral SPA fallback', async (conte
     readFile(resolve(distDir, 'spa.html'), 'utf8'),
   ]);
 
+  assert.match(product, /<title>CAS Compass \| CAS Lab<\/title>/);
   assert.match(product, /data-cas-prerendered-route="\/"/);
   assert.match(product, /data-cas-prerender-kind="product_app"/);
-  assert.match(product, /<h1[^>]*>Atlas Model Audit<\/h1>/);
+  assert.match(product, /<h1[^>]*>CAS Compass<\/h1>/);
   assert.match(product, /Customer-production status: OPEN\./);
+  assert.match(product, /Research verdicts do not establish customer-production ACCEPT\./);
+  assert.match(product, /FLAG_FOR_HUMAN_REVIEW/);
+  assert.match(product, /Evidence is present only when a named artifact passes its contract; otherwise that evidence is unavailable\./);
+  assert.match(product, /No compliance certification or universal safety conclusion is asserted\./);
 
+  assert.match(audit, /<title>Audit Console \| CAS Compass<\/title>/);
   assert.match(audit, /data-cas-prerendered-route="\/audit-console"/);
   assert.match(audit, /data-cas-prerender-kind="audit_console"/);
   assert.match(audit, /<h1[^>]*>Audit Console<\/h1>/);
+  assert.match(audit, /Customer-production status: OPEN\./);
   assert.match(audit, /FLAG_FOR_HUMAN_REVIEW/);
+  assert.match(audit, /Evidence is present only when a named artifact passes its contract; otherwise that evidence is unavailable\./);
 
   for (const html of [product, audit]) {
     assert.match(html, /data-cas-prerender-schema="cas_claim_surface\.v1"/);
@@ -107,10 +115,20 @@ test('Vercel serves exact claim documents and keeps unrelated SPA routes neutral
   const config = JSON.parse(
     await readFile(resolve(HERE, '..', 'vercel.json'), 'utf8'),
   );
-  assert.deepEqual(config.rewrites.slice(1), [
+  const nonApiRewrites = config.rewrites.slice(1);
+  assert.deepEqual(nonApiRewrites.slice(0, 3), [
     { source: '/', destination: '/index.html' },
     { source: '/audit-console', destination: '/audit-console/index.html' },
     { source: '/audit-console/', destination: '/audit-console/index.html' },
-    { source: '/((?!assets/|api/).*)', destination: '/spa.html' },
   ]);
+  const spaRewrites = nonApiRewrites.slice(3);
+  assert.ok(spaRewrites.length >= 1, 'expected neutral /spa.html fallback rewrites');
+  assert.ok(
+    spaRewrites.every((rule) => rule.destination === '/spa.html'),
+    'every non-claim SPA rewrite must target neutral /spa.html',
+  );
+  assert.deepEqual(spaRewrites.at(-1), {
+    source: '/((?!assets/|api/).*)',
+    destination: '/spa.html',
+  });
 });

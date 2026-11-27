@@ -1199,8 +1199,7 @@ export function SggsScene({
       data-mounted={mounted ? 'true' : 'false'}
       data-node-count={tree?.node_count ?? 0}
       className={[
-        'rounded-lg border border-white/[0.06] bg-black/30',
-        'dark:border-white/[0.08] dark:bg-black/40',
+        'rounded-[2px] border border-[#20302b] bg-[#050b0a]',
         'overflow-hidden',
         className ?? '',
       ]

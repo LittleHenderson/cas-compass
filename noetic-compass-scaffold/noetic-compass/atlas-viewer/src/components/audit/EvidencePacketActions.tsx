@@ -18,9 +18,9 @@ const shellStyle: CSSProperties = {
   display: 'grid',
   gap: 10,
   padding: 14,
-  borderRadius: 8,
-  border: '1px solid rgba(45, 212, 191, 0.20)',
-  background: 'rgba(15, 23, 42, 0.42)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.stripe,
   fontFamily: FONT_FAMILY,
 };
 
@@ -28,7 +28,7 @@ const headingStyle: CSSProperties = {
   margin: 0,
   color: COLORS.textPrimary,
   fontSize: 15,
-  fontWeight: 850,
+  fontWeight: 700,
 };
 
 const textStyle: CSSProperties = {
@@ -50,16 +50,17 @@ const actionStyle = (enabled: boolean): CSSProperties => ({
   justifyContent: 'center',
   minHeight: 36,
   padding: '7px 11px',
-  borderRadius: 6,
+  borderRadius: 2,
   border: enabled
-    ? '1px solid rgba(45, 212, 191, 0.45)'
-    : '1px solid rgba(148, 163, 184, 0.20)',
-  background: enabled ? 'rgba(45, 212, 191, 0.11)' : 'rgba(148, 163, 184, 0.05)',
+    ? `1px solid ${ACCENT_TEAL}`
+    : `1px solid ${COLORS.rule}`,
+  background: enabled ? COLORS.card : COLORS.ground,
   color: enabled ? ACCENT_TEAL : COLORS.textMuted,
   cursor: enabled ? 'pointer' : 'not-allowed',
   fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 850,
+  fontWeight: 600,
+  letterSpacing: 0.6,
   textDecoration: 'none',
   textTransform: 'uppercase',
 });

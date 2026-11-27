@@ -2,10 +2,10 @@ import { useId, useState, type CSSProperties, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import {
-  ACCENT_CYAN,
   ACCENT_TEAL,
   COLORS,
   FONT_FAMILY,
+  FONT_MONO,
 } from '../../lib/designTokens';
 
 export type LiquidGlassTooltipPlacement = 'top' | 'bottom' | 'right';
@@ -33,15 +33,12 @@ const popoverBaseStyle: CSSProperties = {
   position: 'absolute',
   zIndex: 90,
   width: 'min(var(--liquid-tooltip-width, 300px), calc(100vw - 48px))',
-  padding: '13px 14px',
-  borderRadius: 14,
-  border: '1px solid rgba(255, 255, 255, 0.22)',
-  background:
-    'linear-gradient(145deg, rgba(15, 23, 42, 0.78), rgba(8, 13, 27, 0.60))',
-  boxShadow:
-    '0 24px 80px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(45, 212, 191, 0.12)',
-  backdropFilter: 'blur(24px) saturate(1.35)',
-  WebkitBackdropFilter: 'blur(24px) saturate(1.35)',
+  padding: '12px 14px',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.borderInk}`,
+  borderLeft: `3px solid ${ACCENT_TEAL}`,
+  background: COLORS.card,
+  boxShadow: 'none',
   color: COLORS.textPrimary,
   fontFamily: FONT_FAMILY,
   pointerEvents: 'none',
@@ -65,28 +62,25 @@ const placementStyle: Record<LiquidGlassTooltipPlacement, CSSProperties> = {
 const eyebrowStyle: CSSProperties = {
   display: 'block',
   marginBottom: 6,
-  color: ACCENT_CYAN,
-  fontSize: 10,
-  fontWeight: 900,
-  letterSpacing: 0.9,
+  color: ACCENT_TEAL,
+  fontFamily: FONT_MONO,
+  fontSize: 11,
+  fontWeight: 500,
+  letterSpacing: 1,
   textTransform: 'uppercase',
 };
 
 const bodyStyle: CSSProperties = {
   display: 'block',
-  color: '#e5f9f7',
-  fontSize: 13,
-  lineHeight: 1.45,
-  fontWeight: 650,
+  color: COLORS.textPrimary,
+  fontSize: 12.5,
+  lineHeight: 1.5,
+  fontWeight: 400,
   letterSpacing: 0,
 };
 
 const glowStyle: CSSProperties = {
-  position: 'absolute',
-  inset: 1,
-  borderRadius: 13,
-  background: `radial-gradient(circle at 15% 0%, ${ACCENT_TEAL}33, transparent 42%)`,
-  pointerEvents: 'none',
+  display: 'none',
 };
 
 export function LiquidGlassTooltip({

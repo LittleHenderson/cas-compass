@@ -63,7 +63,7 @@ class AlertDeliveryDrillWorkflowTests(unittest.TestCase):
         for required in (
             "actions/download-artifact@v8",
             "github-token: ${{ github.token }}",
-            "repository: LittleHenderson/noetic-compass",
+            "repository: LittleHenderson/cas-compass",
             "run-id: ${{ inputs.root_ci_receipt_run_id }}",
             "receipts/root-ci-protected-deploy.json",
             "receipts/root-ci-protected-deploy.sha256",

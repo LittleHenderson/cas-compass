@@ -41,7 +41,7 @@ import urllib.request
 
 REGION = "us-west-2"
 ACCOUNT = "807562639912"
-HOSTNAME = "api.noeticcompass.com"
+HOSTNAME = "api.caslabai.com"
 DISTRIBUTION_ID = "E1RBLENB7B6YEA"
 CERT_ARN = f"arn:aws:acm:us-east-1:{ACCOUNT}:certificate/ec714143-cd52-49a6-bd7b-f828a0d4a760"
 SSM_LANE = "/noetic-compass/customer-production"

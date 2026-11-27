@@ -10,20 +10,22 @@ export function InterpretButton({ interpretation }: InterpretButtonProps) {
   return (
     <div>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
-        className={`interpret-glow inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium transition-all duration-200 ${
+        aria-expanded={open}
+        className={`inline-flex items-center gap-1.5 rounded-[2px] border px-2.5 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.06em] transition-colors ${
           open
-            ? 'bg-accent-teal/20 text-accent-teal'
-            : 'bg-white/[0.04] text-slate-500 hover:text-accent-teal hover:bg-accent-teal/10'
+            ? 'border-[#37f5a0] bg-[#13201c] text-[#37f5a0]'
+            : 'border-[#20302b] bg-[#050b0a] text-[#86958d] hover:border-[#37f5a0] hover:text-[#37f5a0]'
         }`}
       >
-        <span className="text-[11px]">&#10022;</span>
+        <span className="text-[11px]" aria-hidden="true">&#10022;</span>
         {open ? 'Hide' : 'Interpret'}
       </button>
 
       {open && (
-        <div className="mt-3 rounded-lg border border-accent-teal/15 bg-accent-teal/[0.03] p-4 animate-slide-down">
-          <div className="text-[12px] text-slate-300 leading-relaxed">
+        <div className="animate-slide-down mt-3 rounded-[2px] border border-[#37f5a0]/35 bg-[#13201c] p-4">
+          <div className="text-xs leading-relaxed text-[#b3c2ba]">
             {interpretation}
           </div>
         </div>

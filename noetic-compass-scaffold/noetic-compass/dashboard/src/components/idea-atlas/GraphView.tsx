@@ -239,10 +239,10 @@ export function GraphView({
   if (ideas.length === 0) {
     return (
       <div
-        className="flex items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.02]"
+        className="flex items-center justify-center rounded-[2px] border border-[#20302b] bg-[#0c1513]"
         style={{ width: '100%', maxWidth: width, height }}
       >
-        <p className="text-slate-500 font-mono text-xs text-center px-6">
+        <p className="px-6 text-center font-mono text-xs text-[#86958d]">
           No ideas yet — capture one above to start your atlas.
         </p>
       </div>
@@ -254,7 +254,7 @@ export function GraphView({
 
   return (
     <div
-      className="relative rounded-lg border border-white/[0.06] bg-black/30"
+      className="relative rounded-[2px] border border-[#20302b] bg-[#050b0a]"
       style={{ width: '100%', maxWidth: width, height }}
     >
       <svg
@@ -287,8 +287,8 @@ export function GraphView({
                 y1={a.y}
                 x2={b.x}
                 y2={b.y}
-                stroke={involvesSelected ? '#22d3ee' : '#475569'}
-                strokeOpacity={involvesSelected ? 0.85 : 0.45}
+                stroke={involvesSelected ? '#37f5a0' : '#20302b'}
+                strokeOpacity={involvesSelected ? 0.9 : 0.75}
                 strokeWidth={sw}
               />
             );
@@ -330,7 +330,7 @@ export function GraphView({
                   r={18}
                   fill={fill}
                   fillOpacity={isSelected ? 0.35 : 0.2}
-                  stroke={isSelected ? '#fafafa' : isHover ? fill : fill}
+                  stroke={isSelected ? '#eaf3ee' : isHover ? fill : fill}
                   strokeOpacity={isSelected ? 1 : isHover ? 0.95 : 0.7}
                   strokeWidth={isSelected ? 2.5 : 1.5}
                 />
@@ -364,7 +364,7 @@ export function GraphView({
           })}
         </g>
 
-        {/* Tooltip — rendered as foreignObject so we get text wrapping */}
+        {/* Tooltip — rendered as SVG rect + text */}
         {hovered && hoverPos && (
           <g
             transform={`translate(${Math.min(
@@ -376,17 +376,17 @@ export function GraphView({
             <rect
               width={210}
               height={48}
-              rx={4}
-              fill="#0d1117"
-              fillOpacity={0.95}
-              stroke="#22d3ee"
-              strokeOpacity={0.4}
+              rx={2}
+              fill="#0c1513"
+              fillOpacity={0.96}
+              stroke="#37f5a0"
+              strokeOpacity={0.6}
               strokeWidth={1}
             />
             <text
               x={8}
               y={18}
-              fill="#cbd5e1"
+              fill="#eaf3ee"
               fontFamily="ui-monospace, monospace"
               fontSize={10}
             >
@@ -395,7 +395,7 @@ export function GraphView({
             <text
               x={8}
               y={36}
-              fill="#22d3ee"
+              fill="#37f5a0"
               fontFamily="ui-monospace, monospace"
               fontSize={10}
             >

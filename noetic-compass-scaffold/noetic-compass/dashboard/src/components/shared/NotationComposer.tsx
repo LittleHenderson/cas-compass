@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 
 const OPERATOR_NAMES = [
-  'Identity', 'Reflection', 'Abstraction', 'Concretization',
-  'Integration', 'Differentiation', 'Unification', 'Transformation',
-  'Expansion', 'Contraction',
+  'Idea', 'Mind', 'Positive', 'Negative',
+  'Vibration', 'Female', 'Male', 'Rhythm',
+  'Above/Cause', 'Below/Effect',
 ];
 const DOMAIN_NAMES: Record<string, string> = { P: 'Principled', C: 'Cognitive', E: 'Evaluative', O: 'Operational' };
 const DRIVE_NAMES = ['Unity', 'Wisdom', 'Vitality', 'Connection', 'Agency', 'Structure', 'Purpose'];
@@ -104,7 +104,7 @@ function parseNotation(input: string): ParseResult {
 
   const parts: string[] = [];
   if (uniqueOps.length > 0) {
-    const opNames = uniqueOps.map(i => `${OPERATOR_NAMES[i] ?? `CO-${i}`}`);
+    const opNames = uniqueOps.map(i => `^${i} ${OPERATOR_NAMES[i] ?? `CO-${i}`}`);
     parts.push(opNames.join(', '));
   }
   if (uniqueDomains.length > 0) {
@@ -174,7 +174,7 @@ export function NotationComposer({ notation, onNotationChange, onGenerate }: Not
     <div className="space-y-3">
       {/* Notation input */}
       <div>
-        <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+        <label className="block font-['Geist_Mono'] text-[11px] font-medium uppercase tracking-[0.08em] text-[#86958d] mb-1.5">
           CAS Notation
         </label>
         <input
@@ -182,82 +182,82 @@ export function NotationComposer({ notation, onNotationChange, onGenerate }: Not
           value={notation}
           onChange={(e) => onNotationChange(e.target.value)}
           placeholder="CO-3^E + CO-5^C   or   RPM(F5)   or   Phi<1:4:7>"
-          className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-base sm:text-sm font-mono text-accent-teal placeholder-slate-600 focus:border-accent-teal/50 focus:outline-none focus:ring-1 focus:ring-accent-teal/30"
+          className="w-full rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3 text-base sm:text-sm font-['Geist_Mono'] text-[#37f5a0] placeholder-[#62706a] focus:border-[#37f5a0] focus:outline-none"
         />
       </div>
 
       {/* Parse result */}
       {notation.trim() && (
-        <div className={`rounded-lg border p-3 ${parsed.valid ? 'border-accent-teal/20 bg-accent-teal/[0.03]' : 'border-red-500/20 bg-red-500/[0.03]'}`}>
+        <div className={`rounded-[2px] border p-3 ${parsed.valid ? 'border-[#37f5a0]/35 bg-[#13201c]' : 'border-[#ff7b72]/40 bg-[#ff7b72]/10'}`}>
           {parsed.valid ? (
             <>
-              <p className="text-[11px] text-slate-300 leading-relaxed">{parsed.english}</p>
+              <p className="text-xs text-[#eaf3ee] leading-relaxed">{parsed.english}</p>
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {[...new Set(parsed.operators)].map(op => (
-                  <span key={`op-${op}`} className="text-[9px] px-2 py-0.5 rounded-full bg-accent-teal/10 text-accent-teal font-mono">
-                    CO-{op}
+                  <span key={`op-${op}`} className="rounded-[2px] border border-[#37f5a0]/30 bg-[#0c1513] px-2 py-0.5 font-['Geist_Mono'] text-[11px] text-[#37f5a0]">
+                    ^{op} {OPERATOR_NAMES[op] ?? `CO-${op}`}
                   </span>
                 ))}
                 {[...new Set(parsed.domains)].map(d => (
-                  <span key={`d-${d}`} className="text-[9px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400">
+                  <span key={`d-${d}`} className="rounded-[2px] border border-[#20302b] bg-[#0c1513] px-2 py-0.5 font-['Geist_Mono'] text-[11px] text-[#eaf3ee]">
                     {DOMAIN_NAMES[d]}
                   </span>
                 ))}
                 {[...new Set(parsed.drives)].map(i => (
-                  <span key={`f-${i}`} className="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400">
+                  <span key={`f-${i}`} className="rounded-[2px] border border-[#20302b] bg-[#0c1513] px-2 py-0.5 font-['Geist_Mono'] text-[11px] text-[#b3c2ba]">
                     F{i + 1}
                   </span>
                 ))}
                 {parsed.isRpm && (
-                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400">RPM</span>
+                  <span className="rounded-[2px] border border-[#f59e0b]/40 bg-[#f59e0b]/10 px-2 py-0.5 font-['Geist_Mono'] text-[11px] text-[#f59e0b]">RPM</span>
                 )}
                 {parsed.fractal && (
-                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-400 font-mono">
+                  <span className="rounded-[2px] border border-[#20302b] bg-[#0c1513] px-2 py-0.5 font-['Geist_Mono'] text-[11px] text-[#37f5a0]">
                     Φ⟨{parsed.fractal.join(':')}⟩
                   </span>
                 )}
                 {parsed.syntacticOps.map(op => (
-                  <span key={`syn-${op}`} className="text-[9px] px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-400 font-mono" title="Syntactic assembler">
+                  <span key={`syn-${op}`} className="rounded-[2px] border border-[#20302b] bg-[#0c1513] px-2 py-0.5 font-['Geist_Mono'] text-[11px] text-[#86958d]" title="Syntactic assembler">
                     {op}
                   </span>
                 ))}
                 {parsed.algebraicOps.map(op => (
-                  <span key={`alg-${op}`} className="text-[9px] px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 font-mono" title="Algebraic transformer">
+                  <span key={`alg-${op}`} className="rounded-[2px] border border-[#f59e0b]/35 bg-[#0c1513] px-2 py-0.5 font-['Geist_Mono'] text-[11px] text-[#f59e0b]" title="Algebraic transformer">
                     {op}
                   </span>
                 ))}
               </div>
             </>
           ) : (
-            <p className="text-[11px] text-red-400">{parsed.error || parsed.english}</p>
+            <p className="text-xs text-[#ff7b72]">{parsed.error || parsed.english}</p>
           )}
         </div>
       )}
 
       {/* Syntax reference — visually separated from output */}
-      <div className="border-t border-white/[0.04] pt-2 mt-1">
-        <p className="text-[8px] font-semibold uppercase tracking-widest text-slate-600 mb-1">Syntax Reference</p>
-        <div className="text-[9px] leading-relaxed space-y-1">
-          <div className="text-slate-600">
-            <span className="font-mono text-slate-500">CO-3^E</span> state
+      <div className="border-t border-[#20302b] pt-2.5 mt-1">
+        <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d] mb-1.5">Syntax Reference</p>
+        <div className="text-xs leading-relaxed space-y-1">
+          <div className="text-[#86958d]">
+            <span className="font-['Geist_Mono'] text-[#b3c2ba]">CO-3^E</span> state
             {' · '}
-            <span className="font-mono text-slate-500">RPM(F5)</span> chain
+            <span className="font-['Geist_Mono'] text-[#b3c2ba]">RPM(F5)</span> chain
             {' · '}
-            <span className="font-mono text-slate-500">Phi&lt;1:4:7&gt;</span> fractal
+            <span className="font-['Geist_Mono'] text-[#b3c2ba]">Phi&lt;1:4:7&gt;</span> fractal
             {' · '}
-            <span className="font-mono text-slate-500">P3</span> shorthand
+            <span className="font-['Geist_Mono'] text-[#b3c2ba]">P3</span> shorthand
           </div>
-          <div className="flex gap-3">
-            <span className="text-slate-500">
-              <span className="text-[8px] uppercase tracking-wider">Syntactic</span>{' '}
-              <span className="font-mono text-slate-400">+</span> combine{' '}
-              <span className="font-mono text-slate-400">-</span> remove
+          <div className="flex flex-wrap gap-3 text-[11px]">
+            <span className="text-[#86958d]">
+              <span className="font-['Geist_Mono'] uppercase tracking-[0.08em]">Syntactic</span>{' '}
+              <span className="font-['Geist_Mono'] text-[#eaf3ee]">+</span> combine{' '}
+              <span className="font-['Geist_Mono'] text-[#eaf3ee]">-</span> remove
             </span>
-            <span className="text-orange-400/70">
-              <span className="text-[8px] uppercase tracking-wider">Algebraic</span>{' '}
-              <span className="font-mono text-orange-400">×</span> compose{' '}
-              <span className="font-mono text-orange-400">÷</span> ratio{' '}
-              <span className="font-mono text-orange-400">∘</span> fractal
+            <span className="text-[#f59e0b]/85">
+              <span className="font-['Geist_Mono'] uppercase tracking-[0.08em]">Algebraic</span>{' '}
+              <span className="font-['Geist_Mono'] text-[#f59e0b]">×</span> compose{' '}
+              <span className="font-['Geist_Mono'] text-[#f59e0b]">÷</span> ratio{' '}
+              <span className="font-['Geist_Mono'] text-[#f59e0b]">∘</span> fractal
             </span>
           </div>
         </div>
@@ -267,7 +267,7 @@ export function NotationComposer({ notation, onNotationChange, onGenerate }: Not
       {parsed.valid && notation.trim() && (
         <button
           onClick={handleGenerate}
-          className="w-full rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-4 py-3 sm:py-2 text-sm font-semibold text-dark-900 hover:opacity-90 transition-opacity min-h-[44px]"
+          className="w-full rounded-[2px] bg-[#37f5a0] px-4 py-3 sm:py-2 text-sm font-semibold text-[#050b0a] hover:bg-[#37f5a0]/90 transition-colors min-h-[44px]"
         >
           Generate Targeted Scenario
         </button>

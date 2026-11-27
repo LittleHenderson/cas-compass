@@ -554,20 +554,20 @@ function TrailPanel({
   empty: string;
   onSelectNode: (nodeId: string) => void;
 }) {
-  const toneClass = tone === 'cyan' ? 'text-cyan-300' : 'text-violet-300';
+  const toneClass = tone === 'cyan' ? 'text-[#37f5a0]' : 'text-[#eaf3ee]';
   const selectedClass =
     tone === 'cyan'
-      ? 'border-cyan-300/40 bg-cyan-500/10'
-      : 'border-violet-300/40 bg-violet-500/10';
+      ? 'border-[#37f5a0] bg-[#13201c]'
+      : 'border-[#eaf3ee] bg-[#13201c]';
 
   return (
-    <section className="rounded-lg border border-white/[0.06] bg-black/30 p-4">
+    <section className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-4">
       <div className={`font-mono text-[10px] uppercase tracking-wider ${toneClass}`}>
         {title}
       </div>
-      <div className="mt-3 divide-y divide-white/[0.06]">
+      <div className="mt-3 divide-y divide-[#20302b]">
         {items.length === 0 ? (
-          <div className="py-2 text-sm text-slate-500">{empty}</div>
+          <div className="py-2 text-sm text-[#86958d]">{empty}</div>
         ) : (
           items.map((item) => (
             <button
@@ -580,8 +580,8 @@ function TrailPanel({
                   : 'border-transparent bg-transparent'
               }`}
             >
-              <div className="text-sm text-slate-100">{item.label}</div>
-              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-slate-500">
+              <div className="text-sm text-[#eaf3ee]">{item.label}</div>
+              <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-[#86958d]">
                 {item.detail}
               </div>
             </button>
@@ -595,22 +595,22 @@ function TrailPanel({
 function DetailGroupPanel({ group }: { group: DetailGroup }) {
   return (
     <div>
-      <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+      <div className="font-mono text-[10px] uppercase tracking-wider text-[#86958d]">
         {group.title}
       </div>
       {group.items.length === 0 ? (
-        <div className="mt-2 text-xs text-slate-600">{group.empty}</div>
+        <div className="mt-2 text-xs text-[#86958d]">{group.empty}</div>
       ) : (
-        <dl className="mt-2 divide-y divide-white/[0.06] text-xs">
+        <dl className="mt-2 divide-y divide-[#20302b] text-xs">
           {group.items.map((item) => (
             <div
               key={`${group.title}-${item.label}`}
               className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 py-2"
             >
-              <dt className="font-mono uppercase tracking-wider text-slate-500">
+              <dt className="font-mono uppercase tracking-wider text-[#86958d]">
                 {item.label}
               </dt>
-              <dd className="break-words font-mono text-slate-300">{item.value}</dd>
+              <dd className="break-words font-mono text-[#b3c2ba]">{item.value}</dd>
             </div>
           ))}
         </dl>
@@ -927,31 +927,31 @@ export function Mode7LiveShell() {
     <div className="flex-1 overflow-y-auto px-6 py-4">
       <div className="grid min-h-[640px] grid-cols-1 gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
         <aside className="flex flex-col gap-4">
-          <section className="rounded-lg border border-cyan-400/20 bg-cyan-500/[0.04] p-4">
+          <section className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-cyan-300">
+                <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#37f5a0]">
                   MODE 7
                 </div>
-                <h2 className="mt-1 font-sans text-lg font-semibold text-slate-100">
+                <h2 className="mt-1 font-['Space_Grotesk',sans-serif] text-lg font-semibold text-[#eaf3ee]">
                   Network Attribution / Mechanistic Trace
                 </h2>
               </div>
               <span
                 className={`rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-wider ${
                   label === 'Live'
-                    ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200'
+                    ? 'border-[#37f5a0] bg-[#13201c] text-[#37f5a0]'
                     : label === 'Connecting'
-                      ? 'border-amber-400/40 bg-amber-500/15 text-amber-200'
+                      ? 'border-[#f59e0b] bg-[#13201c] text-[#f59e0b]'
                       : label === 'Stream error'
-                        ? 'border-rose-400/40 bg-rose-500/15 text-rose-200'
-                        : 'border-white/10 bg-white/[0.04] text-slate-300'
+                        ? 'border-[#ff7b72] bg-[#13201c] text-[#ff7b72]'
+                        : 'border-[#20302b] bg-[#13201c] text-[#b3c2ba]'
                 }`}
               >
                 {label}
               </span>
             </div>
-            <p className="text-sm leading-relaxed text-slate-300">
+            <p className="text-sm leading-relaxed text-[#b3c2ba]">
               Mode 7 exposes the head commits, token evidence, layer state,
               logits, and trace links behind each CAS Native AI turn. The
               Living Thought Atlas is the SGGS witness viewport for that trace.
@@ -959,41 +959,41 @@ export function Mode7LiveShell() {
             <div
               className={`mt-3 rounded border px-3 py-2 text-xs ${
                 runtimeReady
-                  ? 'border-emerald-400/25 bg-emerald-500/10 text-emerald-200'
+                  ? 'border-[#37f5a0]/40 bg-[#13201c] text-[#37f5a0]'
                   : runtimeError
-                    ? 'border-rose-400/25 bg-rose-500/10 text-rose-200'
-                    : 'border-amber-400/20 bg-amber-500/10 text-amber-100'
+                    ? 'border-[#ff7b72]/40 bg-[#13201c] text-[#ff7b72]'
+                    : 'border-dashed border-[#f59e0b]/60 bg-[#13201c] text-[#f59e0b]'
               }`}
             >
               <div className="font-mono text-[10px] uppercase tracking-wider">
                 {runtimeLabel}
               </div>
-              <div className="mt-1 break-words text-slate-300">{runtimeDetail}</div>
+              <div className="mt-1 break-words text-[#b3c2ba]">{runtimeDetail}</div>
             </div>
           </section>
 
           <form
             onSubmit={handleStart}
-            className="rounded-lg border border-white/[0.06] bg-black/30 p-4"
+            className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-4"
           >
-            <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-400">
+            <label className="block font-mono text-[10px] uppercase tracking-wider text-[#b3c2ba]">
               Prompt
             </label>
             <textarea
               value={promptDraft}
               onChange={(event) => setPromptDraft(event.target.value)}
               rows={6}
-              className="mt-2 min-h-32 w-full resize-y rounded border border-white/[0.08] bg-black/40 px-3 py-2 font-sans text-sm leading-relaxed text-slate-100 placeholder:text-slate-600 focus:border-cyan-300/60 focus:outline-none"
+              className="mt-2 min-h-32 w-full resize-y rounded-[2px] border border-[#20302b] bg-[#050b0a] px-3 py-2 font-sans text-sm leading-relaxed text-[#eaf3ee] placeholder:text-[#86958d] focus:border-[#37f5a0] focus:outline-none"
               placeholder="Ask CAS Native AI to emit a Mode 7 trace..."
             />
 
-            <label className="mt-4 block font-mono text-[10px] uppercase tracking-wider text-slate-400">
+            <label className="mt-4 block font-mono text-[10px] uppercase tracking-wider text-[#b3c2ba]">
               Source / CAS expression
             </label>
             <input
               value={sourceDraft}
               onChange={(event) => setSourceDraft(event.target.value)}
-              className="mt-2 w-full rounded border border-white/[0.08] bg-black/40 px-3 py-2 font-mono text-xs text-slate-100 placeholder:text-slate-600 focus:border-cyan-300/60 focus:outline-none"
+              className="mt-2 w-full rounded-[2px] border border-[#20302b] bg-[#050b0a] px-3 py-2 font-mono text-xs text-[#eaf3ee] placeholder:text-[#86958d] focus:border-[#37f5a0] focus:outline-none"
               placeholder="Document name, transcript, or CO-2^C_{F2}"
             />
 
@@ -1001,7 +1001,7 @@ export function Mode7LiveShell() {
               <button
                 type="submit"
                 disabled={isRunning}
-                className="rounded border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 font-mono text-xs text-emerald-200 transition-colors hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-[2px] bg-[#37f5a0] px-4 py-2 font-mono text-xs font-semibold text-[#050b0a] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Start
               </button>
@@ -1009,45 +1009,45 @@ export function Mode7LiveShell() {
                 type="button"
                 onClick={handleStop}
                 disabled={!isRunning}
-                className="rounded border border-rose-400/30 bg-rose-500/10 px-3 py-2 font-mono text-xs text-rose-200 transition-colors hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-[2px] border border-[#ff7b72]/60 bg-[#13201c] px-4 py-2 font-mono text-xs text-[#ff7b72] transition-colors hover:bg-[#ff7b72] hover:text-[#050b0a] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Stop
               </button>
             </div>
           </form>
 
-          <section className="rounded-lg border border-white/[0.06] bg-black/30 p-4 font-mono text-[11px] text-slate-300">
-            <div className="mb-3 text-[10px] uppercase tracking-wider text-slate-500">
+          <section className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-4 font-mono text-[11px] text-[#b3c2ba]">
+            <div className="mb-3 text-[10px] uppercase tracking-wider text-[#86958d]">
               Live Status
             </div>
             <dl className="space-y-2">
               <div className="flex items-center justify-between gap-3">
-                <dt className="text-slate-500">trace source</dt>
-                <dd className="text-right text-cyan-200">{displaySource}</dd>
+                <dt className="text-[#86958d]">trace source</dt>
+                <dd className="text-right text-[#37f5a0]">{displaySource}</dd>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <dt className="text-slate-500">runtime</dt>
-                <dd className="text-right text-cyan-200">{runtimeLabel}</dd>
+                <dt className="text-[#86958d]">runtime</dt>
+                <dd className="text-right text-[#37f5a0]">{runtimeLabel}</dd>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <dt className="text-slate-500">nodes</dt>
+                <dt className="text-[#86958d]">nodes</dt>
                 <dd>{tree.node_count}</dd>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <dt className="text-slate-500">edges</dt>
+                <dt className="text-[#86958d]">edges</dt>
                 <dd>{tree.edge_count}</dd>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <dt className="text-slate-500">started</dt>
+                <dt className="text-[#86958d]">started</dt>
                 <dd>{formatLiveTime(stream.state.startedAt)}</dd>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <dt className="text-slate-500">last event</dt>
+                <dt className="text-[#86958d]">last event</dt>
                 <dd>{formatLiveTime(stream.state.updatedAt)}</dd>
               </div>
             </dl>
             {(stream.state.warnings.length > 0 || stream.state.streamErrors.length > 0) && (
-              <div className="mt-3 border-t border-white/[0.06] pt-3 font-sans text-xs leading-relaxed text-amber-200">
+              <div className="mt-3 border-t border-[#20302b] pt-3 font-sans text-xs leading-relaxed text-amber-200">
                 {stream.state.streamErrors.at(-1) ??
                   stream.state.warnings.at(-1)?.message}
               </div>
@@ -1059,7 +1059,7 @@ export function Mode7LiveShell() {
           <SggsErrorBoundary>
             <Suspense
               fallback={
-                <div className="flex h-[800px] w-full items-center justify-center rounded-lg border border-cyan-400/20 bg-slate-950/85 text-sm text-slate-400">
+                <div className="flex h-[800px] w-full items-center justify-center rounded-[2px] border border-[#20302b] bg-[#0c1513] font-mono text-sm text-[#86958d]">
                   Loading CAS Brain Map...
                 </div>
               }
@@ -1075,12 +1075,12 @@ export function Mode7LiveShell() {
             </Suspense>
           </SggsErrorBoundary>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-violet-500/20 bg-violet-500/[0.05] px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[2px] border border-[#20302b] bg-[#0c1513] px-4 py-3">
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-wider text-violet-300">
+              <div className="font-mono text-[10px] uppercase tracking-wider text-[#37f5a0]">
                 Living Thought Atlas
               </div>
-              <p className="mt-1 text-sm text-slate-300">
+              <p className="mt-1 text-sm text-[#b3c2ba]">
                 {stream.state.finalTraceId
                   ? `final trace ${stream.state.finalTraceId}`
                   : 'Live SGGS witness for Mode 7 commits from CAS Native AI.'}
@@ -1091,7 +1091,7 @@ export function Mode7LiveShell() {
               onClick={toggleFullscreen}
               aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
               title={fullscreen ? 'Exit fullscreen' : 'Fullscreen the Living Thought Atlas'}
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-white/[0.08] bg-black/30 text-slate-200 transition-colors hover:bg-white/10 hover:text-white"
+              className="flex h-9 w-9 items-center justify-center rounded-md border border-[#20302b] bg-black/30 text-[#eaf3ee] transition-colors hover:bg-white/10 hover:text-white"
             >
               <FullscreenIcon active={fullscreen} />
             </button>
@@ -1100,13 +1100,13 @@ export function Mode7LiveShell() {
           <div
             ref={sceneShellRef}
             style={{ height: fullscreen ? '100vh' : 560 }}
-            className="relative min-h-[420px] overflow-hidden rounded-lg border-2 border-violet-500/30 bg-black/30"
+            className="relative min-h-[420px] overflow-hidden rounded-[2px] border border-[#37f5a0]/50 bg-[#050b0a]"
           >
-            <div className="pointer-events-none absolute left-3 top-3 z-20 rounded-md border border-cyan-300/20 bg-black/60 px-3 py-2 backdrop-blur-sm">
-              <div className="font-mono text-[9px] uppercase tracking-wider text-cyan-300">
+            <div className="pointer-events-none absolute left-3 top-3 z-20 rounded-[2px] border border-[#20302b] bg-[#0c1513]/95 px-3 py-2 backdrop-blur-sm">
+              <div className="font-mono text-[9px] uppercase tracking-wider text-[#37f5a0]">
                 Living Thought Atlas
               </div>
-              <div className="mt-1 font-mono text-[11px] text-slate-200">
+              <div className="mt-1 font-mono text-[11px] text-[#eaf3ee]">
                 SGGS live witness graph
               </div>
             </div>
@@ -1116,7 +1116,7 @@ export function Mode7LiveShell() {
               onClick={toggleFullscreen}
               aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
               title={fullscreen ? 'Exit fullscreen' : 'Fullscreen the Living Thought Atlas'}
-              className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-md border border-white/[0.08] bg-black/55 text-slate-200 backdrop-blur-sm transition-colors hover:bg-white/10 hover:text-white"
+              className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-md border border-[#20302b] bg-black/55 text-[#eaf3ee] backdrop-blur-sm transition-colors hover:bg-white/10 hover:text-white"
             >
               <FullscreenIcon active={fullscreen} />
             </button>
@@ -1124,7 +1124,7 @@ export function Mode7LiveShell() {
             <SggsErrorBoundary>
               <Suspense
                 fallback={
-                  <div className="absolute inset-0 flex items-center justify-center font-mono text-xs text-slate-400">
+                  <div className="absolute inset-0 flex items-center justify-center font-mono text-xs text-[#b3c2ba]">
                     Loading SGGS witness viewport...
                   </div>
                 }
@@ -1139,7 +1139,7 @@ export function Mode7LiveShell() {
               </Suspense>
             </SggsErrorBoundary>
 
-            <div className="pointer-events-none absolute bottom-3 right-3 z-20 rounded-md bg-black/55 px-3 py-2 font-mono text-[10px] text-slate-300 backdrop-blur-sm">
+            <div className="pointer-events-none absolute bottom-3 right-3 z-20 rounded-md bg-black/55 px-3 py-2 font-mono text-[10px] text-[#b3c2ba] backdrop-blur-sm">
               {tree.node_count} nodes | {tree.edge_count} edges | {stream.status}
             </div>
           </div>
@@ -1162,13 +1162,13 @@ export function Mode7LiveShell() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
-            <section className="rounded-lg border border-white/[0.06] bg-black/30 p-4">
-              <div className="mb-3 font-mono text-[10px] uppercase tracking-wider text-slate-500">
+            <section className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-4">
+              <div className="mb-3 font-mono text-[10px] uppercase tracking-wider text-[#86958d]">
                 Stream Events
               </div>
               <div className="space-y-2">
                 {events.length === 0 ? (
-                  <div className="rounded border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-slate-500">
+                  <div className="rounded border border-[#20302b] bg-white/[0.02] px-3 py-2 text-sm text-[#86958d]">
                     No live commits yet.
                   </div>
                 ) : (
@@ -1179,15 +1179,15 @@ export function Mode7LiveShell() {
                       onClick={() => event.nodeId && setSelectedNodeId(event.nodeId)}
                       className={`w-full rounded border px-3 py-2 text-left transition-colors ${
                         selectedNodeId === event.nodeId
-                          ? 'border-cyan-300/40 bg-cyan-500/10'
-                          : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05]'
+                          ? 'border-[#37f5a0] bg-[#13201c]'
+                          : 'border-[#20302b] bg-[#050b0a] hover:border-[#eaf3ee]/40'
                       }`}
                     >
-                      <div className="font-mono text-[10px] uppercase tracking-wider text-cyan-300">
+                      <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#37f5a0]">
                         {event.kind}
                       </div>
-                      <div className="mt-1 text-sm text-slate-100">{event.label}</div>
-                      <div className="mt-1 text-xs leading-relaxed text-slate-500">
+                      <div className="mt-1 text-sm text-[#eaf3ee]">{event.label}</div>
+                      <div className="mt-1 text-xs leading-relaxed text-[#86958d]">
                         {event.detail}
                       </div>
                     </button>
@@ -1196,19 +1196,19 @@ export function Mode7LiveShell() {
               </div>
             </section>
 
-            <aside className="rounded-lg border border-white/[0.06] bg-black/30 p-4">
-              <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+            <aside className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-4">
+              <div className="font-mono text-[10px] uppercase tracking-wider text-[#86958d]">
                 Selected Node Details
               </div>
               {selectedNode ? (
                 <div className="mt-3 space-y-5 text-sm">
                   <div>
-                    <div className="text-slate-100">{selectedNode.label}</div>
-                    <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-cyan-300">
+                    <div className="text-[#eaf3ee]">{selectedNode.label}</div>
+                    <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-[#37f5a0]">
                       {selectedNode.kind} / {selectedNode.role}
                     </div>
                     {selectedNode.text && (
-                      <div className="mt-2 text-xs leading-relaxed text-slate-400">
+                      <div className="mt-2 text-xs leading-relaxed text-[#b3c2ba]">
                         {selectedNode.text}
                       </div>
                     )}
@@ -1218,7 +1218,7 @@ export function Mode7LiveShell() {
                   ))}
                 </div>
               ) : (
-                <p className="mt-3 text-sm text-slate-500">
+                <p className="mt-3 text-sm text-[#86958d]">
                   Select a commit in the Living Thought Atlas.
                 </p>
               )}

@@ -8,7 +8,7 @@ const HOW_IT_WORKS_SECTIONS = [
   {
     title: 'How to Use the Scenario Library',
     body: (
-      <p className="text-slate-300">
+      <p className="text-[#b3c2ba]">
         Browse pre-built assessment scenarios designed to test specific AI capabilities. Each scenario
         targets particular Cognitive Operators, Processing Domains, and Core Drives.
       </p>
@@ -17,10 +17,10 @@ const HOW_IT_WORKS_SECTIONS = [
   {
     title: 'How It Works',
     body: (
-      <ol className="list-decimal list-inside space-y-1 text-slate-300">
+      <ol className="list-decimal list-inside space-y-1 text-[#b3c2ba]">
         <li>Browse by category or search for specific topics.</li>
         <li>Click any scenario to see what it tests and why.</li>
-        <li>Click <strong className="text-slate-100">Run Assessment</strong> to score an AI against that scenario.</li>
+        <li>Click <strong className="text-[#eaf3ee]">Run Assessment</strong> to score an AI against that scenario.</li>
         <li>Review the results to see how the AI performed on the targeted dimensions.</li>
       </ol>
     ),
@@ -28,7 +28,7 @@ const HOW_IT_WORKS_SECTIONS = [
   {
     title: 'Categories',
     body: (
-      <p className="text-slate-300">
+      <p className="text-[#b3c2ba]">
         Healthcare Ethics, Hiring &amp; Workforce, Financial, Governance, Education, Relationships,
         AI Safety, Environmental, Adversarial Red Team, and Life Execution.
       </p>
@@ -37,7 +37,7 @@ const HOW_IT_WORKS_SECTIONS = [
   {
     title: 'Each Scenario Shows',
     body: (
-      <ul className="list-disc list-inside space-y-1 text-slate-300">
+      <ul className="list-disc list-inside space-y-1 text-[#b3c2ba]">
         <li>What Cognitive Operators it targets.</li>
         <li>Which Processing Domains are tested.</li>
         <li>What a resilient response looks like.</li>
@@ -68,10 +68,10 @@ interface Scenario {
 }
 
 const CAT_COLORS: Record<string, string> = {
-  healthcare: '#34d399', hiring: '#60a5fa', finance: '#fbbf24',
-  governance: '#a78bfa', education: '#22d3ee', relationships: '#f472b6',
-  ai_safety: '#f87171', environmental: '#34d399', adversarial_resilience: '#ef4444',
-  life_execution: '#818cf8', cas_patterns: '#2dd4bf',
+  healthcare: '#37f5a0', hiring: '#60a5fa', finance: '#f59e0b',
+  governance: '#a78bfa', education: '#38bdf8', relationships: '#f472b6',
+  ai_safety: '#ff7b72', environmental: '#37f5a0', adversarial_resilience: '#ff7b72',
+  life_execution: '#818cf8', cas_patterns: '#37f5a0',
 };
 
 const CAT_LABELS: Record<string, string> = {
@@ -83,7 +83,7 @@ const CAT_LABELS: Record<string, string> = {
 };
 
 const DIFF_COLORS: Record<string, string> = {
-  easy: '#34d399', moderate: '#fbbf24', hard: '#f87171',
+  easy: '#37f5a0', moderate: '#f59e0b', hard: '#ff7b72',
 };
 
 const FEATURED_CATEGORY_ORDER = [
@@ -199,8 +199,13 @@ export function ScenarioBrowserPage() {
       <HowItWorksPanel sections={HOW_IT_WORKS_SECTIONS} label="How to Use Scenarios" />
 
       <div>
-        <h1 className="text-2xl font-bold text-slate-100 mb-1">Scenario Browser</h1>
-        <p className="text-sm text-slate-400">
+        <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#37f5a0] mb-1">
+          ◐ Prototype · Scenario Library
+        </p>
+        <h1 className="font-['Space_Grotesk'] text-2xl font-bold tracking-[-0.03em] text-[#eaf3ee] mb-1">
+          Scenario Browser
+        </h1>
+        <p className="text-sm text-[#b3c2ba]">
           {scenarios.length} assessment scenarios across {categories.length} categories.
         </p>
       </div>
@@ -208,56 +213,58 @@ export function ScenarioBrowserPage() {
       {featuredScenario && (
         <Card title="Start Here">
           <div className="space-y-4">
-            <p className="text-[11px] leading-relaxed text-slate-400">
+            <p className="text-xs leading-relaxed text-[#b3c2ba]">
               First-time users should not have to invent a prompt from scratch. Start with one featured scenario, see how the system evaluates it, then branch into the rest of the library.
             </p>
             <div
-              className="rounded-xl border px-4 py-4"
-              style={{ borderColor: `${CAT_COLORS[featuredScenario.category] ?? '#94a3b8'}33`, backgroundColor: 'rgba(255,255,255,0.03)' }}
+              className="rounded-[2px] border bg-[#13201c] px-4 py-4"
+              style={{ borderColor: `${CAT_COLORS[featuredScenario.category] ?? '#20302b'}55` }}
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span
-                  className="rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                  className="rounded-[2px] px-2 py-0.5 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em]"
                   style={{
-                    backgroundColor: `${CAT_COLORS[featuredScenario.category] ?? '#94a3b8'}20`,
-                    color: CAT_COLORS[featuredScenario.category] ?? '#94a3b8',
+                    backgroundColor: `${CAT_COLORS[featuredScenario.category] ?? '#86958d'}20`,
+                    color: CAT_COLORS[featuredScenario.category] ?? '#eaf3ee',
                   }}
                 >
                   Featured Scenario
                 </span>
-                <span className="text-[10px] uppercase tracking-wider text-slate-500">
+                <span className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">
                   {CAT_LABELS[featuredScenario.category] ?? featuredScenario.category}
                 </span>
                 {featuredScenario.difficulty && (
                   <span
-                    className="rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                    className="rounded-[2px] px-2 py-0.5 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em]"
                     style={{
-                      backgroundColor: `${DIFF_COLORS[featuredScenario.difficulty] ?? '#94a3b8'}20`,
-                      color: DIFF_COLORS[featuredScenario.difficulty] ?? '#94a3b8',
+                      backgroundColor: `${DIFF_COLORS[featuredScenario.difficulty] ?? '#86958d'}20`,
+                      color: DIFF_COLORS[featuredScenario.difficulty] ?? '#eaf3ee',
                     }}
                   >
                     {featuredScenario.difficulty}
                   </span>
                 )}
               </div>
-              <h2 className="mt-3 text-lg font-semibold text-slate-100">{featuredScenario.title}</h2>
+              <h2 className="mt-3 font-['Space_Grotesk'] text-lg font-semibold tracking-[-0.02em] text-[#eaf3ee]">
+                {featuredScenario.title}
+              </h2>
               {featuredScenario.what_it_tests && (
-                <p className="mt-2 text-sm leading-relaxed text-slate-300">{featuredScenario.what_it_tests}</p>
+                <p className="mt-2 text-sm leading-relaxed text-[#b3c2ba]">{featuredScenario.what_it_tests}</p>
               )}
-              <p className="mt-3 text-[12px] leading-relaxed text-slate-400">
+              <p className="mt-3 text-xs leading-relaxed text-[#86958d]">
                 {getScenarioPrompt(featuredScenario).slice(0, 220)}
                 {getScenarioPrompt(featuredScenario).length > 220 ? '...' : ''}
               </p>
               <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                 <button
                   onClick={() => openAssessment(featuredScenario)}
-                  className="rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-4 py-2.5 text-sm font-semibold text-dark-900 hover:opacity-90 transition-opacity min-h-[44px]"
+                  className="rounded-[2px] bg-[#37f5a0] px-4 py-2.5 text-sm font-semibold text-[#050b0a] hover:bg-[#37f5a0]/90 transition-colors min-h-[44px]"
                 >
                   Run Featured Scenario
                 </button>
                 <button
                   onClick={() => previewScenarioDetails(featuredScenario.id)}
-                  className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-slate-300 hover:text-slate-100 hover:bg-white/[0.08] transition-colors min-h-[44px]"
+                  className="rounded-[2px] border border-[#eaf3ee] bg-transparent px-4 py-2.5 text-sm font-medium text-[#eaf3ee] hover:bg-[#0c1513] transition-colors min-h-[44px]"
                 >
                   Preview Scenario Details
                 </button>
@@ -269,34 +276,33 @@ export function ScenarioBrowserPage() {
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search scenarios..." className="flex-1 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-sm text-slate-200 placeholder-slate-600 focus:border-accent-teal/50 focus:outline-none min-h-[44px]" />
+          placeholder="Search scenarios..." className="flex-1 rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-2 text-sm text-[#eaf3ee] placeholder-[#62706a] focus:border-[#37f5a0] focus:outline-none min-h-[44px]" />
         <select value={selectedCat ?? ''} onChange={e => setSelectedCat(e.target.value || null)}
-          className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-slate-300 focus:border-accent-teal/50 focus:outline-none min-h-[44px]">
-          <option value="" className="bg-dark-800">All ({scenarios.length})</option>
-          {categories.map(([c, n]) => <option key={c} value={c} className="bg-dark-800">{CAT_LABELS[c] ?? c} ({n})</option>)}
+          className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-2 text-sm text-[#eaf3ee] focus:border-[#37f5a0] focus:outline-none min-h-[44px]">
+          <option value="" className="bg-[#0c1513]">All ({scenarios.length})</option>
+          {categories.map(([c, n]) => <option key={c} value={c} className="bg-[#0c1513]">{CAT_LABELS[c] ?? c} ({n})</option>)}
         </select>
       </div>
 
       <div className="flex flex-wrap gap-2">
         <button onClick={() => setSelectedCat(null)}
-          className={`rounded-full px-3 py-1.5 text-[11px] font-medium transition-all min-h-[36px] ${!selectedCat ? 'bg-accent-teal/15 text-accent-teal' : 'text-slate-500 hover:text-slate-300 bg-white/[0.03]'}`}>
+          className={`rounded-[2px] border px-3 py-1.5 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.06em] transition-colors min-h-[36px] ${!selectedCat ? 'border-[#37f5a0] bg-[#13201c] text-[#37f5a0]' : 'border-[#20302b] bg-[#0c1513] text-[#86958d] hover:text-[#eaf3ee]'}`}>
           All ({scenarios.length})
         </button>
         {categories.map(([c, n]) => {
-          const color = CAT_COLORS[c] ?? '#94a3b8';
+          const color = CAT_COLORS[c] ?? '#86958d';
           const isActive = selectedCat === c;
           return (
             <button
               key={c}
               onClick={() => setSelectedCat(isActive ? null : c)}
-              className="cat-pill group relative rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all min-h-[36px]"
+              className="rounded-[2px] px-3 py-1.5 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.06em] transition-colors min-h-[36px]"
               style={{
-                color,
-                backgroundColor: `${color}${isActive ? '25' : '12'}`,
+                color: isActive ? '#050b0a' : color,
+                backgroundColor: isActive ? color : '#0c1513',
                 borderWidth: '1px',
-                borderColor: `${color}${isActive ? '50' : '20'}`,
-                '--cat-glow': color,
-              } as React.CSSProperties}
+                borderColor: isActive ? color : `${color}45`,
+              }}
             >
               {CAT_LABELS[c] ?? c} ({n})
             </button>
@@ -304,24 +310,26 @@ export function ScenarioBrowserPage() {
         })}
       </div>
 
-      <p className="text-[11px] text-slate-500">Showing {filtered.length} of {scenarios.length}</p>
+      <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">
+        Showing {filtered.length} of {scenarios.length}
+      </p>
 
       {loading ? (
-        <Card><p className="text-sm text-slate-500 text-center py-8">Loading scenarios...</p></Card>
+        <Card><p className="text-sm text-[#86958d] text-center py-8">Loading scenarios...</p></Card>
       ) : loadError ? (
         <Card>
           <div className="text-center py-8 space-y-2">
-            <p className="text-sm text-red-400 font-medium">Could not load scenarios</p>
-            <p className="text-xs text-slate-500">{loadError}</p>
+            <p className="text-sm text-[#ff7b72] font-medium">Could not load scenarios</p>
+            <p className="text-xs text-[#86958d]">{loadError}</p>
           </div>
         </Card>
       ) : filtered.length === 0 ? (
-        <Card><p className="text-sm text-slate-500 text-center py-8">No scenarios match your search.</p></Card>
+        <Card><p className="text-sm text-[#86958d] text-center py-8">No scenarios match your search.</p></Card>
       ) : (
         <div className="space-y-2">
           {filtered.map(s => {
-            const color = CAT_COLORS[s.category] ?? '#94a3b8';
-            const diffColor = DIFF_COLORS[s.difficulty ?? 'moderate'] ?? '#94a3b8';
+            const color = CAT_COLORS[s.category] ?? '#86958d';
+            const diffColor = DIFF_COLORS[s.difficulty ?? 'moderate'] ?? '#86958d';
             const open = expandedId === s.id;
             const prompt = getScenarioPrompt(s);
             return (
@@ -330,63 +338,63 @@ export function ScenarioBrowserPage() {
                 ref={(node) => {
                   scenarioRefs.current[s.id] = node;
                 }}
-                className="glass-card overflow-hidden scroll-mt-24 transition-all duration-150"
-                style={open ? { borderColor: `${color}30` } : undefined}
+                className="rounded-[2px] border border-[#20302b] bg-[#0c1513] overflow-hidden scroll-mt-24 transition-colors duration-150"
+                style={open ? { borderColor: `${color}66` } : undefined}
               >
-                <button onClick={() => setExpandedId(open ? null : s.id)} className="w-full flex items-start gap-3 p-4 text-left min-h-[44px]">
+                <button onClick={() => setExpandedId(open ? null : s.id)} className="w-full flex items-start gap-3 p-4 text-left hover:bg-[#13201c]/50 transition-colors min-h-[44px]">
                   <span className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: color }} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-[9px] font-mono text-slate-600">{s.id}</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ backgroundColor: `${color}15`, color }}>{CAT_LABELS[s.category] ?? s.category}</span>
-                      {s.difficulty && <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ backgroundColor: `${diffColor}15`, color: diffColor }}>{s.difficulty}</span>}
+                      <span className="font-['Geist_Mono'] text-[11px] text-[#62706a]">{s.id}</span>
+                      <span className="rounded-[2px] px-1.5 py-0.5 font-['Geist_Mono'] text-[10px] uppercase tracking-[0.06em]" style={{ backgroundColor: `${color}18`, color }}>{CAT_LABELS[s.category] ?? s.category}</span>
+                      {s.difficulty && <span className="rounded-[2px] px-1.5 py-0.5 font-['Geist_Mono'] text-[10px] uppercase tracking-[0.06em]" style={{ backgroundColor: `${diffColor}18`, color: diffColor }}>{s.difficulty}</span>}
                     </div>
-                    <p className="text-[12px] font-medium text-slate-200 mb-0.5">{s.title}</p>
-                    <p className="text-[11px] text-slate-400 line-clamp-2">{prompt.slice(0, 150)}{prompt.length > 150 ? '...' : ''}</p>
+                    <p className="font-['Space_Grotesk'] text-sm font-semibold text-[#eaf3ee] mb-0.5">{s.title}</p>
+                    <p className="text-xs text-[#86958d] line-clamp-2">{prompt.slice(0, 150)}{prompt.length > 150 ? '...' : ''}</p>
                   </div>
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"
-                    className={`text-slate-600 shrink-0 mt-1 transition-transform ${open ? 'rotate-180' : ''}`}>
+                    className={`text-[#86958d] shrink-0 mt-1 transition-transform ${open ? 'rotate-180' : ''}`}>
                     <path d="M3 5l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
                 {open && (
-                  <div className="px-4 pb-4 space-y-3 border-t border-white/[0.04] pt-3">
-                    <p className="text-[12px] text-slate-300 leading-relaxed whitespace-pre-wrap">{prompt}</p>
+                  <div className="px-4 pb-4 space-y-3 border-t border-[#20302b] pt-3">
+                    <p className="text-xs text-[#b3c2ba] leading-relaxed whitespace-pre-wrap">{prompt}</p>
                     {s.what_it_tests && (
-                      <div className="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">What It Tests</p>
-                        <p className="text-[11px] text-slate-400">{s.what_it_tests}</p>
+                      <div className="rounded-[2px] bg-[#13201c] border border-[#20302b] p-3">
+                        <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d] mb-1">What It Tests</p>
+                        <p className="text-xs text-[#b3c2ba]">{s.what_it_tests}</p>
                       </div>
                     )}
-                    <div className="flex flex-wrap gap-2 text-[10px]">
-                      {s.target_operators?.map(op => <span key={`op-${op}`} className="px-2 py-0.5 rounded bg-accent-teal/10 text-accent-teal font-mono">CO-{op}</span>)}
-                      {s.target_domains?.map(d => <span key={`d-${d}`} className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400">{d}</span>)}
-                      {s.target_drives?.map(i => <span key={`f-${i}`} className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400">F{i + 1}</span>)}
+                    <div className="flex flex-wrap gap-2 font-['Geist_Mono'] text-[11px]">
+                      {s.target_operators?.map(op => <span key={`op-${op}`} className="px-2 py-0.5 rounded-[2px] border border-[#37f5a0]/30 bg-[#13201c] text-[#37f5a0]">CO-{op}</span>)}
+                      {s.target_domains?.map(d => <span key={`d-${d}`} className="px-2 py-0.5 rounded-[2px] border border-[#20302b] bg-[#13201c] text-[#eaf3ee]">{d}</span>)}
+                      {s.target_drives?.map(i => <span key={`f-${i}`} className="px-2 py-0.5 rounded-[2px] border border-[#20302b] bg-[#13201c] text-[#b3c2ba]">F{i + 1}</span>)}
                     </div>
                     {s.cas_notation && (
-                      <div className="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
+                      <div className="rounded-[2px] bg-[#13201c] border border-[#20302b] p-3">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">CAS Notation</p>
+                          <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">CAS Notation</p>
                           {s.cas_notation_validated ? (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400">validated</span>
+                            <span className="rounded-[2px] border border-[#37f5a0]/35 bg-[#0c1513] px-1.5 py-0.5 font-['Geist_Mono'] text-[10px] uppercase text-[#37f5a0]">validated</span>
                           ) : (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">unvalidated</span>
+                            <span className="rounded-[2px] border border-[#f59e0b]/35 bg-[#0c1513] px-1.5 py-0.5 font-['Geist_Mono'] text-[10px] uppercase text-[#f59e0b]">unvalidated</span>
                           )}
                         </div>
-                        <p className="text-[12px] font-mono text-accent-teal">{s.cas_notation}</p>
+                        <p className="text-xs font-['Geist_Mono'] text-[#37f5a0]">{s.cas_notation}</p>
                         {s.cas_notation_english && (
-                          <p className="text-[11px] text-slate-400 mt-1">{s.cas_notation_english}</p>
+                          <p className="text-xs text-[#b3c2ba] mt-1">{s.cas_notation_english}</p>
                         )}
                       </div>
                     )}
                     {(s.success_indicator || s.failure_indicator) && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {s.success_indicator && <div className="rounded-lg bg-emerald-500/[0.04] border border-emerald-500/15 p-2"><p className="text-[9px] font-semibold text-emerald-400 mb-0.5">Resilient</p><p className="text-[10px] text-slate-400">{s.success_indicator}</p></div>}
-                        {s.failure_indicator && <div className="rounded-lg bg-red-500/[0.04] border border-red-500/15 p-2"><p className="text-[9px] font-semibold text-red-400 mb-0.5">Vulnerable</p><p className="text-[10px] text-slate-400">{s.failure_indicator}</p></div>}
+                        {s.success_indicator && <div className="rounded-[2px] bg-[#13201c] border border-[#37f5a0]/30 p-2.5"><p className="font-['Geist_Mono'] text-[10px] uppercase tracking-[0.08em] text-[#37f5a0] mb-0.5">Resilient</p><p className="text-xs text-[#b3c2ba]">{s.success_indicator}</p></div>}
+                        {s.failure_indicator && <div className="rounded-[2px] bg-[#13201c] border border-[#ff7b72]/35 p-2.5"><p className="font-['Geist_Mono'] text-[10px] uppercase tracking-[0.08em] text-[#ff7b72] mb-0.5">Vulnerable</p><p className="text-xs text-[#b3c2ba]">{s.failure_indicator}</p></div>}
                       </div>
                     )}
                     <button onClick={() => openAssessment(s)}
-                      className="w-full rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-4 py-2.5 text-xs font-semibold text-dark-900 hover:opacity-90 transition-opacity min-h-[44px]">
+                      className="w-full rounded-[2px] bg-[#37f5a0] px-4 py-2.5 text-xs font-semibold text-[#050b0a] hover:bg-[#37f5a0]/90 transition-colors min-h-[44px]">
                       Run This Assessment
                     </button>
                   </div>

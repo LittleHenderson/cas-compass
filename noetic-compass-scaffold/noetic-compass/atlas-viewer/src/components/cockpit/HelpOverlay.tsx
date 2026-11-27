@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ACCENT_TEAL, COLORS, SPRING_GENTLE, THEME } from '../../lib/designTokens';
+import { ACCENT_TEAL, COLORS, FONT_DISPLAY, FONT_MONO, SPRING_GENTLE, THEME } from '../../lib/designTokens';
 
 export interface HelpOverlayProps {
   open: boolean;
@@ -10,9 +10,7 @@ export interface HelpOverlayProps {
 const backdropStyle: CSSProperties = {
   position: 'absolute',
   inset: 0,
-  background: 'rgba(2, 6, 23, 0.78)',
-  backdropFilter: 'blur(8px)',
-  WebkitBackdropFilter: 'blur(8px)',
+  background: 'rgba(5, 11, 10, 0.86)',
   zIndex: 50,
   display: 'flex',
   alignItems: 'center',
@@ -25,9 +23,9 @@ const panelStyle: CSSProperties = {
   maxWidth: 720,
   maxHeight: '85vh',
   overflowY: 'auto',
-  background: 'rgba(2, 6, 23, 0.95)',
-  border: '1px solid rgba(255, 255, 255, 0.10)',
-  borderRadius: 8,
+  background: COLORS.card,
+  border: `1px solid ${COLORS.borderInk}`,
+  borderRadius: 2,
   padding: '24px 28px',
   color: COLORS.textPrimary,
   fontFamily: THEME.fontFamily,
@@ -44,7 +42,8 @@ const headerRowStyle: CSSProperties = {
 
 const titleStyle: CSSProperties = {
   margin: 0,
-  fontSize: 18,
+  fontFamily: FONT_DISPLAY,
+  fontSize: 20,
   fontWeight: 700,
   letterSpacing: -0.2,
   color: COLORS.textPrimary,
@@ -52,22 +51,25 @@ const titleStyle: CSSProperties = {
 
 const subtitleStyle: CSSProperties = {
   margin: 0,
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  letterSpacing: 1.5,
+  letterSpacing: 1.4,
   textTransform: 'uppercase',
-  color: COLORS.textMuted,
-  fontWeight: 600,
+  color: ACCENT_TEAL,
+  fontWeight: 500,
 };
 
 const closeButtonStyle: CSSProperties = {
   padding: '4px 10px',
-  borderRadius: 6,
-  border: '1px solid rgba(255, 255, 255, 0.10)',
-  background: 'transparent',
-  color: COLORS.textSecondary,
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.stripe,
+  color: COLORS.textPrimary,
   fontSize: 11.5,
   cursor: 'pointer',
-  fontFamily: THEME.fontFamily,
+  fontFamily: FONT_MONO,
+  textTransform: 'uppercase',
+  letterSpacing: 0.6,
 };
 
 const sectionStyle: CSSProperties = {
@@ -75,9 +77,10 @@ const sectionStyle: CSSProperties = {
 };
 
 const sectionHeaderStyle: CSSProperties = {
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: 1.4,
+  fontWeight: 500,
+  letterSpacing: 1.3,
   textTransform: 'uppercase',
   color: ACCENT_TEAL,
   margin: '0 0 8px 0',
@@ -111,11 +114,11 @@ const inlineStrongStyle: CSSProperties = {
 const kbdStyle: CSSProperties = {
   display: 'inline-block',
   padding: '1px 6px',
-  borderRadius: 4,
-  border: '1px solid rgba(255, 255, 255, 0.12)',
-  background: 'rgba(255, 255, 255, 0.04)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.stripe,
   color: COLORS.textPrimary,
-  fontFamily: THEME.fontMono,
+  fontFamily: FONT_MONO,
   fontSize: 11,
   letterSpacing: 0.3,
 };
@@ -130,17 +133,18 @@ const thStyle: CSSProperties = {
   textAlign: 'left',
   padding: '6px 8px',
   color: COLORS.textMuted,
-  fontSize: 10.5,
-  fontWeight: 600,
+  fontFamily: FONT_MONO,
+  fontSize: 11,
+  fontWeight: 500,
   letterSpacing: 0.8,
   textTransform: 'uppercase',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+  borderBottom: `1px solid ${COLORS.rule}`,
 };
 
 const tdStyle: CSSProperties = {
   padding: '6px 8px',
   color: COLORS.textSecondary,
-  borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+  borderBottom: `1px solid ${COLORS.rule2}`,
   verticalAlign: 'top',
 };
 
@@ -338,7 +342,7 @@ export default function HelpOverlay({ open, onClose }: HelpOverlayProps): JSX.El
           >
             <div style={headerRowStyle}>
               <div>
-                <p style={subtitleStyle}>Atlas Viewer · Alpha</p>
+                <p style={subtitleStyle}>CAS Compass · CAS Harness Audit</p>
                 <h2 style={titleStyle} id="help-overlay-title">
                   How to read the cockpit
                 </h2>

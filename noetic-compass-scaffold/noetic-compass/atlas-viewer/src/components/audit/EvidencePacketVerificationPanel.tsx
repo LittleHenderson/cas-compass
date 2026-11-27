@@ -29,9 +29,9 @@ const panelStyle: CSSProperties = {
   display: 'grid',
   gap: 12,
   padding: 16,
-  borderRadius: 8,
-  border: '1px solid rgba(45, 212, 191, 0.22)',
-  background: 'rgba(2, 6, 23, 0.40)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.card,
   fontFamily: FONT_FAMILY,
 };
 
@@ -46,9 +46,10 @@ const headerStyle: CSSProperties = {
 const eyebrowStyle: CSSProperties = {
   margin: 0,
   color: ACCENT_TEAL,
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 800,
-  letterSpacing: 0.6,
+  fontWeight: 500,
+  letterSpacing: 1,
   textTransform: 'uppercase',
 };
 
@@ -56,8 +57,8 @@ const titleStyle: CSSProperties = {
   margin: '4px 0 0',
   color: COLORS.textPrimary,
   fontSize: 18,
-  fontWeight: 900,
-  letterSpacing: 0,
+  fontWeight: 700,
+  letterSpacing: -0.2,
 };
 
 const textStyle: CSSProperties = {
@@ -73,18 +74,19 @@ const monoStyle: CSSProperties = {
 };
 
 const buttonStyle = (enabled: boolean): CSSProperties => ({
-  minHeight: 38,
+  minHeight: 36,
   padding: '8px 12px',
-  borderRadius: 6,
+  borderRadius: 2,
   border: enabled
-    ? '1px solid rgba(45, 212, 191, 0.50)'
-    : '1px solid rgba(148, 163, 184, 0.22)',
-  background: enabled ? 'rgba(45, 212, 191, 0.13)' : 'rgba(148, 163, 184, 0.06)',
-  color: enabled ? '#ccfbf1' : COLORS.textMuted,
+    ? `1px solid ${ACCENT_TEAL}`
+    : `1px solid ${COLORS.rule}`,
+  background: enabled ? ACCENT_TEAL : COLORS.stripe,
+  color: enabled ? COLORS.ground : COLORS.textMuted,
   cursor: enabled ? 'pointer' : 'not-allowed',
-  fontFamily: 'inherit',
-  fontSize: 12,
-  fontWeight: 900,
+  fontFamily: FONT_MONO,
+  fontSize: 11.5,
+  fontWeight: 600,
+  letterSpacing: 0.6,
   textTransform: 'uppercase',
 });
 
@@ -94,34 +96,28 @@ const statusPillStyle = (tone: 'verified' | 'warning' | 'failed' | 'muted'): CSS
   alignItems: 'center',
   minHeight: 26,
   padding: '4px 8px',
-  borderRadius: 5,
+  borderRadius: 2,
   border:
     tone === 'verified'
-      ? '1px solid rgba(45, 212, 191, 0.38)'
+      ? `1px solid ${ACCENT_TEAL}`
       : tone === 'failed'
-        ? '1px solid rgba(251, 113, 133, 0.40)'
+        ? `1px solid ${COLORS.error}`
         : tone === 'warning'
-          ? '1px solid rgba(251, 191, 36, 0.36)'
-          : '1px solid rgba(148, 163, 184, 0.22)',
-  background:
-    tone === 'verified'
-      ? 'rgba(45, 212, 191, 0.11)'
-      : tone === 'failed'
-        ? 'rgba(251, 113, 133, 0.10)'
-        : tone === 'warning'
-          ? 'rgba(251, 191, 36, 0.10)'
-          : 'rgba(148, 163, 184, 0.07)',
+          ? `1px dashed ${COLORS.warn}`
+          : `1px solid ${COLORS.rule}`,
+  background: COLORS.ground,
   color:
     tone === 'verified'
-      ? '#ccfbf1'
+      ? ACCENT_TEAL
       : tone === 'failed'
-        ? '#ffe4e6'
+        ? COLORS.error
         : tone === 'warning'
-          ? '#fef3c7'
+          ? COLORS.warn
           : COLORS.textMuted,
   fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 900,
+  fontWeight: 600,
+  letterSpacing: 0.5,
   textTransform: 'uppercase',
 });
 
@@ -133,23 +129,26 @@ const checkGridStyle: CSSProperties = {
 
 const checkStyle: CSSProperties = {
   padding: 10,
-  borderRadius: 6,
-  border: '1px solid rgba(148, 163, 184, 0.16)',
-  background: 'rgba(15, 23, 42, 0.42)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.stripe,
 };
 
 const checksDetailsStyle: CSSProperties = {
-  borderRadius: 7,
-  border: '1px solid rgba(148, 163, 184, 0.18)',
-  background: 'rgba(2, 6, 23, 0.24)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.ground,
 };
 
 const checksSummaryStyle: CSSProperties = {
   padding: '10px 12px',
   color: COLORS.textSecondary,
   cursor: 'pointer',
-  fontSize: 12,
-  fontWeight: 800,
+  fontFamily: FONT_MONO,
+  fontSize: 11.5,
+  fontWeight: 500,
+  letterSpacing: 0.5,
+  textTransform: 'uppercase',
 };
 
 const checkDetailStyle: CSSProperties = {

@@ -81,7 +81,7 @@ PINNED_SYSTEM_SCOPE = {
         "cas-harness-render-production application IAM principal",
         "production S3 Evidence Packet anchor path",
     ],
-    "GitHub": ["LittleHenderson/noetic-compass"],
+    "GitHub": ["LittleHenderson/cas-compass"],
     "Vercel": ["Noetic Compass production and preview deployments"],
 }
 PINNED_EVENT_PROVIDERS = {

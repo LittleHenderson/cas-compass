@@ -33,6 +33,26 @@
   status = 200
   force = true
 
+# Pattern A Canonical Domain Cutover (cascompass.ai -> https://compass.caslabai.com):
+# While `cascompass.ai/{,legal,privacy,terms}` remain pinned static surfaces in
+# `scripts/collect_claim_honesty_evidence.py`, keep the 200 internal rewrites above active.
+# At Pattern A DNS cutover (after `compass.caslabai.com` serves `/legal`, `/privacy`,
+# `/terms`, `/support` and `PINNED_SURFACES` is cut over to `compass.caslabai.com`),
+# uncomment the 301 rules below (placing them BEFORE or replacing the 200 rules as
+# documented in `docs/CAS_COMPASS_CUTOVER_RUNBOOK.md`):
+#
+# [[redirects]]
+#   from = "https://cascompass.ai/*"
+#   to = "https://compass.caslabai.com/:splat"
+#   status = 301
+#   force = true
+#
+# [[redirects]]
+#   from = "https://www.cascompass.ai/*"
+#   to = "https://compass.caslabai.com/:splat"
+#   status = 301
+#   force = true
+
 # Keep this policy synchronized with `_headers`. Netlify reads this file when
 # the landing directory is the project root; production `--dir` deploys apply
 # the publish-directory `_headers` file instead.
@@ -40,7 +60,7 @@
   for = "/*"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
-    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.noeticcompass.com; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.caslabai.com; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
     Cross-Origin-Opener-Policy = "same-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
     Referrer-Policy = "strict-origin-when-cross-origin"

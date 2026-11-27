@@ -1,9 +1,27 @@
 :root {
   color-scheme: dark;
-  --atlas-bg: #020617;
-  --atlas-fg: #e2e8f0;
-  --atlas-fg-muted: #94a3b8;
-  --atlas-accent: #3b82f6;
+  --cas-ground: #050b0a;
+  --cas-card: #0c1513;
+  --cas-stripe: #13201c;
+  --cas-rule2: #17231f;
+  --cas-rule: #20302b;
+  --cas-dash: #62706a;
+  --cas-text: #eaf3ee;
+  --cas-body: #b3c2ba;
+  --cas-muted: #86958d;
+  --cas-accent: #37f5a0;
+  --cas-error: #ff7b72;
+  --cas-warn: #f59e0b;
+
+  --atlas-bg: var(--cas-ground);
+  --atlas-fg: var(--cas-text);
+  --atlas-fg-muted: var(--cas-muted);
+  --atlas-accent: var(--cas-accent);
+
+  --font-display: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-unbounded: 'Unbounded', 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Geist Mono', 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
 html,
@@ -14,11 +32,9 @@ body,
 
 body {
   margin: 0;
-  background: var(--atlas-bg);
-  color: var(--atlas-fg);
-  /* system-ui first per alpha font posture; see designTokens.ts FONT_FAMILY. */
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Inter', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  background: var(--cas-ground);
+  color: var(--cas-text);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -28,13 +44,265 @@ body {
   box-sizing: border-box;
 }
 
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--font-mono);
+}
+
 button {
   font-family: inherit;
 }
 
 ::selection {
-  background: rgba(59, 130, 246, 0.35);
-  color: #f8fafc;
+  background: rgba(55, 245, 160, 0.28);
+  color: #eaf3ee;
+}
+
+:focus-visible {
+  outline: 3px solid #37f5a0;
+  outline-offset: 3px;
+}
+
+html[data-motion-paused="true"] * {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Keyboard skip link */
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 12px;
+  z-index: 9999;
+  padding: 8px 14px;
+  border-radius: 2px;
+  background: #37f5a0;
+  color: #050b0a;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 12px;
+}
+
+/* Row 1: CAS Lab top institutional bar */
+.caslab-bar {
+  width: 100%;
+  background: #000000;
+  border-bottom: 1px solid var(--cas-rule);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cas-muted);
+}
+
+.caslab-bar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 7px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.caslab-bar a {
+  color: var(--cas-text);
+  text-decoration: none;
+}
+
+.caslab-bar a:hover {
+  color: var(--cas-accent);
+}
+
+/* Row 2: Unified CAS Compass product header */
+.caslab-header {
+  width: 100%;
+  background: #000000;
+  border-bottom: 1px solid var(--cas-text);
+}
+
+.caslab-header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.caslab-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--cas-text);
+}
+
+.caslab-brand-word {
+  font-family: var(--font-unbounded);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--cas-text);
+}
+
+.caslab-brand-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 2px;
+  background: #8b9096;
+  color: #050b0a;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.caslab-brand-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cas-muted);
+  padding-left: 8px;
+  border-left: 1px solid var(--cas-rule);
+}
+
+.caslab-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.caslab-nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--cas-body);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.caslab-nav-link:hover {
+  color: var(--cas-text);
+  border-color: var(--cas-rule);
+  background: var(--cas-card);
+}
+
+.caslab-nav-link[aria-current="page"] {
+  color: #050b0a;
+  background: var(--cas-accent);
+  border-color: var(--cas-accent);
+  font-weight: 600;
+}
+
+.caslab-nav-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--cas-rule);
+  margin: 0 2px;
+}
+
+.caslab-motion-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 2px;
+  border: 1px solid var(--cas-rule);
+  background: var(--cas-card);
+  color: var(--cas-body);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.caslab-motion-btn:hover {
+  border-color: var(--cas-text);
+  color: var(--cas-text);
+}
+
+.caslab-motion-btn[aria-pressed="true"] {
+  border-color: var(--cas-accent);
+  color: var(--cas-accent);
+  background: var(--cas-stripe);
+}
+
+.caslab-footer {
+  width: 100%;
+  margin-top: auto;
+  border-top: 1px solid var(--cas-rule);
+  background: var(--cas-ground);
+  color: var(--cas-muted);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.caslab-footer-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+}
+
+.caslab-footer a {
+  color: var(--cas-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.caslab-footer a:hover {
+  color: var(--cas-accent);
 }
 
 /* Visible exact-route HTML rendered before React hydrates the two claim surfaces. */
@@ -45,38 +313,40 @@ button {
   align-items: center;
   justify-content: center;
   padding: 3rem 1.5rem;
-  background: var(--atlas-bg);
-  color: #f8fafc;
+  background: var(--cas-ground);
+  color: var(--cas-text);
 }
 
 .cas-claim-card {
   width: min(100%, 48rem);
   padding: 2rem;
-  border: 1px solid #334155;
-  border-radius: 1rem;
-  background: #0f172a;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+  border: 1px dashed var(--cas-dash);
+  border-radius: 2px;
+  background: var(--cas-card);
+  box-shadow: none;
 }
 
 .cas-claim-eyebrow {
   margin: 0;
-  color: #67e8f9;
-  font-size: 0.875rem;
-  font-weight: 700;
+  color: var(--cas-accent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .cas-claim-heading {
   margin: 0.75rem 0 0;
-  color: #ffffff;
+  color: var(--cas-text);
+  font-family: var(--font-display);
   font-size: clamp(2rem, 7vw, 2.75rem);
   line-height: 1.1;
 }
 
 .cas-claim-summary {
   margin: 1rem 0 0;
-  color: #e2e8f0;
+  color: var(--cas-body);
   font-size: 1rem;
   line-height: 1.75;
 }
@@ -84,7 +354,7 @@ button {
 .cas-claim-statements {
   margin: 1.5rem 0 0;
   padding-left: 1.5rem;
-  color: #cbd5e1;
+  color: var(--cas-body);
   font-size: 0.9rem;
   line-height: 1.6;
 }
@@ -95,7 +365,10 @@ button {
 
 .cas-claim-loading {
   margin: 1.75rem 0 0;
-  color: #a5f3fc;
-  font-size: 0.875rem;
-  font-weight: 600;
+  color: var(--cas-accent);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }

@@ -634,15 +634,18 @@ class Settings(BaseSettings):
     # Documented env name: ``ATLAS_ALLOWED_ORIGINS`` (canonical going forward).
     # Legacy alias ``NC_CORS_ORIGINS`` retained for backward compatibility.
     # Format: comma-separated list of fully-qualified origins, e.g.
-    #   ATLAS_ALLOWED_ORIGINS=https://atlas.noeticcompass.com,http://localhost:5173
-    # Atlas cockpit (atlas.noeticcompass.com) -> api.noeticcompass.com
-    # cross-subdomain preflight requires the cockpit origin be listed here.
+    #   ATLAS_ALLOWED_ORIGINS=https://compass.caslabai.com,https://www.caslabai.com,https://cascompass.ai,http://localhost:5173
+    # CAS Compass portal (compass.caslabai.com) and CAS Lab site (www.caslabai.com)
+    # -> api.caslabai.com cross-subdomain preflight requires the portal origins be listed here.
     cors_origins: str = Field(
         default="*",
         validation_alias=AliasChoices("ATLAS_ALLOWED_ORIGINS", "NC_CORS_ORIGINS"),
     )
-    # CORS regex — matches any Vercel deployment alias + localhost by default
-    cors_origin_regex: str = r"https://([a-z0-9-]+\.)*vercel\.app|http://localhost(:\d+)?"
+    # CORS regex — matches canonical CAS Lab domains, Vercel deployment aliases, and localhost by default
+    cors_origin_regex: str = (
+        r"https://(?:compass|www)\.caslabai\.com|https://(?:www\.)?cascompass\.ai|"
+        r"https://([a-z0-9-]+\.)*vercel\.app|http://localhost(:\d+)?"
+    )
 
     # Mock mode
     mock_llm: bool = True

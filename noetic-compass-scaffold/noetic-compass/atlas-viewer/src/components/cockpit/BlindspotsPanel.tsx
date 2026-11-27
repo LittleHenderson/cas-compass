@@ -132,32 +132,32 @@ const headerStyle: CSSProperties = {
   fontSize: 11,
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
-  color: '#94a3b8',
-  fontWeight: 700,
+  color: '#86958d',
+  fontWeight: 600,
   margin: 0,
 };
 
 const emptyStyle: CSSProperties = {
   margin: 0,
   fontSize: 12,
-  color: '#94a3b8',
+  color: '#86958d',
   fontStyle: 'italic',
   padding: '8px 12px',
-  borderRadius: 6,
-  background: 'rgba(15, 23, 42, 0.45)',
-  border: '1px solid rgba(255,255,255,0.04)',
+  borderRadius: 2,
+  background: '#050b0a',
+  border: '1px dashed #62706a',
 };
 
 const expandButtonStyle: CSSProperties = {
   alignSelf: 'flex-start',
-  background: 'rgba(15, 23, 42, 0.6)',
-  border: '1px solid rgba(148, 163, 184, 0.25)',
-  color: '#cbd5e1',
+  background: '#13201c',
+  border: '1px solid #20302b',
+  color: '#eaf3ee',
   fontSize: 11,
   padding: '4px 10px',
-  borderRadius: 12,
+  borderRadius: 2,
   cursor: 'pointer',
-  letterSpacing: 0.3,
+  letterSpacing: 0.4,
 };
 
 export default function BlindspotsPanel(

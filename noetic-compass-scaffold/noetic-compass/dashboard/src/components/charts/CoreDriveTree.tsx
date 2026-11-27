@@ -23,41 +23,40 @@ export function CoreDriveTree({ driveScores }: { driveScores: number[] }) {
         {data.map((d, i) => (
           <div
             key={i}
-            className="space-y-1 cursor-pointer rounded px-1 py-0.5 transition-colors hover:bg-white/[0.03]"
+            className="space-y-1 cursor-pointer rounded-[2px] px-1.5 py-1 transition-colors hover:bg-[#13201c]"
             onClick={() => setSelected(selected === i ? null : i)}
           >
             <div className="flex items-center justify-between">
-              <span className={`text-[11px] font-medium truncate pr-2 ${selected === i ? 'text-slate-200' : 'text-slate-400'}`}>
+              <span className={`text-xs font-medium truncate pr-2 ${selected === i ? 'text-[#eaf3ee]' : 'text-[#b3c2ba]'}`}>
                 {d.name}
               </span>
-              <span className="text-[11px] font-bold text-slate-300 tabular-nums">{d.score.toFixed(1)}</span>
+              <span className="font-['Geist_Mono'] text-xs font-bold text-[#eaf3ee] tabular-nums">{d.score.toFixed(1)}</span>
             </div>
-            <div className="h-2 w-full rounded-full bg-white/[0.04] overflow-hidden">
+            <div className="h-2 w-full rounded-[2px] bg-[#13201c] border border-[#20302b] overflow-hidden">
               <div
-                className="h-full rounded-full transition-all duration-700 ease-out"
+                className="h-full transition-all duration-500 ease-out"
                 style={{
                   width: `${(d.score / maxScore) * 100}%`,
                   backgroundColor: d.color,
-                  boxShadow: selected === i ? `0 0 12px ${d.color}80` : `0 0 8px ${d.color}50`,
                 }}
               />
             </div>
           </div>
         ))}
-        <div className="chart-hint text-center text-[10px] text-slate-600 opacity-0 transition-opacity">
+        <div className="chart-hint text-center font-['Geist_Mono'] text-[10px] text-[#86958d] opacity-0 transition-opacity">
           Click a bar for details
         </div>
       </div>
 
       {insight && (
         <ExplainPanel visible={true} onClose={() => setSelected(null)}>
-          <p className="font-medium text-slate-200">{insight.label}</p>
+          <p className="font-medium text-[#eaf3ee]">{insight.label}</p>
           <p>{insight.description}</p>
           <p>
-            Score: <span className="font-mono font-bold text-slate-200">{(insight.score * 100).toFixed(1)}%</span>
+            Score: <span className="font-['Geist_Mono'] font-bold text-[#eaf3ee]">{(insight.score * 100).toFixed(1)}%</span>
           </p>
           {insight.pairNote && (
-            <p className="text-amber-400/80">{insight.pairNote}</p>
+            <p className="text-[#f59e0b]">{insight.pairNote}</p>
           )}
         </ExplainPanel>
       )}

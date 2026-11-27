@@ -17,7 +17,7 @@ import re
 from types import MappingProxyType
 
 
-PRODUCTION_API_ORIGIN = "https://api.noeticcompass.com"
+PRODUCTION_API_ORIGIN = "https://api.caslabai.com"
 
 # Canonical gate name -> exact public, read-only path.  Do not replace this with
 # a broad ``/internal/acceptance`` prefix: a future management/write route must

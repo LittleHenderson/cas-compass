@@ -69,7 +69,7 @@ SAFE_ARTIFACT_SCHEMA_VERSION = "cas_harness_support_crm_finalization_receipt.v1"
 PRIVATE_TICKET_SELECTOR_SCHEMA_VERSION = (
     "cas_harness_support_ticket_acceptance_selector.v1"
 )
-REPOSITORY = "LittleHenderson/noetic-compass"
+REPOSITORY = "LittleHenderson/cas-compass"
 LANDING_ORIGIN = "https://cascompass.ai"
 PRODUCTION_SERVICE_ID = "i-0bd0a082507a51ae3"
 AUTHORITY_URI = f"{PRODUCTION_API_ORIGIN}/internal/acceptance/support-crm"

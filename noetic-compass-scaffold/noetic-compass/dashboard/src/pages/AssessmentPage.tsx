@@ -89,45 +89,45 @@ function StageTimeline({ stages }: { stages: WrapResult['stages'] }) {
       {stages.map((s, i) => (
         <div
           key={i}
-          className="flex items-center gap-3 animate-chart-in cursor-pointer rounded px-1 py-0.5 hover:bg-white/[0.02] transition-colors"
+          className="flex items-center gap-3 animate-chart-in cursor-pointer rounded-[2px] px-1.5 py-1 hover:bg-[#13201c] transition-colors"
           style={{ animationDelay: `${i * 60}ms` }}
           onClick={() => setSelected(selected === i ? null : i)}
         >
           <div className="relative flex items-center justify-center w-5 h-5">
             {s.success ? (
               <>
-                <div className="absolute inset-0 rounded-full bg-emerald-400/20" />
+                <div className="absolute inset-0 rounded-full bg-[#37f5a0]/20" />
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#34d399" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#37f5a0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </>
             ) : (
               <>
-                <div className="absolute inset-0 rounded-full bg-red-400/20" />
+                <div className="absolute inset-0 rounded-full bg-[#ff7b72]/20" />
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="#f87171" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="#ff7b72" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
               </>
             )}
           </div>
-          <span className={`text-xs font-medium w-32 ${selected === i ? 'text-slate-100' : 'text-slate-300'}`}>
+          <span className={`text-xs font-medium w-32 ${selected === i ? 'text-[#eaf3ee]' : 'text-[#b3c2ba]'}`}>
             {PIPELINE_STAGES[i]}
           </span>
-          <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
+          <div className="flex-1 h-1 rounded-[2px] bg-[#13201c] overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${s.success ? 'bg-emerald-400/40' : 'bg-red-400/40'}`}
+              className={`h-full transition-all duration-500 ${s.success ? 'bg-[#37f5a0]/55' : 'bg-[#ff7b72]/55'}`}
               style={{ width: '100%', animationDelay: `${i * 80}ms` }}
             />
           </div>
-          {s.error && <span className="text-[10px] text-red-400">{s.error}</span>}
+          {s.error && <span className="text-[11px] text-[#ff7b72]">{s.error}</span>}
         </div>
       ))}
 
       {insight && (
         <ExplainPanel visible={true} onClose={() => setSelected(null)}>
-          <p className="font-medium text-slate-200">{insight.name}</p>
+          <p className="font-medium text-[#eaf3ee]">{insight.name}</p>
           <p>{insight.description}</p>
-          <p className={insight.success ? 'text-emerald-400' : 'text-red-400'}>{insight.status}</p>
+          <p className={insight.success ? 'text-[#37f5a0]' : 'text-[#ff7b72]'}>{insight.status}</p>
         </ExplainPanel>
       )}
     </div>
@@ -327,29 +327,34 @@ export function AssessmentPage() {
     ? computeBlindSpots(operatorScores, domainAverages, flatDrives)
     : [];
   const chartFallback = (
-    <div className="flex min-h-[280px] items-center justify-center text-xs text-slate-500">
+    <div className="flex min-h-[280px] items-center justify-center rounded-[2px] border border-[#20302b] bg-[#13201c] font-['Geist_Mono'] text-xs text-[#86958d]">
       Loading visualization...
     </div>
   );
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-xl font-bold text-slate-100">Assessment</h2>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#37f5a0] mb-1">
+            ◐ Prototype · CAS Compass Evaluation
+          </p>
+          <h2 className="font-['Space_Grotesk'] text-2xl font-bold tracking-[-0.03em] text-[#eaf3ee]">Assessment</h2>
+        </div>
         {/* Single / Benchmark mode toggle */}
-        <div className="inline-flex rounded-lg border border-white/[0.08] bg-white/[0.03] p-1">
+        <div className="inline-flex rounded-[2px] border border-[#20302b] bg-[#0c1513] p-1">
           <button
             onClick={() => setAssessMode('single')}
-            className={`rounded-md px-4 py-1.5 text-xs font-semibold transition-all min-h-[36px] ${
-              assessMode === 'single' ? 'bg-accent-teal/15 text-accent-teal' : 'text-slate-500 hover:text-slate-300'
+            className={`rounded-[2px] px-4 py-1.5 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.06em] font-medium transition-colors min-h-[36px] ${
+              assessMode === 'single' ? 'bg-[#37f5a0] text-[#050b0a]' : 'text-[#86958d] hover:text-[#eaf3ee]'
             }`}
           >
             Single Assessment
           </button>
           <button
             onClick={() => setAssessMode('benchmark')}
-            className={`rounded-md px-4 py-1.5 text-xs font-semibold transition-all min-h-[36px] ${
-              assessMode === 'benchmark' ? 'bg-accent-teal/15 text-accent-teal' : 'text-slate-500 hover:text-slate-300'
+            className={`rounded-[2px] px-4 py-1.5 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.06em] font-medium transition-colors min-h-[36px] ${
+              assessMode === 'benchmark' ? 'bg-[#37f5a0] text-[#050b0a]' : 'text-[#86958d] hover:text-[#eaf3ee]'
             }`}
           >
             Benchmark Mode
@@ -362,19 +367,19 @@ export function AssessmentPage() {
 
       <Card>
         {/* Tab switcher */}
-        <div className="flex gap-1 mb-4">
+        <div className="flex gap-1.5 mb-4 border-b border-[#20302b] pb-3">
           <button
             onClick={() => setInputMode('text')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all min-h-[36px] ${
-              inputMode === 'text' ? 'bg-accent-teal/15 text-accent-teal' : 'text-slate-500 hover:text-slate-300'
+            className={`rounded-[2px] border px-3 py-1.5 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.06em] font-medium transition-colors min-h-[36px] ${
+              inputMode === 'text' ? 'border-[#37f5a0] bg-[#13201c] text-[#37f5a0]' : 'border-[#20302b] bg-transparent text-[#86958d] hover:text-[#eaf3ee]'
             }`}
           >
             Free Text
           </button>
           <button
             onClick={() => setInputMode('compose')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all min-h-[36px] ${
-              inputMode === 'compose' ? 'bg-accent-teal/15 text-accent-teal' : 'text-slate-500 hover:text-slate-300'
+            className={`rounded-[2px] border px-3 py-1.5 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.06em] font-medium transition-colors min-h-[36px] ${
+              inputMode === 'compose' ? 'border-[#37f5a0] bg-[#13201c] text-[#37f5a0]' : 'border-[#20302b] bg-transparent text-[#86958d] hover:text-[#eaf3ee]'
             }`}
           >
             Compose
@@ -383,21 +388,21 @@ export function AssessmentPage() {
 
         {/* Benchmark mode config — providers + runs, above the prompt field */}
         {assessMode === 'benchmark' && inputMode === 'text' && (
-          <div className="space-y-3 mb-4 rounded-lg border border-accent-teal/20 bg-accent-teal/[0.04] p-4">
-            <p className="text-[11px] text-slate-400">
+          <div className="space-y-3 mb-4 rounded-[2px] border border-[#37f5a0]/35 bg-[#13201c] p-4">
+            <p className="text-xs text-[#b3c2ba]">
               Run the prompt below through each selected provider multiple times and compare mean scores + variance.
             </p>
             <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Providers</label>
+              <label className="block font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d] mb-2">Providers</label>
               <div className="flex flex-wrap gap-2">
                     {PROVIDERS.map((p) => (
                       <button
                         key={p}
                     onClick={() => toggleBenchProvider(p)}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-all min-h-[36px] ${
+                    className={`px-3 py-2 rounded-[2px] text-xs font-medium transition-colors min-h-[36px] ${
                       benchProviders.includes(p)
-                        ? 'bg-accent-teal/20 text-accent-teal border border-accent-teal/40'
-                        : 'bg-white/[0.04] text-slate-400 border border-white/10 hover:bg-white/[0.08]'
+                        ? 'bg-[#37f5a0] text-[#050b0a] border border-[#37f5a0]'
+                        : 'bg-[#0c1513] text-[#b3c2ba] border border-[#20302b] hover:border-[#62706a]'
                     }`}
                     >
                     {formatProviderLabel(p)}
@@ -406,14 +411,14 @@ export function AssessmentPage() {
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Runs per Provider</label>
+              <label className="block font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d] mb-1">Runs per Provider</label>
               <input
                 type="number"
                 min={2}
                 max={20}
                 value={runsPerProvider}
                 onChange={(e) => setRunsPerProvider(Math.min(20, Math.max(2, Number(e.target.value))))}
-                className="w-20 rounded-lg border border-white/10 bg-dark-700 px-3 py-2 text-sm text-slate-200 focus:border-accent-teal focus:outline-none focus:ring-1 focus:ring-accent-teal/30 min-h-[44px]"
+                className="w-20 rounded-[2px] border border-[#20302b] bg-[#0c1513] px-3 py-2 font-['Geist_Mono'] text-sm text-[#eaf3ee] focus:border-[#37f5a0] focus:outline-none min-h-[44px]"
               />
             </div>
           </div>
@@ -429,29 +434,29 @@ export function AssessmentPage() {
               }}
               placeholder={assessMode === 'single' ? 'Enter text to assess...' : 'Enter prompt to benchmark across providers...'}
               rows={4}
-              className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-base sm:text-sm text-slate-200 placeholder-slate-600 focus:border-accent-teal/50 focus:outline-none focus:ring-1 focus:ring-accent-teal/30 resize-none"
+              className="w-full rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3 text-base sm:text-sm text-[#eaf3ee] placeholder-[#62706a] focus:border-[#37f5a0] focus:outline-none resize-none"
             />
 
             {/* Live CAS notation — updates as user types */}
             {(liveNotation || liveNotationLoading) && (
-              <div className={`rounded-lg border p-3 transition-all ${liveNotation?.valid ? 'border-accent-teal/20 bg-accent-teal/[0.03]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+              <div className={`rounded-[2px] border p-3 transition-colors ${liveNotation?.valid ? 'border-[#37f5a0]/35 bg-[#13201c]' : 'border-[#20302b] bg-[#13201c]'}`}>
                 <div className="flex items-center gap-2 mb-1.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Live CAS Analysis</p>
+                  <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Live CAS Analysis</p>
                   {liveNotationLoading && (
-                    <span className="text-[9px] text-slate-600 animate-pulse">analyzing...</span>
+                    <span className="font-['Geist_Mono'] text-[10px] text-[#86958d]">analyzing...</span>
                   )}
                   {liveNotation?.valid && !liveNotationLoading && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400">compiler-validated</span>
+                    <span className="rounded-[2px] border border-[#37f5a0]/35 bg-[#0c1513] px-1.5 py-0.5 font-['Geist_Mono'] text-[10px] uppercase text-[#37f5a0]">compiler-validated</span>
                   )}
                 </div>
                 {liveNotation?.source ? (
                   <>
-                    <p className="font-mono text-sm text-accent-teal tracking-wide">{liveNotation.source}</p>
+                    <p className="font-['Geist_Mono'] text-sm text-[#37f5a0] tracking-wide">{liveNotation.source}</p>
                     {liveNotation.english && (
-                      <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">{liveNotation.english}</p>
+                      <p className="text-xs text-[#b3c2ba] mt-1.5 leading-relaxed">{liveNotation.english}</p>
                     )}
                     {liveNotation.signals && (
-                      <div className="mt-3 pt-3 border-t border-white/[0.04]">
+                      <div className="mt-3 pt-3 border-t border-[#20302b]">
                         <SignalHeatmap
                           operatorScores={liveNotation.signals.operator_scores}
                           domainScores={liveNotation.signals.domain_scores}
@@ -462,7 +467,7 @@ export function AssessmentPage() {
                     )}
                   </>
                 ) : liveNotation && !liveNotationLoading ? (
-                  <p className="text-[11px] text-slate-500">Need more text.</p>
+                  <p className="text-xs text-[#86958d]">Need more text.</p>
                 ) : null}
               </div>
             )}
@@ -472,70 +477,70 @@ export function AssessmentPage() {
                   <div className="flex-1 space-y-3">
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       <label className="space-y-1">
-                        <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Generator</span>
+                        <span className="block font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Generator</span>
                         <select
                           value={provider}
                           onChange={(e) => setProvider(e.target.value)}
-                          className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-slate-300 focus:border-accent-teal/50 focus:outline-none min-h-[44px]"
+                          className="w-full rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-2 text-sm text-[#eaf3ee] focus:border-[#37f5a0] focus:outline-none min-h-[44px]"
                         >
                           {PROVIDERS.map((p) => (
-                            <option key={p} value={p} className="bg-dark-800">{formatProviderLabel(p)}</option>
+                            <option key={p} value={p} className="bg-[#0c1513]">{formatProviderLabel(p)}</option>
                           ))}
                         </select>
                       </label>
 
                       <label className="space-y-1">
-                        <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Scoring Mode</span>
+                        <span className="block font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Scoring Mode</span>
                         <select
                           value={scoringMode}
                           onChange={(e) => setScoringMode(e.target.value as ScoringMode)}
-                          className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-slate-300 focus:border-accent-teal/50 focus:outline-none min-h-[44px]"
+                          className="w-full rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-2 text-sm text-[#eaf3ee] focus:border-[#37f5a0] focus:outline-none min-h-[44px]"
                         >
                           {provider !== 'mock' && (
-                            <option value="secondary_llm" className="bg-dark-800">
+                            <option value="secondary_llm" className="bg-[#0c1513]">
                               Secondary LLM assessor (recommended)
                             </option>
                           )}
-                          <option value="heuristic_fallback" className="bg-dark-800">Heuristic fallback</option>
+                          <option value="heuristic_fallback" className="bg-[#0c1513]">Heuristic fallback</option>
                           {showAdvancedScoring && (
-                            <option value="self_reported" className="bg-dark-800">Self-reported inline scores</option>
+                            <option value="self_reported" className="bg-[#0c1513]">Self-reported inline scores</option>
                           )}
                         </select>
                       </label>
 
                       <label className="space-y-1">
-                        <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Scorer Provider</span>
+                        <span className="block font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Scorer Provider</span>
                         <select
                           value={scoringProvider}
                           onChange={(e) => setScoringProvider(e.target.value)}
                           disabled={scoringMode !== 'secondary_llm'}
-                          className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-slate-300 focus:border-accent-teal/50 focus:outline-none min-h-[44px] disabled:cursor-not-allowed disabled:opacity-50"
+                          className="w-full rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-2 text-sm text-[#eaf3ee] focus:border-[#37f5a0] focus:outline-none min-h-[44px] disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          <option value="auto" className="bg-dark-800">Auto</option>
+                          <option value="auto" className="bg-[#0c1513]">Auto</option>
                           {SCORER_PROVIDERS.map((p) => (
-                            <option key={p} value={p} className="bg-dark-800">{formatProviderLabel(p)}</option>
+                            <option key={p} value={p} className="bg-[#0c1513]">{formatProviderLabel(p)}</option>
                           ))}
                         </select>
                       </label>
                     </div>
 
-                    <label className="flex items-start gap-3 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2">
+                    <label className="flex items-start gap-3 rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-2.5">
                       <input
                         type="checkbox"
                         checked={showAdvancedScoring}
                         onChange={(e) => setShowAdvancedScoring(e.target.checked)}
-                        className="mt-1 h-4 w-4 rounded border-white/[0.12] bg-dark-700 text-accent-teal focus:ring-accent-teal/40"
+                        className="mt-1 h-4 w-4 rounded-[2px] border-[#20302b] bg-[#0c1513] accent-[#37f5a0]"
                       />
-                      <span className="space-y-1">
-                        <span className="block text-[11px] font-medium text-slate-300">Show advanced scoring modes</span>
-                        <span className="block text-[11px] text-slate-500">
+                      <span className="space-y-0.5">
+                        <span className="block text-xs font-medium text-[#eaf3ee]">Show advanced scoring modes</span>
+                        <span className="block text-xs text-[#86958d]">
                           Internal checks only.
                         </span>
                       </span>
                     </label>
                   </div>
                   {provider !== 'mock' && (
-                    <span className="text-[10px] text-amber-400/80 flex items-center gap-1">
+                    <span className="font-['Geist_Mono'] text-[11px] text-[#f59e0b] flex items-center gap-1.5">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
@@ -545,7 +550,7 @@ export function AssessmentPage() {
                 </>
               )}
               {assessMode === 'benchmark' && (
-                <span className="text-[11px] text-slate-500">
+                <span className="font-['Geist_Mono'] text-xs text-[#86958d]">
                   {benchProviders.length * runsPerProvider} assessments will run ({benchProviders.length} providers × {runsPerProvider} runs)
                 </span>
               )}
@@ -556,7 +561,7 @@ export function AssessmentPage() {
                   !text.trim() ||
                   (assessMode === 'benchmark' && benchProviders.length === 0)
                 }
-                className="rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-6 py-3 sm:py-2 text-sm font-semibold text-dark-900 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity min-h-[44px]"
+                className="rounded-[2px] bg-[#37f5a0] px-6 py-3 sm:py-2 text-sm font-semibold text-[#050b0a] hover:bg-[#37f5a0]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors min-h-[44px]"
               >
                 {assessMode === 'single'
                   ? wrap.isPending ? 'Assessing...' : 'Assess'
@@ -565,23 +570,23 @@ export function AssessmentPage() {
             </div>
             {assessMode === 'single' && (
               <div className="space-y-2">
-                <div className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.08] bg-white/[0.02] px-4 py-2">
-                  <p className="text-[11px] font-medium text-slate-300">{getScoringMethodLabel(scoringMode)}</p>
+                <div className="flex items-center justify-between gap-3 rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-2">
+                  <p className="font-['Geist_Mono'] text-xs text-[#eaf3ee]">{getScoringMethodLabel(scoringMode)}</p>
                 </div>
                 {scoringMode === 'self_reported' && (
-                  <p className="rounded-lg border border-amber-400/20 bg-amber-400/[0.08] px-3 py-2 text-[10px] text-amber-300">
+                  <p className="rounded-[2px] border border-[#f59e0b]/40 bg-[#f59e0b]/10 px-3 py-2 text-xs text-[#f59e0b]">
                     Self-reported mode lets the generator grade its own response. Treat it as self-assessment only.
                   </p>
                 )}
                 <Disclosure summary="Scoring method details">
                   <p>{getScoringMethodDescription(scoringMode)}</p>
                   <p>
-                    Least-biased automated baseline: <span className="text-slate-300">heuristic_fallback</span>.
-                    Best overall current mode: <span className="text-slate-300">secondary_llm</span> with a separate scorer.
-                    Worst stakeholder comparison mode: <span className="text-slate-300">self_reported</span>.
+                    Least-biased automated baseline: <span className="font-['Geist_Mono'] text-[#eaf3ee]">heuristic_fallback</span>.
+                    Best overall current mode: <span className="font-['Geist_Mono'] text-[#eaf3ee]">secondary_llm</span> with a separate scorer.
+                    Worst stakeholder comparison mode: <span className="font-['Geist_Mono'] text-[#eaf3ee]">self_reported</span>.
                   </p>
                   {provider !== 'mock' && scoringMode === 'secondary_llm' && (
-                    <p className="text-emerald-300/80">
+                    <p className="text-[#37f5a0]">
                       Recommended default for live providers: a separate scorer reduces self-grading risk and makes report provenance clearer.
                     </p>
                   )}
@@ -611,7 +616,7 @@ export function AssessmentPage() {
 
       {/* Benchmark mode: progress + results */}
       {assessMode === 'benchmark' && benchmark.isPending && (
-        <div className="flex items-center gap-3 text-slate-400">
+        <div role="status" className="flex items-center gap-3 text-[#b3c2ba]">
           <LoadingSpinner />
           <span className="text-sm">
             Running {benchProviders.length * runsPerProvider} assessments...
@@ -634,20 +639,20 @@ export function AssessmentPage() {
 
           <Card title="Scoring Provenance">
             <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Method</p>
-                <p className="mt-1 text-sm font-medium text-slate-200">{getScoringMethodLabel(scoringMethod)}</p>
+              <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+                <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Method</p>
+                <p className="mt-1 text-sm font-medium text-[#eaf3ee]">{getScoringMethodLabel(scoringMethod)}</p>
               </div>
-              <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Scorer Provider</p>
-                <p className="mt-1 text-sm font-medium text-slate-200">{resolvedScorerProvider ?? 'Not used'}</p>
+              <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+                <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Scorer Provider</p>
+                <p className="mt-1 text-sm font-medium text-[#eaf3ee]">{resolvedScorerProvider ?? 'Not used'}</p>
               </div>
-              <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Scorer Model</p>
-                <p className="mt-1 text-sm font-medium text-slate-200">{resolvedScorerModel ?? 'Not provided'}</p>
+              <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3">
+                <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Scorer Model</p>
+                <p className="mt-1 text-sm font-medium text-[#eaf3ee]">{resolvedScorerModel ?? 'Not provided'}</p>
               </div>
             </div>
-            <div className="mt-4 space-y-2 text-sm text-slate-400">
+            <div className="mt-4 space-y-2 text-sm text-[#b3c2ba]">
               <p>{getScoringMethodDescription(scoringMethod)}</p>
               <Disclosure summary="What's measured vs. not validated">
                 <p>
@@ -655,16 +660,18 @@ export function AssessmentPage() {
                   They are included in prototype scoring, but they are not validated instruments.
                 </p>
               </Disclosure>
-              {scoringMethod === 'self_reported' && (
-                <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1.5 text-amber-300">
-                  Self-score
-                </span>
-              )}
-              {unmeasuredLabels.length > 0 && (
-                <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1.5 text-amber-300">
-                  Unmeasured: {unmeasuredLabels.join(', ')}
-                </span>
-              )}
+              <div className="flex flex-wrap gap-2">
+                {scoringMethod === 'self_reported' && (
+                  <span className="rounded-[2px] border border-[#f59e0b]/40 bg-[#f59e0b]/10 px-2.5 py-1 font-['Geist_Mono'] text-[11px] uppercase text-[#f59e0b]">
+                    Self-score
+                  </span>
+                )}
+                {unmeasuredLabels.length > 0 && (
+                  <span className="rounded-[2px] border border-[#f59e0b]/40 bg-[#f59e0b]/10 px-2.5 py-1 font-['Geist_Mono'] text-[11px] text-[#f59e0b]">
+                    Unmeasured: {unmeasuredLabels.join(', ')}
+                  </span>
+                )}
+              </div>
             </div>
           </Card>
 
@@ -672,7 +679,7 @@ export function AssessmentPage() {
             {result.interpretation && (
               <button
                 onClick={() => setViewMode(viewMode === 'summary' ? 'technical' : 'summary')}
-                className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/[0.08] transition-colors min-h-[44px]"
+                className="rounded-[2px] border border-[#eaf3ee] bg-transparent px-3.5 py-2 text-xs font-medium text-[#eaf3ee] hover:bg-[#13201c] transition-colors min-h-[44px]"
               >
                 {viewMode === 'summary' ? 'Show Technical View' : 'Show Summary View'}
               </button>
@@ -702,15 +709,15 @@ export function AssessmentPage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   {result.compiled_notation.valid ? (
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-medium">compiler-validated</span>
+                    <span className="rounded-[2px] border border-[#37f5a0]/35 bg-[#13201c] px-2 py-0.5 font-['Geist_Mono'] text-[10px] uppercase text-[#37f5a0] font-medium">compiler-validated</span>
                   ) : (
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-medium">unvalidated</span>
+                    <span className="rounded-[2px] border border-[#f59e0b]/35 bg-[#13201c] px-2 py-0.5 font-['Geist_Mono'] text-[10px] uppercase text-[#f59e0b] font-medium">unvalidated</span>
                   )}
-                  <span className="text-[10px] text-slate-600">pipeline-derived</span>
+                  <span className="font-['Geist_Mono'] text-[11px] text-[#86958d]">pipeline-derived</span>
                 </div>
-                <p className="font-mono text-base text-accent-teal tracking-wide">{result.compiled_notation.source}</p>
+                <p className="font-['Geist_Mono'] text-base text-[#37f5a0] tracking-wide">{result.compiled_notation.source}</p>
                 {result.compiled_notation.english && (
-                  <p className="text-sm text-slate-400">{result.compiled_notation.english}</p>
+                  <p className="text-sm text-[#b3c2ba]">{result.compiled_notation.english}</p>
                 )}
               </div>
             </Card>

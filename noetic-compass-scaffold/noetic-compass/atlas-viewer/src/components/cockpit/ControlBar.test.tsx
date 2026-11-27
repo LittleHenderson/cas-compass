@@ -28,7 +28,7 @@ describe('ControlBar', () => {
   it('renders toolbar with required ARIA label', () => {
     render(<ControlBar {...makeProps()} />);
     const toolbar = screen.getByRole('toolbar', {
-      name: /atlas viewer playback and view controls/i,
+      name: /cas compass playback and view controls/i,
     });
     expect(toolbar).toBeTruthy();
   });

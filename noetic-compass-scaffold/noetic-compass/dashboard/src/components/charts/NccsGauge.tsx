@@ -47,22 +47,22 @@ export function NccsGauge({
             stroke="none"
           >
             <Cell fill={`url(#${gradientId})`} />
-            <Cell fill="rgba(255,255,255,0.04)" />
+            <Cell fill="#13201c" />
           </Pie>
         </PieChart>
         <div className="-mt-6 text-center">
           <div
-            className="text-4xl font-extrabold tracking-tight"
-            style={{ color, textShadow: `0 0 20px ${color}40` }}
+            className="font-['Space_Grotesk'] text-4xl font-bold tracking-[-0.03em]"
+            style={{ color }}
           >
             {composite.toFixed(1)}
           </div>
-          <div className="mt-1 text-[11px] font-medium uppercase tracking-widest text-slate-500">
+          <div className="mt-1 font-['Geist_Mono'] text-[11px] font-medium uppercase tracking-[0.08em] text-[#86958d]">
             NCCS Composite
           </div>
         </div>
         {nccs && (
-          <div className="chart-hint mt-2 text-[10px] text-slate-600 opacity-0 transition-opacity">
+          <div className="chart-hint mt-2 font-['Geist_Mono'] text-[10px] text-[#86958d] opacity-0 transition-opacity">
             Click for details
           </div>
         )}
@@ -70,10 +70,10 @@ export function NccsGauge({
 
       {insight && (
         <ExplainPanel visible={open} onClose={() => setOpen(false)}>
-          <p className="font-medium text-slate-200">{insight.summary}</p>
+          <p className="font-medium text-[#eaf3ee]">{insight.summary}</p>
           <p>{insight.topStrength}</p>
           <p>{insight.biggestGap}</p>
-          <p className="text-accent-teal">{insight.recommendation}</p>
+          <p className="text-[#37f5a0]">{insight.recommendation}</p>
         </ExplainPanel>
       )}
     </div>

@@ -67,14 +67,17 @@ const titleStyle: CSSProperties = {
 const statusPillStyle: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
-  minHeight: 30,
-  padding: '5px 10px',
-  borderRadius: 6,
-  border: `1px solid ${COLORS.borderStrong}`,
-  background: 'rgba(255, 255, 255, 0.04)',
+  minHeight: 28,
+  padding: '4px 10px',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.card,
   color: COLORS.textSecondary,
-  fontSize: 12,
-  fontWeight: 800,
+  fontFamily: FONT_MONO,
+  fontSize: 11,
+  fontWeight: 500,
+  letterSpacing: 0.6,
+  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 };
 
@@ -86,17 +89,18 @@ const gridStyle: CSSProperties = {
 
 const tileStyle: CSSProperties = {
   padding: '11px 12px',
-  borderRadius: 8,
-  border: `1px solid ${COLORS.borderSubtle}`,
-  background: 'rgba(2, 6, 23, 0.34)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.ground,
 };
 
 const labelStyle: CSSProperties = {
   display: 'block',
   color: COLORS.textMuted,
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 750,
-  letterSpacing: 0,
+  fontWeight: 500,
+  letterSpacing: 0.7,
   textTransform: 'uppercase',
 };
 
@@ -105,19 +109,20 @@ const valueStyle: CSSProperties = {
   marginTop: 6,
   color: COLORS.textPrimary,
   fontSize: 13,
-  fontWeight: 750,
+  fontWeight: 600,
   overflowWrap: 'anywhere',
 };
 
 const verdictStyle = (verdict?: AuditVerdict | null): CSSProperties => ({
   ...valueStyle,
+  fontFamily: FONT_MONO,
   color:
     verdict === 'ACCEPT'
-      ? '#ccfbf1'
+      ? COLORS.accent
       : verdict === 'SUPPRESS'
-        ? '#ffe4e6'
+        ? COLORS.error
         : verdict === 'FLAG_FOR_HUMAN_REVIEW'
-          ? '#fef3c7'
+          ? COLORS.warn
           : COLORS.textSecondary,
 });
 

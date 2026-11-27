@@ -88,9 +88,9 @@ RELEASE_DECISION_EVIDENCE_SCHEMA_VERSION = (
 RECORD_SCHEMA_VERSION = "cas_harness_acceptance_authority_revision.v2"
 HEAD_SCHEMA_VERSION = "cas_harness_acceptance_authority_head.v3"
 OPERATION_SCHEMA_VERSION = "cas_harness_acceptance_authority_operation.v1"
-REPOSITORY = "LittleHenderson/noetic-compass"
+REPOSITORY = "LittleHenderson/cas-compass"
 ENVIRONMENT = "public-production"
-PRODUCTION_APP_ORIGIN = "https://atlas.noeticcompass.com"
+PRODUCTION_APP_ORIGIN = "https://compass.caslabai.com"
 LANDING_ORIGIN = "https://cascompass.ai"
 PRODUCTION_SERVICE_ID = "i-0bd0a082507a51ae3"
 PRODUCTION_SERVICE_NAME = "cas-harness-customer-api"
@@ -749,7 +749,7 @@ _SUSPICIOUS_PATTERNS = {
 _ALLOWED_URL_ORIGINS = frozenset(
     {
         PRODUCTION_API_ORIGIN,
-        "https://atlas.noeticcompass.com",
+        PRODUCTION_APP_ORIGIN,
         "https://cascompass.ai",
     }
 )

@@ -3,7 +3,6 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import App from './App.tsx';
-import { CinematicIntro } from './components/shared/CinematicIntro';
 import { PrerenderedClaimSurface } from './components/shared/PrerenderedClaimSurface';
 import type { ClaimSurfaceKind } from './lib/claimSurfaceContract';
 
@@ -24,9 +23,7 @@ export function InteractiveApplication() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <CinematicIntro>
-          <App />
-        </CinematicIntro>
+        <App />
       </BrowserRouter>
     </QueryClientProvider>
   );

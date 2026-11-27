@@ -16,7 +16,7 @@ from typing import Any
 from urllib.request import Request, urlopen
 
 
-DEFAULT_BASE_URL = "https://api.noeticcompass.com"
+DEFAULT_BASE_URL = "https://api.caslabai.com"
 TOKEN_ENV_VAR = "CAS_HARNESS_API_TOKEN"
 
 

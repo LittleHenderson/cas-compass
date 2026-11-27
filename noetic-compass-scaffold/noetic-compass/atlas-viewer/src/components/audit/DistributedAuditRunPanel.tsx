@@ -39,17 +39,19 @@ const headerStyle: CSSProperties = {
 const eyebrowStyle: CSSProperties = {
   margin: 0,
   color: ACCENT_TEAL,
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 800,
+  fontWeight: 500,
+  letterSpacing: 1,
   textTransform: 'uppercase',
 };
 
 const titleStyle: CSSProperties = {
   margin: '3px 0 0',
-  color: '#f8fafc',
+  color: COLORS.textPrimary,
   fontSize: 20,
   lineHeight: 1.2,
-  fontWeight: 850,
+  fontWeight: 700,
 };
 
 const bodyStyle: CSSProperties = {
@@ -70,14 +72,16 @@ const buttonStyle = (enabled: boolean): CSSProperties => ({
   padding: '7px 10px',
   borderRadius: RADIUS.sm,
   border: enabled
-    ? '1px solid rgba(45, 212, 191, 0.52)'
-    : '1px solid rgba(148, 163, 184, 0.22)',
-  background: enabled ? 'rgba(45, 212, 191, 0.14)' : 'rgba(148, 163, 184, 0.06)',
-  color: enabled ? '#ccfbf1' : COLORS.textMuted,
+    ? `1px solid ${ACCENT_TEAL}`
+    : `1px solid ${COLORS.rule}`,
+  background: enabled ? ACCENT_TEAL : COLORS.card,
+  color: enabled ? COLORS.ground : COLORS.textMuted,
   cursor: enabled ? 'pointer' : 'not-allowed',
   fontFamily: FONT_MONO,
-  fontSize: 12,
-  fontWeight: 850,
+  fontSize: 11.5,
+  fontWeight: 600,
+  letterSpacing: 0.5,
+  textTransform: 'uppercase',
 });
 
 const metricsStyle: CSSProperties = {
@@ -91,21 +95,23 @@ const metricStyle: CSSProperties = {
   gap: 4,
   padding: '9px 10px',
   borderRadius: RADIUS.md,
-  border: `1px solid ${COLORS.borderSubtle}`,
+  border: `1px solid ${COLORS.rule}`,
   background: GLASS_PANEL_FILL,
 };
 
 const metricLabelStyle: CSSProperties = {
   color: COLORS.textMuted,
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 750,
+  fontWeight: 500,
+  letterSpacing: 0.7,
   textTransform: 'uppercase',
 };
 
 const metricValueStyle: CSSProperties = {
   color: COLORS.textPrimary,
   fontSize: 13,
-  fontWeight: 800,
+  fontWeight: 600,
 };
 
 const workerGridStyle: CSSProperties = {
@@ -121,8 +127,8 @@ const workerStyle: CSSProperties = {
   gap: 5,
   padding: 9,
   borderRadius: RADIUS.md,
-  border: `1px solid ${COLORS.borderSubtle}`,
-  background: 'rgba(15, 23, 42, 0.48)',
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.stripe,
   minWidth: 0,
 };
 
@@ -132,23 +138,18 @@ const noticeStyle = (tone: 'info' | 'warning' | 'error'): CSSProperties => ({
   borderRadius: RADIUS.md,
   border:
     tone === 'error'
-      ? '1px solid rgba(248, 113, 113, 0.36)'
+      ? `1px solid ${COLORS.error}`
       : tone === 'warning'
-        ? '1px solid rgba(251, 191, 36, 0.36)'
-        : '1px solid rgba(45, 212, 191, 0.22)',
+        ? `1px dashed ${COLORS.warn}`
+        : `1px solid ${COLORS.rule}`,
   color:
     tone === 'error'
-      ? '#fecaca'
+      ? COLORS.error
       : tone === 'warning'
-        ? '#fef3c7'
+        ? COLORS.warn
         : COLORS.textSecondary,
-  background:
-    tone === 'error'
-      ? 'rgba(248, 113, 113, 0.08)'
-      : tone === 'warning'
-        ? 'rgba(251, 191, 36, 0.08)'
-        : 'rgba(45, 212, 191, 0.07)',
-  fontSize: 12,
+  background: COLORS.card,
+  fontSize: 12.5,
   lineHeight: 1.45,
 });
 

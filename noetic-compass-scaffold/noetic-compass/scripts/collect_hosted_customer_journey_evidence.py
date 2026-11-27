@@ -101,9 +101,9 @@ SAFE_ARTIFACT_KEYS = frozenset(
 PRIVATE_SELECTOR_SCHEMA_VERSION = (
     "cas_harness_hosted_customer_journey_acceptance_selector.v1"
 )
-REPOSITORY = "LittleHenderson/noetic-compass"
-PRODUCTION_APP_URL = "https://atlas.noeticcompass.com/audit-console"
-PRODUCTION_API_ORIGIN = "https://api.noeticcompass.com"
+REPOSITORY = "LittleHenderson/cas-compass"
+PRODUCTION_APP_URL = "https://compass.caslabai.com/audit-console"
+PRODUCTION_API_ORIGIN = "https://api.caslabai.com"
 PRODUCTION_SERVICE_ID = "i-0bd0a082507a51ae3"
 RENDER_API_ORIGIN = "https://api.render.com"
 AUTHORITY_URI = f"{PRODUCTION_API_ORIGIN}/internal/acceptance/customer-journey"

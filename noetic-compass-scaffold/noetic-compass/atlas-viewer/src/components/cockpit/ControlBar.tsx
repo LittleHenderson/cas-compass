@@ -4,8 +4,11 @@ import { motion } from 'framer-motion';
 import { GlassPanel } from '../ui/GlassPanel';
 import LiquidGlassTooltip from '../ui/LiquidGlassTooltip';
 import {
+  ACCENT_AMBER,
+  ACCENT_ERROR,
   ACCENT_TEAL,
   COLORS,
+  FONT_MONO,
   SPRING_SNAPPY,
 } from '../../lib/designTokens';
 
@@ -60,17 +63,17 @@ const VERIFICATION_MODES: VerificationMode[] = [
   'MAX_COVERAGE_TRIAGE',
 ];
 
-const HAIRLINE = 'rgba(255, 255, 255, 0.06)';
+const HAIRLINE = COLORS.rule;
 
 const barStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: 6,
-  height: 48,
+  minHeight: 46,
   padding: '6px 12px',
   color: COLORS.textPrimary,
-  fontFamily: 'system-ui, -apple-system, "Segoe UI Variable", sans-serif',
-  fontSize: 12,
+  fontFamily: FONT_MONO,
+  fontSize: 11.5,
   outline: 'none',
   boxSizing: 'border-box',
   flexWrap: 'wrap',
@@ -90,48 +93,44 @@ const middleSegmentStyle: CSSProperties = {
   gap: 10,
 };
 
-// Wave 5.2 pill style:
-//  - transparent background (no big colored fill)
-//  - thin hairline border at very low opacity
-//  - active state = teal text + teal-tinted background + teal border
-//  - inactive = slate-400 text on hairline border, hover lifts to slate-200
 const pillBaseStyle: CSSProperties = {
   position: 'relative',
   minWidth: 28,
   minHeight: 28,
-  padding: '4px 10px',
+  padding: '4px 9px',
   color: COLORS.textSecondary,
-  background: 'transparent',
+  background: COLORS.ground,
   border: `1px solid ${HAIRLINE}`,
-  borderRadius: 6,
+  borderRadius: 2,
   cursor: 'pointer',
-  fontSize: 11.5,
+  fontSize: 11,
   fontWeight: 500,
-  fontFamily: 'inherit',
+  fontFamily: FONT_MONO,
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  letterSpacing: 0.2,
+  gap: 5,
+  letterSpacing: 0.4,
   transition: 'color 0.15s ease, background 0.15s ease, border-color 0.15s ease',
 };
 
 const activePillStyle: CSSProperties = {
   ...pillBaseStyle,
-  color: ACCENT_TEAL,
-  background: 'rgba(45, 212, 191, 0.10)',
-  borderColor: 'rgba(45, 212, 191, 0.45)',
+  color: COLORS.ground,
+  background: ACCENT_TEAL,
+  borderColor: ACCENT_TEAL,
   fontWeight: 600,
 };
 
 const selectStyle: CSSProperties = {
   minHeight: 28,
   padding: '4px 8px',
-  background: 'rgba(255, 255, 255, 0.02)',
+  background: COLORS.ground,
   color: COLORS.textPrimary,
   border: `1px solid ${HAIRLINE}`,
-  borderRadius: 6,
-  fontSize: 11.5,
-  fontFamily: 'inherit',
+  borderRadius: 2,
+  fontSize: 11,
+  fontFamily: FONT_MONO,
 };
 
 const scrubberWrapStyle: CSSProperties = {
@@ -149,7 +148,7 @@ const scrubberTrackStyle: CSSProperties = {
   width: '100%',
   height: 3,
   borderRadius: 2,
-  background: 'rgba(255, 255, 255, 0.06)',
+  background: COLORS.rule,
   overflow: 'visible',
 };
 
@@ -162,15 +161,14 @@ const scrubberFillStyle: CSSProperties = {
   borderRadius: 2,
 };
 
-// Smaller thumb, no glow halo. Just a hard 8 px dot.
 const scrubberThumbStyle: CSSProperties = {
   position: 'absolute',
   top: '50%',
   width: 10,
   height: 10,
-  borderRadius: '50%',
+  borderRadius: 2,
   background: ACCENT_TEAL,
-  border: '2px solid #020617',
+  border: `2px solid ${COLORS.ground}`,
   transform: 'translate(-50%, -50%)',
   cursor: 'grab',
   touchAction: 'none',
@@ -193,7 +191,7 @@ const tokenLabelStyle: CSSProperties = {
   fontVariantNumeric: 'tabular-nums',
   color: COLORS.textMuted,
   fontSize: 11,
-  letterSpacing: 0.3,
+  letterSpacing: 0.4,
 };
 
 const dividerStyle: CSSProperties = {
@@ -205,19 +203,15 @@ const dividerStyle: CSSProperties = {
 const liveDotStyle = (status: LiveStatus | undefined): CSSProperties => ({
   width: 7,
   height: 7,
-  borderRadius: '50%',
+  borderRadius: 2,
   background:
     status === 'streaming'
-      ? '#22c55e'
+      ? ACCENT_TEAL
       : status === 'connecting'
-        ? '#fbbf24'
+        ? ACCENT_AMBER
         : status === 'error'
-          ? '#fb7185'
-          : 'rgba(148, 163, 184, 0.75)',
-  boxShadow:
-    status === 'streaming'
-      ? '0 0 0 4px rgba(34, 197, 94, 0.12)'
-      : undefined,
+          ? ACCENT_ERROR
+          : COLORS.textMuted,
 });
 
 function clampToken(idx: number, tokenCount: number): number {
@@ -252,8 +246,8 @@ function IconButton({ label, active, testId, briefing, onClick, children }: Icon
         style={style}
         data-testid={testId}
         whileHover={{
-          color: active ? ACCENT_TEAL : COLORS.textPrimary,
-          borderColor: active ? 'rgba(45, 212, 191, 0.65)' : 'rgba(255, 255, 255, 0.12)',
+          color: active ? COLORS.ground : COLORS.textPrimary,
+          borderColor: active ? ACCENT_TEAL : COLORS.borderInk,
         }}
         whileTap={{ scale: 0.97 }}
         transition={SPRING_SNAPPY}
@@ -427,7 +421,7 @@ export default function ControlBar(props: ControlBarProps): JSX.Element {
       <div
         ref={containerRef}
         role="toolbar"
-        aria-label="Atlas Viewer playback and view controls"
+        aria-label="CAS Compass playback and view controls"
         tabIndex={0}
         onKeyDown={handleKeyDown}
         style={barStyle}
@@ -490,8 +484,8 @@ export default function ControlBar(props: ControlBarProps): JSX.Element {
                   style={active ? activePillStyle : pillBaseStyle}
                   data-testid={`speed-${s}`}
                   whileHover={{
-                    color: active ? ACCENT_TEAL : COLORS.textPrimary,
-                    borderColor: active ? 'rgba(45, 212, 191, 0.65)' : 'rgba(255, 255, 255, 0.12)',
+                    color: active ? COLORS.ground : COLORS.textPrimary,
+                    borderColor: active ? ACCENT_TEAL : COLORS.borderInk,
                   }}
                   whileTap={{ scale: 0.97 }}
                   transition={SPRING_SNAPPY}
@@ -566,8 +560,8 @@ export default function ControlBar(props: ControlBarProps): JSX.Element {
                   style={active ? activePillStyle : pillBaseStyle}
                   data-testid={`zoom-${z}`}
                   whileHover={{
-                    color: active ? ACCENT_TEAL : COLORS.textPrimary,
-                    borderColor: active ? 'rgba(45, 212, 191, 0.65)' : 'rgba(255, 255, 255, 0.12)',
+                    color: active ? COLORS.ground : COLORS.textPrimary,
+                    borderColor: active ? ACCENT_TEAL : COLORS.borderInk,
                   }}
                   whileTap={{ scale: 0.97 }}
                   transition={SPRING_SNAPPY}

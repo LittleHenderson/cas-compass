@@ -42,9 +42,9 @@ const shellStyle: CSSProperties = {
   display: 'grid',
   gap: 12,
   padding: 14,
-  borderRadius: 8,
-  border: '1px solid rgba(45, 212, 191, 0.20)',
-  background: 'rgba(15, 23, 42, 0.42)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.stripe,
   fontFamily: FONT_FAMILY,
 };
 
@@ -59,9 +59,10 @@ const headerStyle: CSSProperties = {
 const eyebrowStyle: CSSProperties = {
   margin: 0,
   color: ACCENT_TEAL,
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 900,
-  letterSpacing: 0.6,
+  fontWeight: 500,
+  letterSpacing: 1,
   textTransform: 'uppercase',
 };
 
@@ -69,8 +70,8 @@ const titleStyle: CSSProperties = {
   margin: '3px 0 0',
   color: COLORS.textPrimary,
   fontSize: 16,
-  fontWeight: 900,
-  letterSpacing: 0,
+  fontWeight: 700,
+  letterSpacing: -0.2,
 };
 
 const textStyle: CSSProperties = {
@@ -83,14 +84,15 @@ const textStyle: CSSProperties = {
 const buttonStyle = (expanded: boolean): CSSProperties => ({
   minHeight: 34,
   padding: '7px 10px',
-  borderRadius: 6,
-  border: '1px solid rgba(45, 212, 191, 0.40)',
-  background: expanded ? 'rgba(45, 212, 191, 0.18)' : 'rgba(45, 212, 191, 0.10)',
-  color: '#ccfbf1',
+  borderRadius: 2,
+  border: `1px solid ${expanded ? ACCENT_TEAL : COLORS.rule}`,
+  background: expanded ? ACCENT_TEAL : COLORS.card,
+  color: expanded ? COLORS.ground : ACCENT_TEAL,
   cursor: 'pointer',
   fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 900,
+  fontWeight: 600,
+  letterSpacing: 0.6,
   textTransform: 'uppercase',
 });
 
@@ -98,9 +100,9 @@ const faqStyle: CSSProperties = {
   display: 'grid',
   gap: 10,
   padding: 12,
-  borderRadius: 8,
-  border: '1px solid rgba(148, 163, 184, 0.16)',
-  background: 'rgba(2, 6, 23, 0.34)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.ground,
 };
 
 const listStyle: CSSProperties = {
@@ -118,7 +120,7 @@ const itemStyle: CSSProperties = {
 
 const strongStyle: CSSProperties = {
   color: COLORS.textPrimary,
-  fontWeight: 900,
+  fontWeight: 700,
 };
 
 export function EvidencePacketFlightRecorderFaq(): JSX.Element {

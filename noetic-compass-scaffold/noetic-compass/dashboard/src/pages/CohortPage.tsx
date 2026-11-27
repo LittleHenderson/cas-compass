@@ -37,7 +37,7 @@ const HOW_IT_WORKS_SECTIONS = [
   {
     title: 'How AI Model Comparison Works',
     body: (
-      <p className="text-slate-300">
+      <p className="text-[#b3c2ba]">
         This page compares how different AI models think about the same problems. Instead of just
         comparing accuracy, we compare <em>cognitive architecture</em> — the structural patterns of
         reasoning each model uses.
@@ -47,34 +47,34 @@ const HOW_IT_WORKS_SECTIONS = [
   {
     title: 'How to Use It',
     body: (
-      <ol className="list-decimal list-inside space-y-1 text-slate-300">
+      <ol className="list-decimal list-inside space-y-1 text-[#b3c2ba]">
         <li>Select two or more AI models from the dropdowns.</li>
         <li>If a model is already in your assessment history, its scores auto-load. Otherwise run it first.</li>
-        <li>Or click <strong className="text-slate-100">Quick Compare</strong> to run the same prompt through all selected models at once.</li>
+        <li>Or click <strong className="text-[#eaf3ee]">Quick Compare</strong> to run the same prompt through all selected models at once.</li>
         <li>View the Alignment Heatmap to see how similarly they think.</li>
-        <li>Check the Pairwise Comparison for detailed metrics and click any row's <strong className="text-accent-teal">✦ Interpret</strong> button for plain-English guidance.</li>
+        <li>Check the Pairwise Comparison for detailed metrics and click any row's <strong className="text-[#37f5a0]">✦ Interpret</strong> button for plain-English guidance.</li>
       </ol>
     ),
   },
   {
     title: 'What the Metrics Mean',
     body: (
-      <ul className="list-disc list-inside space-y-1 text-slate-300">
-        <li><strong className="text-slate-100">Alignment %:</strong> How similarly two models think (100% = identical, below 70% = very different).</li>
-        <li><strong className="text-slate-100">Bhattacharyya Coefficient:</strong> Statistical overlap between cognitive distributions (1.0 = identical, 0.0 = no overlap).</li>
-        <li><strong className="text-slate-100">Cognitive Distance:</strong> Geodesic distance on the probability simplex (0.0 = identical, higher = more different).</li>
-        <li><strong className="text-slate-100">Clusters:</strong> Models grouped by thinking similarity.</li>
+      <ul className="list-disc list-inside space-y-1 text-[#b3c2ba]">
+        <li><strong className="text-[#eaf3ee]">Alignment %:</strong> How similarly two models think (100% = identical, below 70% = very different).</li>
+        <li><strong className="text-[#eaf3ee]">Bhattacharyya Coefficient:</strong> Statistical overlap between cognitive distributions (1.0 = identical, 0.0 = no overlap).</li>
+        <li><strong className="text-[#eaf3ee]">Cognitive Distance:</strong> Geodesic distance on the probability simplex (0.0 = identical, higher = more different).</li>
+        <li><strong className="text-[#eaf3ee]">Clusters:</strong> Models grouped by thinking similarity.</li>
       </ul>
     ),
   },
   {
     title: 'Why This Matters',
     body: (
-      <p className="text-slate-300">
-        Different AI models have different cognitive strengths. A model strong in CO-3 (Critical
-        Evaluation) is better for risk assessment. A model strong in CO-5 (Receptive Integration)
-        is better for customer support. This comparison helps you choose the right model for the
-        right task.
+      <p className="text-[#b3c2ba]">
+        Different AI models have different cognitive strengths. A model strong in CO-3 (Negative)
+        more strongly surfaces aversion and boundary refusal. A model strong in CO-5 (Female)
+        absorbs and retains contextual framing as substrate. This comparison helps you choose the
+        right model for the right task.
       </p>
     ),
   },
@@ -328,8 +328,11 @@ export function CohortPage() {
       <ResearchPrototypeNotice compact />
 
       <div>
-        <h2 className="text-xl font-bold text-slate-100">AI Model Comparison</h2>
-        <p className="text-sm text-slate-400 mt-1">
+        <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#37f5a0] mb-1">
+          ◐ Prototype · Cross-Model Cohort
+        </p>
+        <h2 className="font-['Space_Grotesk'] text-2xl font-bold tracking-[-0.03em] text-[#eaf3ee]">AI Model Comparison</h2>
+        <p className="text-sm text-[#b3c2ba] mt-1">
           Compare the cognitive architectures of different AI models side by side. Select models,
           run the same prompt through each, and see how their thinking patterns align or diverge.
         </p>
@@ -340,45 +343,45 @@ export function CohortPage() {
         <div className="space-y-3">
           {slots.map((slot, i) => (
             <div key={i} className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <label className="text-[11px] text-slate-500 w-16 shrink-0">Model {i + 1}</label>
+              <label className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.06em] text-[#86958d] w-20 shrink-0">Model {i + 1}</label>
               <select
                 value={slot.provider}
                 onChange={(e) => updateSlotProvider(i, e.target.value)}
-                className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-slate-300 focus:border-accent-teal/50 focus:outline-none min-h-[44px] sm:w-48"
+                className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-2 text-sm text-[#eaf3ee] focus:border-[#37f5a0] focus:outline-none min-h-[44px] sm:w-48"
               >
-                <option value="" className="bg-dark-800">select provider...</option>
+                <option value="" className="bg-[#0c1513]">select provider...</option>
                 {PROVIDERS.map((p) => (
-                  <option key={p} value={p} className="bg-dark-800">{formatProviderLabel(p)}</option>
+                  <option key={p} value={p} className="bg-[#0c1513]">{formatProviderLabel(p)}</option>
                 ))}
               </select>
-              <div className="flex-1 text-[11px]">
+              <div className="flex-1 text-xs">
                 {slot.loading ? (
-                  <span className="text-slate-400">⏳ Running assessment...</span>
+                  <span className="text-[#b3c2ba]">Running assessment...</span>
                 ) : slot.error ? (
-                  <span className="text-red-400">⚠ {slot.error}</span>
+                  <span className="text-[#ff7b72]">{slot.error}</span>
                 ) : slot.wrapResult ? (
-                  <span className="text-emerald-400">
-                    ✅ Scores loaded · NCCS {slot.wrapResult.nccs.composite.toFixed(1)} · {slot.displayName}
+                  <span className="font-['Geist_Mono'] text-[#37f5a0]">
+                    Scores loaded · NCCS {slot.wrapResult.nccs.composite.toFixed(1)} · {slot.displayName}
                   </span>
                 ) : slot.provider ? (
-                  <span className="text-amber-400">
-                    ⏳ No history yet ·{' '}
+                  <span className="text-[#f59e0b]">
+                    No history yet ·{' '}
                     <button
                       onClick={() => navigate('/', { state: { providerHint: slot.provider } })}
-                      className="underline hover:text-amber-300"
+                      className="underline hover:text-[#eaf3ee]"
                     >
                       Run assessment first
                     </button>
                     {' '}or use Quick Compare below.
                   </span>
                 ) : (
-                  <span className="text-slate-600">— pick a provider —</span>
+                  <span className="text-[#62706a]">— pick a provider —</span>
                 )}
               </div>
               {slots.length > 2 && (
                 <button
                   onClick={() => removeSlot(i)}
-                  className="text-slate-600 hover:text-red-400 transition-colors text-xs px-2"
+                  className="text-[#86958d] hover:text-[#ff7b72] transition-colors text-xs px-2"
                 >
                   Remove
                 </button>
@@ -390,14 +393,14 @@ export function CohortPage() {
             <button
               onClick={addSlot}
               disabled={slots.length >= 6}
-              className="rounded-lg border border-white/[0.08] px-4 py-2 text-sm text-slate-400 hover:text-slate-200 hover:border-white/[0.15] transition-colors disabled:opacity-40"
+              className="rounded-[2px] border border-[#eaf3ee] bg-transparent px-4 py-2 text-sm font-medium text-[#eaf3ee] hover:bg-[#13201c] transition-colors disabled:opacity-40"
             >
               + Add Model
             </button>
             <button
               onClick={handleCompare}
               disabled={cohort.isPending || !hasEnoughReady}
-              className="rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-6 py-2 text-sm font-semibold text-dark-900 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+              className="rounded-[2px] bg-[#37f5a0] px-6 py-2 text-sm font-semibold text-[#050b0a] hover:bg-[#37f5a0]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {cohort.isPending ? 'Comparing...' : `Compare ${readySlots.length || ''} Models`}
             </button>
@@ -408,7 +411,7 @@ export function CohortPage() {
       {/* Quick Compare — run same prompt through all selected providers at once */}
       <Card title="Quick Compare">
         <div className="space-y-3">
-          <p className="text-[11px] text-slate-400">
+          <p className="text-xs text-[#b3c2ba]">
             Enter one prompt below. We'll run it through every selected provider above, then
             compare the results automatically.
           </p>
@@ -417,7 +420,7 @@ export function CohortPage() {
             onChange={(e) => setComparePrompt(e.target.value)}
             placeholder="Enter the prompt you want to compare models on..."
             rows={3}
-            className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-slate-200 placeholder-slate-600 focus:border-accent-teal/50 focus:outline-none resize-none"
+            className="w-full rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3 text-sm text-[#eaf3ee] placeholder-[#62706a] focus:border-[#37f5a0] focus:outline-none resize-none"
           />
           <button
             onClick={handleQuickCompare}
@@ -426,9 +429,9 @@ export function CohortPage() {
               !comparePrompt.trim() ||
               slots.filter((s) => s.provider).length < 2
             }
-            className="rounded-lg border border-accent-teal/30 bg-accent-teal/10 px-5 py-2 text-sm font-semibold text-accent-teal hover:bg-accent-teal/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors min-h-[44px]"
+            className="rounded-[2px] bg-[#37f5a0] px-5 py-2 text-sm font-semibold text-[#050b0a] hover:bg-[#37f5a0]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors min-h-[44px]"
           >
-            {quickCompareRunning ? 'Running assessments...' : '⚡ Quick Compare'}
+            {quickCompareRunning ? 'Running assessments...' : 'Quick Compare'}
           </button>
         </div>
       </Card>
@@ -445,7 +448,7 @@ export function CohortPage() {
             action={<InterpretButton interpretation={clusterInterpretation} />}
           >
             <div className="space-y-3">
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-[#b3c2ba]">
                 Models grouped by cognitive proximity. Models in the same cluster share similar
                 cognitive architectures.
               </p>
@@ -453,14 +456,14 @@ export function CohortPage() {
                 {result.clusters.map((c) => (
                   <span
                     key={c.label}
-                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium border border-white/[0.06] bg-white/[0.02]"
+                    className="inline-flex items-center gap-1.5 rounded-[2px] px-3 py-1.5 text-xs font-medium border border-[#20302b] bg-[#13201c] text-[#eaf3ee]"
                   >
                     <span
                       className="h-2 w-2 rounded-full"
                       style={{ backgroundColor: CLUSTER_COLORS[c.cluster % CLUSTER_COLORS.length] }}
                     />
                     {c.label}
-                    <span className="text-[10px] text-slate-500 ml-0.5">Cluster {c.cluster + 1}</span>
+                    <span className="font-['Geist_Mono'] text-[11px] text-[#86958d] ml-0.5">Cluster {c.cluster + 1}</span>
                   </span>
                 ))}
               </div>
@@ -478,34 +481,34 @@ export function CohortPage() {
           {/* Distance table */}
           <Card title="Pairwise Comparison">
             <div className="overflow-x-auto">
-              <table className="w-full text-[12px]">
+              <table className="w-full text-xs">
                 <thead>
-                  <tr className="text-left text-slate-500 border-b border-white/[0.06]">
-                    <th className="px-3 py-2">From</th>
-                    <th className="px-3 py-2">To</th>
-                    <th className="px-3 py-2">Alignment</th>
-                    <th className="px-3 py-2">Similarity</th>
-                    <th className="px-3 py-2">
+                  <tr className="text-left font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d] border-b border-[#20302b] bg-[#13201c]">
+                    <th className="px-3 py-2.5 font-medium">From</th>
+                    <th className="px-3 py-2.5 font-medium">To</th>
+                    <th className="px-3 py-2.5 font-medium">Alignment</th>
+                    <th className="px-3 py-2.5 font-medium">Similarity</th>
+                    <th className="px-3 py-2.5 font-medium">
                       Bhattacharyya
                       <span
-                        className="ml-1 text-[10px] text-slate-600"
+                        className="ml-1 text-[10px] text-[#62706a]"
                         title="Statistical overlap coefficient between two probability distributions. Range 0-1 where 1 = identical distributions."
                       >
                         (?)
                       </span>
                     </th>
-                    <th className="px-3 py-2">Cognitive Distance</th>
-                    <th className="px-3 py-2 w-16"></th>
+                    <th className="px-3 py-2.5 font-medium">Cognitive Distance</th>
+                    <th className="px-3 py-2.5 w-16"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {result.distances.map((d, i) => (
-                    <tr key={i} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
-                      <td className="px-3 py-2 text-slate-200 font-medium">{d.from_label}</td>
-                      <td className="px-3 py-2 text-slate-200 font-medium">{d.to_label}</td>
+                    <tr key={i} className="border-b border-[#20302b]/60 hover:bg-[#13201c]/70">
+                      <td className="px-3 py-2 text-[#eaf3ee] font-medium">{d.from_label}</td>
+                      <td className="px-3 py-2 text-[#eaf3ee] font-medium">{d.to_label}</td>
                       <td className="px-3 py-2">
                         <span
-                          className="font-mono font-bold"
+                          className="font-['Geist_Mono'] font-bold"
                           style={{ color: cohortColor(d.alignment_pct, 'text') }}
                         >
                           {d.alignment_pct.toFixed(1)}%
@@ -513,7 +516,7 @@ export function CohortPage() {
                       </td>
                       <td className="px-3 py-2">
                         <span
-                          className="font-mono font-bold"
+                          className="font-['Geist_Mono'] font-bold"
                           style={{ color: cohortColor(d.similarity_pct, 'text') }}
                         >
                           {d.similarity_pct.toFixed(1)}%
@@ -521,13 +524,13 @@ export function CohortPage() {
                       </td>
                       <td className="px-3 py-2">
                         <span
-                          className="font-mono font-bold"
+                          className="font-['Geist_Mono'] font-bold"
                           style={{ color: cohortColor(d.bhattacharyya_coefficient * 100, 'text') }}
                         >
                           {d.bhattacharyya_coefficient.toFixed(4)}
                         </span>
                       </td>
-                      <td className="px-3 py-2 font-mono text-slate-400">
+                      <td className="px-3 py-2 font-['Geist_Mono'] text-[#b3c2ba]">
                         {d.geodesic_distance.toFixed(4)}
                       </td>
                       <td className="px-3 py-2 text-right">

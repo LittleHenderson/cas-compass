@@ -61,9 +61,9 @@ except ImportError:
 
 EVIDENCE_SCHEMA_VERSION = "cas_harness_customer_production_gate_evidence.v3"
 SAFE_ARTIFACT_SCHEMA_VERSION = "cas_runtime_worm_source_receipt.v2"
-REPOSITORY = "LittleHenderson/noetic-compass"
+REPOSITORY = "LittleHenderson/cas-compass"
 ENVIRONMENT = "public-production"
-PRODUCTION_API_ORIGIN = "https://api.noeticcompass.com"
+PRODUCTION_API_ORIGIN = "https://api.caslabai.com"
 PRODUCTION_SERVICE_ID = "i-0bd0a082507a51ae3"
 PRODUCTION_SERVICE_NAME = "cas-harness-customer-api"
 AUTHORITY_URI = acceptance_authority_url("runtime_worm")

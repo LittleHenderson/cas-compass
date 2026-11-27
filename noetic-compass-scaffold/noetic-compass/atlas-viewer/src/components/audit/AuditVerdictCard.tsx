@@ -3,8 +3,10 @@ import { GlassPanel } from '../ui/GlassPanel';
 import { AuditTerm } from './AuditTerm';
 import {
   ACCENT_AMBER,
+  ACCENT_ERROR,
   ACCENT_TEAL,
   COLORS,
+  FONT_DISPLAY,
   FONT_FAMILY,
   FONT_MONO,
 } from '../../lib/designTokens';
@@ -39,26 +41,26 @@ const verdictTone: Record<
 > = {
   ACCEPT: {
     accent: ACCENT_TEAL,
-    fill: 'rgba(45, 212, 191, 0.11)',
-    border: 'rgba(45, 212, 191, 0.42)',
-    text: '#ccfbf1',
+    fill: COLORS.card,
+    border: ACCENT_TEAL,
+    text: ACCENT_TEAL,
   },
   SUPPRESS: {
-    accent: '#fb7185',
-    fill: 'rgba(251, 113, 133, 0.11)',
-    border: 'rgba(251, 113, 133, 0.42)',
-    text: '#ffe4e6',
+    accent: ACCENT_ERROR,
+    fill: COLORS.card,
+    border: ACCENT_ERROR,
+    text: ACCENT_ERROR,
   },
   FLAG_FOR_HUMAN_REVIEW: {
     accent: ACCENT_AMBER,
-    fill: 'rgba(251, 191, 36, 0.12)',
-    border: 'rgba(251, 191, 36, 0.42)',
-    text: '#fef3c7',
+    fill: COLORS.card,
+    border: ACCENT_AMBER,
+    text: ACCENT_AMBER,
   },
   PENDING: {
     accent: COLORS.textMuted,
-    fill: 'rgba(148, 163, 184, 0.08)',
-    border: 'rgba(148, 163, 184, 0.26)',
+    fill: COLORS.card,
+    border: COLORS.rule,
     text: COLORS.textPrimary,
   },
 };
@@ -71,10 +73,11 @@ const shellStyle: CSSProperties = {
 
 const eyebrowStyle: CSSProperties = {
   margin: 0,
-  color: COLORS.textSecondary,
-  fontSize: 12,
-  fontWeight: 700,
-  letterSpacing: 0,
+  color: COLORS.textMuted,
+  fontFamily: FONT_MONO,
+  fontSize: 11,
+  fontWeight: 500,
+  letterSpacing: 1,
   textTransform: 'uppercase',
 };
 
@@ -82,22 +85,22 @@ const verdictStyle = (toneKey: AuditVerdict | 'PENDING'): CSSProperties => {
   const tone = verdictTone[toneKey];
   return {
     margin: 0,
+    fontFamily: FONT_DISPLAY,
     color: tone.text,
-    fontSize: 'clamp(30px, 7vw, 64px)',
-    lineHeight: 0.95,
-    fontWeight: 900,
-    letterSpacing: 0,
+    fontSize: 'clamp(28px, 6vw, 56px)',
+    lineHeight: 0.98,
+    fontWeight: 700,
+    letterSpacing: -0.6,
     textWrap: 'balance',
-    textShadow: `0 0 28px ${tone.fill}`,
   };
 };
 
 const meterTrackStyle: CSSProperties = {
   position: 'relative',
-  height: 8,
-  borderRadius: 4,
+  height: 6,
+  borderRadius: 2,
   overflow: 'hidden',
-  background: 'rgba(255, 255, 255, 0.07)',
+  background: COLORS.rule,
 };
 
 const metaGridStyle: CSSProperties = {
@@ -108,17 +111,18 @@ const metaGridStyle: CSSProperties = {
 
 const metaTileStyle: CSSProperties = {
   padding: '12px 14px',
-  border: `1px solid ${COLORS.borderSubtle}`,
-  borderRadius: 8,
-  background: 'rgba(2, 6, 23, 0.34)',
+  border: `1px solid ${COLORS.rule}`,
+  borderRadius: 2,
+  background: COLORS.ground,
 };
 
 const metaLabelStyle: CSSProperties = {
   display: 'block',
   color: COLORS.textMuted,
+  fontFamily: FONT_MONO,
   fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: 0,
+  fontWeight: 500,
+  letterSpacing: 0.7,
   textTransform: 'uppercase',
 };
 
@@ -127,7 +131,7 @@ const metaValueStyle: CSSProperties = {
   marginTop: 6,
   color: COLORS.textPrimary,
   fontSize: 14,
-  fontWeight: 700,
+  fontWeight: 600,
 };
 
 const actionRowStyle: CSSProperties = {
@@ -139,21 +143,24 @@ const actionRowStyle: CSSProperties = {
 const buttonStyle: CSSProperties = {
   minHeight: 34,
   padding: '7px 12px',
-  borderRadius: 6,
-  border: `1px solid ${COLORS.borderStrong}`,
-  background: 'rgba(255, 255, 255, 0.04)',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.stripe,
   color: COLORS.textPrimary,
   cursor: 'pointer',
-  fontFamily: 'inherit',
-  fontSize: 13,
-  fontWeight: 700,
+  fontFamily: FONT_MONO,
+  fontSize: 11.5,
+  fontWeight: 500,
+  letterSpacing: 0.6,
+  textTransform: 'uppercase',
 };
 
 const primaryButtonStyle: CSSProperties = {
   ...buttonStyle,
-  border: '1px solid rgba(45, 212, 191, 0.45)',
-  background: 'rgba(45, 212, 191, 0.12)',
-  color: '#ccfbf1',
+  border: `1px solid ${ACCENT_TEAL}`,
+  background: ACCENT_TEAL,
+  color: COLORS.ground,
+  fontWeight: 600,
 };
 
 function confidencePercent(confidence: number): number {
@@ -197,7 +204,7 @@ export function AuditVerdictCard({
       ariaLabel="Audit verdict"
       style={{
         borderColor: tone.border,
-        background: `linear-gradient(180deg, ${tone.fill}, rgba(255, 255, 255, 0.03))`,
+        background: tone.fill,
       }}
     >
       <div style={shellStyle}>

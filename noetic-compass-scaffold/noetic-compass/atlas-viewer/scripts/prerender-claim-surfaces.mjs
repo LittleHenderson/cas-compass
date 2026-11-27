@@ -93,7 +93,8 @@ function loadAndValidateContent(raw) {
       expected.kind + '.statements must contain only non-empty strings',
     );
     assert(
-      surface.heading !== 'Log in to Noetic Compass',
+      surface.heading !== 'Log in to Noetic Compass' &&
+        surface.heading !== 'Log in to CAS Compass',
       expected.kind + ' cannot use the generic login heading',
     );
   }

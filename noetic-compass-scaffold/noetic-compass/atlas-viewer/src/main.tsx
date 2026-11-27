@@ -5,11 +5,14 @@ import {
   PrerenderHydrationMarker,
 } from './ApplicationRoot';
 import { prerenderedClaimSurfaceKind } from './lib/claimSurfaceContract';
+import { initMotionPaused } from './lib/motionPause';
 import './styles/global.css';
+
+initMotionPaused();
 
 const rootElement = document.getElementById('root');
 if (rootElement === null) {
-  throw new Error('Atlas Viewer application mount #root is missing.');
+  throw new Error('CAS Compass application mount #root is missing.');
 }
 
 const prerenderKind = prerenderedClaimSurfaceKind(

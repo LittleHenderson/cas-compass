@@ -1,12 +1,12 @@
 {
-  "name": "Noetic Compass",
-  "short_name": "Noetic",
-  "description": "AI Psychology & Ethics Assessment Platform",
+  "name": "CAS Compass",
+  "short_name": "CAS Compass",
+  "description": "CAS Compass — Cognitive architecture assessment, audit, and interpretability workbench by CAS Lab.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#0a0f1a",
-  "background_color": "#0a0f1a",
+  "theme_color": "#050b0a",
+  "background_color": "#050b0a",
   "icons": [
     {
       "src": "/icon-192.svg",

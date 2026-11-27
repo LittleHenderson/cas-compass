@@ -68,7 +68,7 @@ const server = setupServer(
           machine_domain_scores: [8.8, 9.1, 6.4, 5.7],
           largest_operator_gap: {
             operator_index: 3,
-            operator_name: 'CO-3 (Critical Evaluation)',
+            operator_name: 'CO-3 (Negative)',
             spread: 4.4,
             panel_mean: 1.5,
           },

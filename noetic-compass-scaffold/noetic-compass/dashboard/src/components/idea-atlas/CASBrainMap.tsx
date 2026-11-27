@@ -1696,16 +1696,16 @@ export function CASBrainMap({
       data-testid="cas-brain-map"
       style={containerStyle}
       className={[
-        'overflow-hidden rounded-lg border border-cyan-400/20 bg-slate-950/85',
+        'overflow-hidden rounded-[2px] border border-[#20302b] bg-[#050b0a]',
         'shadow-[0_0_42px_rgba(34,211,238,0.10)]',
         className ?? '',
       ]
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="absolute left-0 right-0 top-0 z-20 flex flex-wrap items-start justify-between gap-3 border-b border-white/[0.06] bg-slate-950/70 px-4 py-3 backdrop-blur-sm">
+      <div className="absolute left-0 right-0 top-0 z-20 flex flex-wrap items-start justify-between gap-3 border-b border-[#20302b] bg-[#0c1513]/95 px-4 py-3">
         <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-cyan-300">
+          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#37f5a0]">
             CAS Brain Map
           </div>
           <h2 className="mt-1 text-base font-semibold text-slate-100">
@@ -1719,10 +1719,10 @@ export function CASBrainMap({
         </div>
         <div className="flex items-center gap-2">
           <div
-            className="rounded-md border border-cyan-300/20 bg-cyan-500/10 px-3 py-1.5 text-right"
+            className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-1.5 text-right"
             data-testid="cas-brain-stats-chip"
           >
-            <div className="font-mono text-[9px] uppercase tracking-wider text-cyan-200">
+            <div className="font-mono text-[9px] uppercase tracking-wider text-[#37f5a0]">
               Architecture
             </div>
             <div className="mt-0.5 font-mono text-[11px] leading-snug text-slate-100">
@@ -1731,8 +1731,8 @@ export function CASBrainMap({
               {' · '}d_model {D_MODEL}
             </div>
           </div>
-          <div className="rounded-md border border-cyan-300/20 bg-cyan-500/10 px-3 py-1.5 text-right">
-            <div className="font-mono text-[9px] uppercase tracking-wider text-cyan-200">
+          <div className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-1.5 text-right">
+            <div className="font-mono text-[9px] uppercase tracking-wider text-[#37f5a0]">
               {evidenceLabel(mode)}
             </div>
             <div className="mt-0.5 max-w-[260px] text-[11px] leading-snug text-slate-300">
@@ -1745,7 +1745,7 @@ export function CASBrainMap({
             aria-label="Reset view"
             title="Reset camera to default framing"
             data-testid="cas-brain-reset-view"
-            className="flex h-9 items-center justify-center rounded-md border border-white/[0.08] bg-black/40 px-3 text-xs text-slate-200 transition-colors hover:bg-white/10 hover:text-white"
+            className="flex h-9 items-center justify-center rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 text-xs text-slate-200 transition-colors hover:bg-white/10 hover:text-white"
           >
             Reset view
           </button>
@@ -1760,7 +1760,7 @@ export function CASBrainMap({
               'flex h-9 items-center justify-center rounded-md border px-3 text-xs transition-colors',
               tourMode
                 ? 'border-amber-300/40 bg-amber-500/20 text-amber-50 hover:bg-amber-500/30'
-                : 'border-white/[0.08] bg-black/40 text-slate-200 hover:bg-white/10 hover:text-white',
+                : 'border-[#20302b] bg-[#13201c] text-[#eaf3ee] hover:border-[#37f5a0] hover:text-[#37f5a0]',
             ].join(' ')}
           >
             {tourMode ? 'Tour mode: on' : 'Tour mode: off'}
@@ -1796,7 +1796,7 @@ export function CASBrainMap({
             onClick={toggleFullscreen}
             aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
             title={fullscreen ? 'Exit fullscreen' : 'Fullscreen the CAS Brain Map'}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-white/[0.08] bg-black/40 text-slate-200 transition-colors hover:bg-white/10 hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-[2px] border border-[#20302b] bg-[#13201c] text-slate-200 transition-colors hover:bg-white/10 hover:text-white"
           >
             {fullscreen ? (
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1822,7 +1822,7 @@ export function CASBrainMap({
       {/* Hover tooltip */}
       {hovered && (
         <div
-          className="pointer-events-none absolute z-30 max-w-xs rounded-md border border-white/[0.08] bg-black/85 px-3 py-2 text-xs text-slate-100 shadow-lg backdrop-blur-sm"
+          className="pointer-events-none absolute z-30 max-w-xs rounded-[2px] border border-[#20302b] bg-[#0c1513] px-3 py-2 text-xs text-slate-100 shadow-lg backdrop-blur-sm"
           style={{
             left: Math.min(
               hovered.clientX -
@@ -1836,7 +1836,7 @@ export function CASBrainMap({
               14,
           }}
         >
-          <div className="font-mono text-[10px] uppercase tracking-wider text-cyan-300">
+          <div className="font-mono text-[10px] uppercase tracking-wider text-[#37f5a0]">
             {hovered.layer.pipelinePosition.stage}
             {hovered.layer.pipelinePosition.subIndex && hovered.layer.pipelinePosition.total
               ? ` - ${hovered.layer.pipelinePosition.subIndex} of ${hovered.layer.pipelinePosition.total}`
@@ -1848,7 +1848,7 @@ export function CASBrainMap({
           <div className="mt-1 text-[11px] leading-relaxed text-slate-300">
             {hovered.layer.casPurpose}
           </div>
-          <div className="mt-2 font-mono text-[10px] text-cyan-200">
+          <div className="mt-2 font-mono text-[10px] text-[#37f5a0]">
             {formatParamCountHover(hovered.layer.paramCount)}
           </div>
           <div className="mt-1 font-mono text-[10px] text-slate-500">
@@ -1872,20 +1872,20 @@ export function CASBrainMap({
       )}
 
       {/* Bottom info bar */}
-      <div className="pointer-events-none absolute bottom-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2 rounded-md border border-white/[0.08] bg-black/55 px-3 py-2 text-xs text-slate-300 backdrop-blur-sm">
+      <div className="pointer-events-none absolute bottom-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2 rounded-[2px] border border-[#20302b] bg-[#0c1513]/95 px-3 py-2 text-xs text-slate-300 backdrop-blur-sm">
         <span className="truncate">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-cyan-300">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-[#37f5a0]">
             flow
           </span>{' '}
           {flowPreview || 'priming...'}
         </span>
-        <span className="font-mono text-[10px] uppercase tracking-wider text-cyan-300">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-[#37f5a0]">
           {layers.length} layers · {edges.length} synapses · {flows.length} mock flows
         </span>
       </div>
 
       {/* Family legend (top-left, below header — clears the 2-line subtitle) */}
-      <div className="pointer-events-none absolute left-3 top-[180px] z-20 hidden gap-2 rounded-md border border-white/[0.08] bg-black/55 px-3 py-2 text-xs text-slate-300 backdrop-blur-sm md:flex md:flex-wrap md:max-w-md">
+      <div className="pointer-events-none absolute left-3 top-[180px] z-20 hidden gap-2 rounded-[2px] border border-[#20302b] bg-[#0c1513]/95 px-3 py-2 text-xs text-slate-300 backdrop-blur-sm md:flex md:flex-wrap md:max-w-md">
         {familyLegend.map((entry) => (
           <span key={entry.family} className="flex items-center gap-1.5">
             <span
@@ -1901,13 +1901,13 @@ export function CASBrainMap({
       {/* Click-to-pin side panel — top matches the family legend for visual balance */}
       {pinned && (
         <aside
-          className="absolute right-3 top-[180px] z-30 max-h-[calc(100%-212px)] w-80 overflow-y-auto rounded-md border border-cyan-300/25 bg-black/85 p-4 text-sm text-slate-200 shadow-xl backdrop-blur-sm"
+          className="absolute right-3 top-[180px] z-30 max-h-[calc(100%-212px)] w-80 overflow-y-auto rounded-[2px] border border-[#37f5a0]/40 bg-[#0c1513] p-4 text-sm text-slate-200 shadow-xl backdrop-blur-sm"
           role="dialog"
           aria-label={`Layer details: ${pinned.label}`}
         >
           <div className="flex items-start justify-between gap-2">
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-wider text-cyan-300">
+              <div className="font-mono text-[10px] uppercase tracking-wider text-[#37f5a0]">
                 {pinned.pipelinePosition.stage}
                 {pinned.pipelinePosition.subIndex && pinned.pipelinePosition.total
                   ? ` - ${pinned.pipelinePosition.subIndex} of ${pinned.pipelinePosition.total}`
@@ -1975,8 +1975,8 @@ export function CASBrainMap({
             </div>
           </dl>
 
-          <div className="mt-4 rounded border border-cyan-300/15 bg-cyan-500/[0.06] p-3">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-cyan-300">
+          <div className="mt-4 rounded-[2px] border border-[#20302b] bg-[#13201c] p-3">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-[#37f5a0]">
               Why this matters
             </div>
             <p className="mt-2 text-[12px] leading-relaxed text-slate-300">
@@ -2026,7 +2026,7 @@ function CloseViewInfoPanel({ layer, synthetic }: CloseViewInfoPanelProps) {
   return (
     <aside
       data-testid="cas-brain-close-info-panel"
-      className="absolute right-3 top-[180px] z-40 max-h-[calc(100%-212px)] w-96 overflow-y-auto rounded-md border border-cyan-300/30 bg-black/90 text-sm text-slate-200 shadow-xl backdrop-blur-sm"
+      className="absolute right-3 top-[180px] z-40 max-h-[calc(100%-212px)] w-96 overflow-y-auto rounded-[2px] border border-[#37f5a0]/50 bg-[#0c1513] text-sm text-slate-200 shadow-xl backdrop-blur-sm"
       role="dialog"
       aria-label={`Close view: ${layer.label}`}
     >
@@ -2117,7 +2117,7 @@ function SignificantBadge({
 
   return (
     <div
-      className="pointer-events-none absolute z-30 rounded-md border border-amber-300/40 bg-amber-500/15 px-2 py-1 font-mono text-[10px] text-amber-100 shadow-md backdrop-blur-sm"
+      className="pointer-events-none absolute z-30 rounded-[2px] border border-dashed border-[#f59e0b]/70 bg-[#13201c] px-2 py-1 font-mono text-[10px] text-amber-100 shadow-md backdrop-blur-sm"
       style={{
         left: Math.max(6, Math.min(x + 14, (rendererEl.clientWidth ?? 0) - 180)),
         top: Math.max(6, y - 24),
@@ -2201,7 +2201,7 @@ export function CASBrainMapLazyShell(props: CASBrainMapProps) {
   return (
     <Suspense
       fallback={
-        <div className="flex h-[800px] w-full items-center justify-center rounded-lg border border-cyan-400/20 bg-slate-950/85 text-sm text-slate-400">
+        <div className="flex h-[800px] w-full items-center justify-center rounded-[2px] border border-[#20302b] bg-[#0c1513] text-sm text-slate-400">
           Loading CAS Brain Map...
         </div>
       }

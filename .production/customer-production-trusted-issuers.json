@@ -10,7 +10,7 @@
       "allowed_subjects": [
         {
           "gate": "root_ci_protected_deploy",
-          "uri": "https://github.com/LittleHenderson/noetic-compass/releases/download/customer-production-evidence/root-ci-protected-deploy.json"
+          "uri": "https://github.com/LittleHenderson/cas-compass/releases/download/customer-production-evidence/root-ci-protected-deploy.json"
         }
       ],
       "valid_from_utc": "2026-07-14T07:56:55Z",

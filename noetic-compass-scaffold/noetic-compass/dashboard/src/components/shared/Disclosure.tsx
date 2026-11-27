@@ -15,23 +15,28 @@ export function Disclosure({ summary, children, defaultOpen = false, className =
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div className={`rounded-lg border border-white/[0.08] bg-white/[0.02] ${className}`.trim()}>
+    <div className={`rounded-[2px] border border-[#20302b] bg-[#0c1513] ${className}`.trim()}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left min-h-[40px]"
+        className="flex min-h-[40px] w-full items-center justify-between gap-3 px-3.5 py-2 text-left transition-colors hover:bg-[#13201c]"
       >
-        <span className="text-[11px] font-medium text-slate-300">{summary}</span>
+        <span className="font-mono text-[11px] font-medium text-[#eaf3ee]">{summary}</span>
         <svg
-          width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"
-          className={`flex-shrink-0 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          width="12"
+          height="12"
+          viewBox="0 0 14 14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          className={`flex-shrink-0 text-[#86958d] transition-transform duration-150 ${open ? 'rotate-180 text-[#37f5a0]' : ''}`}
         >
           <path d="M3 5l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
       {open && (
-        <div className="animate-slide-down border-t border-white/[0.04] px-3 pb-3 pt-2 text-[11px] leading-relaxed text-slate-500 space-y-2">
+        <div className="animate-slide-down space-y-2 border-t border-[#17231f] bg-[#050b0a]/50 px-3.5 pb-3 pt-2.5 text-xs leading-relaxed text-[#b3c2ba]">
           {children}
         </div>
       )}

@@ -93,7 +93,7 @@ def _common(gate: str) -> dict[str, object]:
     return {
         "gate": gate,
         "environment": "public-production",
-        "repository": "LittleHenderson/noetic-compass",
+        "repository": "LittleHenderson/cas-compass",
         "master_head_sha": MASTER,
         "deploy_id": DEPLOY,
         "event_at_utc": stamp,
@@ -421,7 +421,7 @@ def test_private_identity_binding_tamper_and_legacy_v1_fail_closed() -> None:
         "purpose": "legal_approval",
         "gate": "legal_publication_approval",
         "environment": "public-production",
-        "repository": "LittleHenderson/noetic-compass",
+        "repository": "LittleHenderson/cas-compass",
         "master_head_sha": MASTER,
         "deploy_id": DEPLOY,
         "evidence_binding_sha256": "a" * 64,
@@ -1230,7 +1230,7 @@ def test_authenticated_route_creates_reads_and_revokes_exact_attestation(
         assert created.status_code == 201, created.text
         output = created.json()
         public_path = output["attestation_artifact_uri"].removeprefix(
-            "https://api.noeticcompass.com"
+            "https://api.caslabai.com"
         )
         public = client.get(public_path)
         assert public.status_code == 200

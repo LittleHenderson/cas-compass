@@ -36,7 +36,7 @@ except ImportError:  # Direct ``python scripts/...`` execution.
     )
 
 
-DEFAULT_BASE_URL = "https://api.noeticcompass.com"
+DEFAULT_BASE_URL = "https://api.caslabai.com"
 MODEL_ID = "EleutherAI/pythia-160m"
 REALMODE_PASS = "REAL_PYTHIA_WEIGHTS_LOADED"
 WORKER_TOKEN_HEADER = "X-Atlas-Worker-Token"

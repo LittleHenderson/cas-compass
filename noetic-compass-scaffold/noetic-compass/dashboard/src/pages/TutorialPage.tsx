@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card } from '../components/shared/Card';
 
 const TUTORIAL_STORAGE_KEY = 'nc_tutorial_complete_v1';
+const CAS_COMPILER_URL = 'https://www.caslabai.com/compiler/';
 
 type DetailMode = 'simple' | 'technical';
 
@@ -13,14 +14,16 @@ interface TutorialStep {
   technical: string;
   actionLabel: string;
   actionTo: string;
+  external?: boolean;
 }
 
 const STEPS: readonly TutorialStep[] = [
   {
     eyebrow: '1 / 5',
     title: 'CAS looks for structure, not vibes.',
-    plain: 'Noetic Compass turns a prompt, response, or profile into a structured map you can inspect.',
-    technical: 'The app organizes cognition across Noetics, Domains, Registers, Drives, lacunarity, and compiler-validated notation.',
+    plain: 'CAS Compass turns a prompt, response, or profile into a structured map you can inspect.',
+    technical:
+      'CAS Compass organizes cognition across the 10 Noetics, 4 Domains, 4 Registers (|T Transcendent, |A Analytical, |f Affective, |E Embodied), 7 Drives, lacunarity, and compiler-validated notation.',
     actionLabel: 'See the framework',
     actionTo: '/how-it-works',
   },
@@ -51,10 +54,11 @@ const STEPS: readonly TutorialStep[] = [
   {
     eyebrow: '5 / 5',
     title: 'Open the compiler when you want the formal layer.',
-    plain: 'You can stay in plain language, but the compiler is there when you want exact CAS notation.',
+    plain: 'You can stay in plain language, but the external CAS Compiler is there when you want exact CAS notation.',
     technical: 'The compiler parses CAS expressions, typed set-theory meta-logic, Rule 4 admissibility, and register-aware operators.',
-    actionLabel: 'Try the compiler',
-    actionTo: '/compiler',
+    actionLabel: 'CAS Compiler ↗',
+    actionTo: CAS_COMPILER_URL,
+    external: true,
   },
 ] as const;
 
@@ -77,18 +81,16 @@ export function TutorialPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="relative overflow-hidden rounded-2xl border border-accent-teal/20 bg-gradient-to-br from-dark-800 via-dark-900 to-dark-900 p-6 shadow-[0_0_50px_rgba(45,212,191,0.06)]">
-        <div className="absolute -left-24 top-8 h-64 w-64 rounded-full bg-accent-teal/10 blur-3xl" />
-        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent-cyan/10 blur-3xl" />
-        <div className="relative max-w-3xl">
-          <p className="mb-4 inline-flex rounded-full border border-accent-teal/25 bg-accent-teal/[0.08] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-accent-teal">
-            Start Here
+    <div className="mx-auto max-w-6xl space-y-6 pb-16">
+      <div className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-6">
+        <div className="max-w-3xl">
+          <p className="mb-3 inline-flex rounded-[2px] border border-[#37f5a0]/40 bg-[#13201c] px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[#37f5a0]">
+            Start Here · CAS Lab
           </p>
-          <h1 className="text-3xl font-black tracking-tight text-slate-100 sm:text-4xl">
-            Learn Noetic Compass without starting in the math.
+          <h1 className="font-['Space_Grotesk',sans-serif] text-3xl font-bold tracking-tight text-[#eaf3ee] sm:text-4xl">
+            Learn CAS Compass without starting in the math.
           </h1>
-          <p className="mt-3 text-sm leading-7 text-slate-400">
+          <p className="mt-3 text-sm leading-7 text-[#b3c2ba]">
             This five-step tour explains what to look at, what to listen for, and when to use the technical tools.
           </p>
         </div>
@@ -97,23 +99,23 @@ export function TutorialPage() {
       <Card>
         <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-accent-teal">
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[#37f5a0]">
               Guided path
             </p>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-[#86958d]">
               {completed ? 'Completed once. You can replay it anytime.' : 'About five minutes. No prior CAS knowledge needed.'}
             </p>
           </div>
-          <div className="inline-flex rounded-xl border border-white/[0.08] bg-white/[0.035] p-1">
+          <div className="inline-flex rounded-[2px] border border-[#20302b] bg-[#050b0a] p-1">
             {(['simple', 'technical'] as const).map((mode) => (
               <button
                 key={mode}
                 type="button"
                 onClick={() => setDetailMode(mode)}
-                className={`rounded-lg px-3 py-2 text-xs font-semibold capitalize transition-colors ${
+                className={`rounded-[2px] px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-[0.1em] transition-colors ${
                   detailMode === mode
-                    ? 'bg-accent-teal text-dark-900'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-[#37f5a0] text-[#050b0a]'
+                    : 'text-[#86958d] hover:text-[#eaf3ee]'
                 }`}
               >
                 {mode}
@@ -122,9 +124,9 @@ export function TutorialPage() {
           </div>
         </div>
 
-        <div className="mb-6 h-2 overflow-hidden rounded-full bg-white/[0.06]" aria-label="Tutorial progress">
+        <div className="mb-6 h-1.5 overflow-hidden rounded-[2px] bg-[#13201c]" aria-label="Tutorial progress">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-accent-teal to-accent-cyan"
+            className="h-full bg-[#37f5a0] transition-all duration-200"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -136,38 +138,38 @@ export function TutorialPage() {
                 key={step.title}
                 type="button"
                 onClick={() => setActiveIndex(index)}
-                className={`rounded-xl border p-4 text-left transition-colors ${
+                className={`rounded-[2px] border p-4 text-left transition-colors ${
                   index === activeIndex
-                    ? 'border-accent-teal/45 bg-accent-teal/[0.08]'
-                    : 'border-white/[0.08] bg-white/[0.03] hover:border-accent-teal/25'
+                    ? 'border-[#37f5a0] bg-[#13201c]'
+                    : 'border-[#20302b] bg-[#0c1513] hover:border-[#eaf3ee]/50'
                 }`}
               >
-                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-accent-teal">
+                <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[#37f5a0]">
                   {step.eyebrow}
                 </span>
-                <span className="mt-1 block text-sm font-semibold text-slate-100">
+                <span className="mt-1 block font-['Space_Grotesk',sans-serif] text-sm font-semibold text-[#eaf3ee]">
                   {step.title}
                 </span>
               </button>
             ))}
           </nav>
 
-          <section className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-accent-gold">
+          <section className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-5">
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[#f59e0b]">
               {activeStep.eyebrow}
             </p>
-            <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-100">
+            <h2 className="mt-2 font-['Space_Grotesk',sans-serif] text-2xl font-bold tracking-tight text-[#eaf3ee]">
               {activeStep.title}
             </h2>
-            <p className="mt-4 text-base leading-8 text-slate-300">
+            <p className="mt-4 text-base leading-8 text-[#b3c2ba]">
               {detailMode === 'simple' ? activeStep.plain : activeStep.technical}
             </p>
 
-            <div className="mt-6 rounded-xl border border-white/[0.08] bg-dark-900/45 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+            <div className="mt-6 rounded-[2px] border border-dashed border-[#f59e0b]/50 bg-[#0c1513] p-4">
+              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[#f59e0b]">
                 Plain-language rule
               </p>
-              <p className="mt-2 text-sm leading-7 text-slate-400">
+              <p className="mt-2 text-sm leading-7 text-[#b3c2ba]">
                 If a result sounds like a claim, treat it as something to test. CAS is strongest when it turns uncertainty into a concrete check.
               </p>
             </div>
@@ -178,7 +180,7 @@ export function TutorialPage() {
                   type="button"
                   onClick={() => setActiveIndex((value) => Math.max(0, value - 1))}
                   disabled={activeIndex === 0}
-                  className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-sm font-semibold text-slate-300 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-[2px] border border-[#eaf3ee] bg-transparent px-4 py-2 text-sm font-semibold text-[#eaf3ee] transition-colors hover:border-[#37f5a0] hover:text-[#37f5a0] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Previous
                 </button>
@@ -186,17 +188,28 @@ export function TutorialPage() {
                   type="button"
                   onClick={() => setActiveIndex((value) => Math.min(STEPS.length - 1, value + 1))}
                   disabled={activeIndex === STEPS.length - 1}
-                  className="rounded-lg border border-accent-teal/30 bg-accent-teal/[0.1] px-4 py-2 text-sm font-semibold text-accent-teal disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-[2px] border border-[#37f5a0] bg-[#0c1513] px-4 py-2 text-sm font-semibold text-[#37f5a0] transition-colors hover:bg-[#37f5a0] hover:text-[#050b0a] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Next
                 </button>
               </div>
-              <Link
-                to={activeStep.actionTo}
-                className="rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-4 py-2 text-center text-sm font-semibold text-dark-900 transition-opacity hover:opacity-90"
-              >
-                {activeStep.actionLabel}
-              </Link>
+              {activeStep.external ? (
+                <a
+                  href={activeStep.actionTo}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-[2px] bg-[#37f5a0] px-4 py-2 text-center text-sm font-semibold text-[#050b0a] transition-opacity hover:opacity-90"
+                >
+                  {activeStep.actionLabel}
+                </a>
+              ) : (
+                <Link
+                  to={activeStep.actionTo}
+                  className="rounded-[2px] bg-[#37f5a0] px-4 py-2 text-center text-sm font-semibold text-[#050b0a] transition-opacity hover:opacity-90"
+                >
+                  {activeStep.actionLabel}
+                </Link>
+              )}
             </div>
           </section>
         </div>
@@ -205,20 +218,37 @@ export function TutorialPage() {
       <Card title="Where to go after the tour">
         <div className="grid gap-3 md:grid-cols-4">
           {[
-            ['Visual + Audio', '/visualization', 'See and hear one profile.'],
-            ['Risk Forecast', '/forecast', 'Find test priorities.'],
-            ['CAS Compiler', '/compiler', 'Inspect formal notation.'],
-            ['Assessment', '/assessment', 'Score a response pattern.'],
-          ].map(([label, to, body]) => (
-            <Link
-              key={to}
-              to={to}
-              className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 transition-colors hover:border-accent-teal/35 hover:bg-accent-teal/[0.04]"
-            >
-              <p className="text-sm font-semibold text-slate-100">{label}</p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-500">{body}</p>
-            </Link>
-          ))}
+            { label: 'Visual + Audio', to: '/visualization', body: 'See and hear one profile.', external: false },
+            { label: 'Risk Forecast', to: '/forecast', body: 'Find test priorities.', external: false },
+            { label: 'CAS Compiler ↗', to: CAS_COMPILER_URL, body: 'Inspect formal notation on CAS Lab.', external: true },
+            { label: 'Assessment', to: '/assessment', body: 'Score a response pattern.', external: false },
+          ].map((dest) =>
+            dest.external ? (
+              <a
+                key={dest.to}
+                href={dest.to}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-4 transition-colors hover:border-[#37f5a0]"
+              >
+                <p className="font-['Space_Grotesk',sans-serif] text-sm font-semibold text-[#eaf3ee]">
+                  {dest.label}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-[#86958d]">{dest.body}</p>
+              </a>
+            ) : (
+              <Link
+                key={dest.to}
+                to={dest.to}
+                className="rounded-[2px] border border-[#20302b] bg-[#13201c] p-4 transition-colors hover:border-[#37f5a0]"
+              >
+                <p className="font-['Space_Grotesk',sans-serif] text-sm font-semibold text-[#eaf3ee]">
+                  {dest.label}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-[#86958d]">{dest.body}</p>
+              </Link>
+            ),
+          )}
         </div>
       </Card>
 
@@ -226,7 +256,7 @@ export function TutorialPage() {
         <button
           type="button"
           onClick={markComplete}
-          className="rounded-lg border border-accent-teal/30 bg-accent-teal/[0.08] px-4 py-2 text-sm font-semibold text-accent-teal transition-colors hover:bg-accent-teal/[0.14]"
+          className="rounded-[2px] border border-[#eaf3ee] bg-[#0c1513] px-4 py-2 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#eaf3ee] transition-colors hover:border-[#37f5a0] hover:text-[#37f5a0]"
         >
           {completed ? 'Tutorial marked complete' : 'Mark tutorial complete'}
         </button>

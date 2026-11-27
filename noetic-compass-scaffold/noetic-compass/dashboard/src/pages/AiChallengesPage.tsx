@@ -91,11 +91,11 @@ type ChallengeResult = { challengeId: string; result: WrapResult | null; loading
 const GRADE_THRESHOLDS = { strong: 70, partial: 50 };
 
 function gradeResult(result: WrapResult | null): { grade: 'strong' | 'partial' | 'weak' | 'pending'; color: string; label: string } {
-  if (!result) return { grade: 'pending', color: '#64748b', label: 'Not tested' };
+  if (!result) return { grade: 'pending', color: '#86958d', label: 'Not tested' };
   const score = result.nccs.composite;
-  if (score >= GRADE_THRESHOLDS.strong) return { grade: 'strong', color: '#34d399', label: 'Strong' };
-  if (score >= GRADE_THRESHOLDS.partial) return { grade: 'partial', color: '#fbbf24', label: 'Partial' };
-  return { grade: 'weak', color: '#f87171', label: 'Weak' };
+  if (score >= GRADE_THRESHOLDS.strong) return { grade: 'strong', color: '#37f5a0', label: 'Strong' };
+  if (score >= GRADE_THRESHOLDS.partial) return { grade: 'partial', color: '#f59e0b', label: 'Partial' };
+  return { grade: 'weak', color: '#ff7b72', label: 'Weak' };
 }
 
 function interpretChallengeResult(challenge: Challenge, result: WrapResult | null): string {
@@ -168,56 +168,58 @@ function ChallengeCard({
   const grade = gradeResult(result);
 
   return (
-    <div className="glass-card overflow-hidden transition-all duration-200" style={{ borderColor: expanded ? `${challenge.color}30` : undefined }}>
-      <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center gap-4 p-5 text-left min-h-[44px]">
-        <span className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${challenge.color}15`, color: challenge.color }}>
+    <div className="rounded-[2px] border border-[#20302b] bg-[#0c1513] overflow-hidden transition-colors duration-150" style={{ borderColor: expanded ? `${challenge.color}66` : undefined }}>
+      <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center gap-4 p-5 text-left hover:bg-[#13201c]/50 transition-colors min-h-[44px]">
+        <span className="w-10 h-10 rounded-[2px] border border-[#20302b] flex items-center justify-center shrink-0" style={{ background: `${challenge.color}14`, color: challenge.color }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d={challenge.icon} />
           </svg>
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold rounded px-1.5 py-0.5" style={{ background: `${challenge.color}20`, color: challenge.color }}>{challenge.number}</span>
-            <h3 className="text-sm font-semibold text-slate-100">{challenge.title}</h3>
+            <span className="font-['Geist_Mono'] text-[11px] font-bold rounded-[2px] px-1.5 py-0.5" style={{ background: `${challenge.color}18`, color: challenge.color }}>
+              {String(challenge.number).padStart(2, '0')}
+            </span>
+            <h3 className="font-['Space_Grotesk'] text-sm font-semibold text-[#eaf3ee]">{challenge.title}</h3>
           </div>
         </div>
         {/* Grade badge */}
-        <span className="shrink-0 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold" style={{ backgroundColor: `${grade.color}15`, color: grade.color }}>
+        <span className="shrink-0 flex items-center gap-1.5 rounded-[2px] border border-[#20302b] px-2.5 py-1 font-['Geist_Mono'] text-[11px] uppercase tracking-[0.06em]" style={{ backgroundColor: `${grade.color}14`, color: grade.color }}>
           <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: grade.color }} />
           {loading ? 'Running...' : grade.label}
         </span>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"
-          className={`text-slate-500 shrink-0 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
+          className={`text-[#86958d] shrink-0 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
           <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
 
       {expanded && (
-        <div className="px-5 pb-5 space-y-4 animate-slide-down">
-          <div className="rounded-lg bg-red-500/[0.06] border border-red-500/15 p-4">
-            <h4 className="text-[10px] font-semibold uppercase tracking-wider text-red-400 mb-2">The Challenge</h4>
-            <p className="text-[12px] text-slate-300 leading-relaxed">{challenge.problem}</p>
+        <div className="px-5 pb-5 space-y-4 border-t border-[#20302b] pt-4 animate-slide-down">
+          <div className="rounded-[2px] bg-[#ff7b72]/10 border border-[#ff7b72]/35 p-4">
+            <h4 className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#ff7b72] mb-2">The Challenge</h4>
+            <p className="text-xs text-[#eaf3ee] leading-relaxed">{challenge.problem}</p>
           </div>
 
-          <div className="rounded-lg border p-4" style={{ background: `${challenge.color}06`, borderColor: `${challenge.color}15` }}>
-            <h4 className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: challenge.color }}>How CAS Tests For This</h4>
-            <p className="text-[12px] text-slate-300 leading-relaxed">{challenge.approach}</p>
+          <div className="rounded-[2px] border bg-[#13201c] p-4" style={{ borderColor: `${challenge.color}40` }}>
+            <h4 className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] mb-2" style={{ color: challenge.color }}>How CAS Tests For This</h4>
+            <p className="text-xs text-[#b3c2ba] leading-relaxed">{challenge.approach}</p>
           </div>
 
           {/* Scenario preview */}
-          <div className="rounded-lg bg-white/[0.02] border border-white/[0.06] p-4">
-            <h4 className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Test Scenario</h4>
-            <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-3">{challenge.scenario.slice(0, 200)}...</p>
+          <div className="rounded-[2px] bg-[#13201c] border border-[#20302b] p-4">
+            <h4 className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d] mb-2">Test Scenario</h4>
+            <p className="text-xs text-[#b3c2ba] leading-relaxed line-clamp-3">{challenge.scenario.slice(0, 200)}...</p>
           </div>
 
           {/* Result display */}
           {result && (
-            <div className="rounded-lg border p-4" style={{ borderColor: `${grade.color}20`, background: `${grade.color}04` }}>
+            <div className="rounded-[2px] border bg-[#13201c] p-4" style={{ borderColor: `${grade.color}50` }}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: grade.color }}>Result</span>
+                <span className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em]" style={{ color: grade.color }}>Result</span>
                 <CertBadge certification={result.nccs.certification} composite={result.nccs.composite} />
               </div>
-              <p className="text-[11px] text-slate-400">
+              <p className="font-['Geist_Mono'] text-xs text-[#b3c2ba]">
                 NCCS: {result.nccs.composite.toFixed(1)} | {challenge.assessment}
               </p>
             </div>
@@ -228,11 +230,11 @@ function ChallengeCard({
 
           <div className="flex flex-col gap-2 sm:flex-row">
             <button onClick={onRun} disabled={loading}
-              className="flex-1 rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-4 py-2.5 text-xs font-semibold text-dark-900 hover:opacity-90 disabled:opacity-40 transition-opacity min-h-[44px]">
+              className="flex-1 rounded-[2px] bg-[#37f5a0] px-4 py-2.5 text-xs font-semibold text-[#050b0a] hover:bg-[#37f5a0]/90 disabled:opacity-40 transition-colors min-h-[44px]">
               {loading ? 'Running...' : 'Run This Assessment'}
             </button>
             <button onClick={() => navigate('/assessment', { state: { prefill: challenge.scenario } })}
-              className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/[0.08] transition-colors min-h-[44px]">
+              className="rounded-[2px] border border-[#eaf3ee] bg-transparent px-4 py-2.5 text-xs font-medium text-[#eaf3ee] hover:bg-[#13201c] transition-colors min-h-[44px]">
               Open in Assessment
             </button>
           </div>
@@ -283,8 +285,11 @@ export function AiChallengesPage() {
     <div className="max-w-3xl mx-auto space-y-6">
       <SectionReveal>
         <div>
-          <h1 className="text-2xl font-bold text-slate-100 mb-2">7 AI Challenges</h1>
-          <p className="text-slate-400 text-sm leading-relaxed">
+          <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#37f5a0] mb-1">
+            ◕ Under evaluation · Benchmark Suite
+          </p>
+          <h1 className="font-['Space_Grotesk'] text-2xl font-bold tracking-[-0.03em] text-[#eaf3ee] mb-2">7 AI Challenges</h1>
+          <p className="text-[#b3c2ba] text-sm leading-relaxed">
             Seven fundamental challenges in AI research. Run each assessment to test how an AI
             system performs, or run all 7 for a complete Challenge Report Card.
           </p>
@@ -297,15 +302,15 @@ export function AiChallengesPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <select value={provider} onChange={e => setProvider(e.target.value)}
-            className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-slate-300 focus:border-accent-teal/50 focus:outline-none min-h-[44px]">
-            {PROVIDERS.map(p => <option key={p} value={p} className="bg-dark-800">{formatProviderLabel(p)}</option>)}
+            className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-3 py-2 text-sm text-[#eaf3ee] focus:border-[#37f5a0] focus:outline-none min-h-[44px]">
+            {PROVIDERS.map(p => <option key={p} value={p} className="bg-[#0c1513]">{formatProviderLabel(p)}</option>)}
           </select>
           {provider !== 'mock' && (
-            <span className="text-[10px] text-amber-400/80">Live API</span>
+            <span className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#f59e0b]">Live API</span>
           )}
         </div>
         <button onClick={runAll} disabled={runningAll}
-          className="rounded-lg bg-gradient-to-r from-accent-teal to-accent-cyan px-6 py-2.5 text-sm font-semibold text-dark-900 hover:opacity-90 disabled:opacity-40 transition-opacity min-h-[44px]">
+          className="rounded-[2px] bg-[#37f5a0] px-6 py-2.5 text-sm font-semibold text-[#050b0a] hover:bg-[#37f5a0]/90 disabled:opacity-40 transition-colors min-h-[44px]">
           {runningAll ? `Running ${completedCount}/7...` : 'Run All 7 Challenges'}
         </button>
       </div>
@@ -313,31 +318,31 @@ export function AiChallengesPage() {
       {/* Report Card (shows after any results) */}
       {completedCount > 0 && (
         <SectionReveal>
-          <div className="glass-card p-5">
+          <div className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-5">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Challenge Report Card</h3>
+              <h3 className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Challenge Report Card</h3>
               <InterpretButton interpretation={interpretReportCard(strongCount, partialCount, weakCount, CHALLENGES.length, provider)} />
             </div>
             <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-emerald-400">{strongCount}</p>
-                <p className="text-[10px] text-slate-500">Strong</p>
+              <div className="text-center rounded-[2px] border border-[#20302b] bg-[#13201c] py-3">
+                <p className="font-['Space_Grotesk'] text-2xl font-bold text-[#37f5a0]">{strongCount}</p>
+                <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Strong</p>
               </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-amber-400">{partialCount}</p>
-                <p className="text-[10px] text-slate-500">Partial</p>
+              <div className="text-center rounded-[2px] border border-[#20302b] bg-[#13201c] py-3">
+                <p className="font-['Space_Grotesk'] text-2xl font-bold text-[#f59e0b]">{partialCount}</p>
+                <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Partial</p>
               </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-red-400">{weakCount}</p>
-                <p className="text-[10px] text-slate-500">Weak</p>
+              <div className="text-center rounded-[2px] border border-[#20302b] bg-[#13201c] py-3">
+                <p className="font-['Space_Grotesk'] text-2xl font-bold text-[#ff7b72]">{weakCount}</p>
+                <p className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#86958d]">Weak</p>
               </div>
             </div>
-            <div className="flex h-3 rounded-full overflow-hidden bg-white/[0.06]">
-              {strongCount > 0 && <div className="bg-emerald-400/70 transition-all" style={{ width: `${(strongCount / 7) * 100}%` }} />}
-              {partialCount > 0 && <div className="bg-amber-400/70 transition-all" style={{ width: `${(partialCount / 7) * 100}%` }} />}
-              {weakCount > 0 && <div className="bg-red-400/70 transition-all" style={{ width: `${(weakCount / 7) * 100}%` }} />}
+            <div className="flex h-3 rounded-[2px] overflow-hidden bg-[#13201c] border border-[#20302b]">
+              {strongCount > 0 && <div className="bg-[#37f5a0] transition-all" style={{ width: `${(strongCount / 7) * 100}%` }} />}
+              {partialCount > 0 && <div className="bg-[#f59e0b] transition-all" style={{ width: `${(partialCount / 7) * 100}%` }} />}
+              {weakCount > 0 && <div className="bg-[#ff7b72] transition-all" style={{ width: `${(weakCount / 7) * 100}%` }} />}
             </div>
-            <p className="text-[10px] text-slate-500 mt-2 text-center">
+            <p className="font-['Geist_Mono'] text-[11px] text-[#86958d] mt-2 text-center">
               {completedCount}/7 completed via {formatProviderLabel(provider)} provider
               {completedCount === 7 && ` — ${strongCount} strong, ${partialCount} partial, ${weakCount} weak`}
             </p>
@@ -364,10 +369,10 @@ export function AiChallengesPage() {
 
       {/* Status */}
       <SectionReveal>
-        <div className="glass-card flex flex-wrap items-center gap-2 p-4 text-xs">
-          <span className="font-semibold uppercase tracking-[0.14em] text-amber-300">Research-stage output</span>
-          <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-slate-400">Heuristic challenge scores</span>
-          <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-amber-300">Not a safety certification</span>
+        <div className="rounded-[2px] border border-[#20302b] bg-[#0c1513] flex flex-wrap items-center gap-2 p-4 text-xs">
+          <span className="font-['Geist_Mono'] text-[11px] uppercase tracking-[0.08em] text-[#f59e0b]">◕ Under evaluation · Research-stage output</span>
+          <span className="rounded-[2px] border border-[#20302b] bg-[#13201c] px-2.5 py-1 font-['Geist_Mono'] text-[11px] text-[#b3c2ba]">Heuristic challenge scores</span>
+          <span className="rounded-[2px] border border-[#f59e0b]/35 bg-[#f59e0b]/10 px-2.5 py-1 font-['Geist_Mono'] text-[11px] text-[#f59e0b]">Not a safety certification</span>
         </div>
       </SectionReveal>
     </div>

@@ -19,7 +19,7 @@ interface ScenarioPickerProps {
 const panelStyle = {
   display: 'grid',
   gap: 12,
-  color: '#e5eefb',
+  color: '#eaf3ee',
 } satisfies CSSProperties;
 
 const controlsStyle = {
@@ -31,16 +31,18 @@ const controlsStyle = {
 const labelStyle = {
   display: 'grid',
   gap: 4,
-  fontSize: 12,
-  color: '#9fb0c4',
+  fontSize: 11,
+  textTransform: 'uppercase',
+  letterSpacing: 0.6,
+  color: '#86958d',
 } satisfies CSSProperties;
 
 const selectStyle = {
-  border: '1px solid rgba(148, 163, 184, 0.35)',
-  borderRadius: 8,
-  background: 'rgba(15, 23, 42, 0.82)',
-  color: '#e5eefb',
-  padding: '8px 10px',
+  border: '1px solid #20302b',
+  borderRadius: 2,
+  background: '#050b0a',
+  color: '#eaf3ee',
+  padding: '7px 9px',
 } satisfies CSSProperties;
 
 const listStyle = {
@@ -53,11 +55,11 @@ const listStyle = {
 function scenarioCardStyle(selected: boolean): CSSProperties {
   return {
     border: selected
-      ? '1px solid rgba(56, 189, 248, 0.9)'
-      : '1px solid rgba(148, 163, 184, 0.24)',
-    borderRadius: 10,
-    background: selected ? 'rgba(14, 116, 144, 0.28)' : 'rgba(15, 23, 42, 0.64)',
-    color: '#e5eefb',
+      ? '1px solid #37f5a0'
+      : '1px solid #20302b',
+    borderRadius: 2,
+    background: selected ? '#13201c' : '#050b0a',
+    color: '#eaf3ee',
     cursor: 'pointer',
     padding: 12,
     textAlign: 'left',

@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 from typing import Any, Mapping
 
-REPOSITORY = "LittleHenderson/noetic-compass"
+REPOSITORY = "LittleHenderson/cas-compass"
 MANIFEST_PATH = Path(".aws/deployment-control.json")
 RUNBOOK_PATH = Path(
     "noetic-compass-scaffold/noetic-compass/docs/runbooks/customer_production_acceptance.md"

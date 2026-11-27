@@ -12,18 +12,18 @@ const PAGE_W = 210; // A4 mm
 const PAGE_H = 297;
 const MARGIN = 15;
 const CONTENT_W = PAGE_W - MARGIN * 2;
-const TEAL: [number, number, number] = [45, 212, 191]; // #2dd4bf
-const DARK: [number, number, number] = [10, 15, 26];
-const WHITE: [number, number, number] = [226, 232, 240];
-const GRAY: [number, number, number] = [148, 163, 184];
-const RED: [number, number, number] = [248, 113, 113];
+const TEAL: [number, number, number] = [55, 245, 160]; // #37f5a0
+const DARK: [number, number, number] = [5, 11, 10]; // #050b0a
+const WHITE: [number, number, number] = [234, 243, 238]; // #eaf3ee
+const GRAY: [number, number, number] = [134, 149, 141]; // #86958d
+const RED: [number, number, number] = [255, 123, 114]; // #ff7b72
 
 // ── Helpers ──
 
 function addFooter(doc: jsPDF, page: number, totalPages: number) {
   doc.setFontSize(7);
   doc.setTextColor(...GRAY);
-  doc.text('Noetic Compass (Research Prototype) | CAS v7.4 | Confidential | Research-stage scoring - empirical validation pending', MARGIN, PAGE_H - 8);
+  doc.text('CAS Compass — CAS Lab (Research Prototype) | CAS v7.4 | Confidential | Research-stage scoring - empirical validation pending', MARGIN, PAGE_H - 8);
   doc.text(`Page ${page} of ${totalPages}`, PAGE_W - MARGIN, PAGE_H - 8, { align: 'right' });
 }
 
@@ -63,7 +63,7 @@ function addImage(doc: jsPDF, dataUrl: string | undefined, y: number, pageCount:
 function tableHeader(
   doc: jsPDF, y: number, cols: { label: string; x: number; w: number }[],
 ): number {
-  doc.setFillColor(21, 29, 51); // dark-700
+  doc.setFillColor(19, 32, 28); // --stripe #13201c
   doc.rect(MARGIN, y - 4, CONTENT_W, 6, 'F');
   doc.setFontSize(8);
   doc.setTextColor(...TEAL);
@@ -76,7 +76,7 @@ function tableRow(
   alt: boolean,
 ): number {
   if (alt) {
-    doc.setFillColor(15, 22, 41); // dark-800
+    doc.setFillColor(12, 21, 19); // --card #0c1513
     doc.rect(MARGIN, y - 3.5, CONTENT_W, 5.5, 'F');
   }
   doc.setFontSize(8);
@@ -100,7 +100,7 @@ export async function exportPdf(data: ReportData, images: ChartImages): Promise<
   // Title block
   doc.setFontSize(9);
   doc.setTextColor(...TEAL);
-  doc.text('NOETIC COMPASS — RESEARCH PROTOTYPE', MARGIN, y);
+  doc.text('CAS COMPASS — CAS LAB — RESEARCH PROTOTYPE', MARGIN, y);
   y += 7;
   doc.setFontSize(18);
   doc.setTextColor(...WHITE);
@@ -421,7 +421,7 @@ export async function exportPdf(data: ReportData, images: ChartImages): Promise<
   }
 
   // Save
-  const filename = `noetic-assessment-${data.date.replace(/[/:, ]/g, '-')}.pdf`;
+  const filename = `cas-compass-assessment-${data.date.replace(/[/:, ]/g, '-')}.pdf`;
   doc.save(filename);
 }
 

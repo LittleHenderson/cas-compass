@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { apiFetch, ApiError } from '../api/client';
-import { highlightSyntax } from './CompilerPage';
+import { highlightSyntax } from '../components/shared/CasNotationRenderer';
 import { GraphView } from '../components/idea-atlas/GraphView';
 import { NodeDetailPanel } from '../components/idea-atlas/NodeDetailPanel';
 import { InversionModal } from '../components/idea-atlas/InversionModal';
@@ -551,15 +551,15 @@ export function IdeaAtlasPage() {
   return (
     <div
       className="flex h-full max-h-[calc(100vh-5rem)] flex-col"
-      style={{ backgroundColor: '#0d1117' }}
+      style={{ backgroundColor: '#050b0a' }}
     >
       {/* Header */}
-      <div className="border-b border-white/[0.06] px-6 py-4 flex items-start justify-between gap-4">
+      <div className="border-b border-[#20302b] bg-[#0c1513] px-6 py-4 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-accent-teal font-mono text-lg font-semibold">
+          <h1 className="font-['Space_Grotesk',sans-serif] text-lg font-bold text-[#eaf3ee]">
             Idea Atlas
           </h1>
-          <p className="text-slate-500 text-xs mt-1 font-sans">
+          <p className="text-[#86958d] text-xs mt-1 font-sans">
             Your personal cognitive map. Capture your ideas; see their CAS structure.
           </p>
         </div>
@@ -567,7 +567,7 @@ export function IdeaAtlasPage() {
         <div
           role="tablist"
           aria-label="View mode"
-          className="inline-flex shrink-0 rounded border border-white/[0.06] bg-black/30 p-0.5 font-mono text-[11px]"
+          className="inline-flex shrink-0 rounded-[2px] border border-[#20302b] bg-[#050b0a] p-0.5 font-mono text-[11px]"
         >
           <button
             type="button"
@@ -576,8 +576,8 @@ export function IdeaAtlasPage() {
             onClick={() => setViewMode('list')}
             className={`px-3 py-1 rounded transition-colors ${
               viewMode === 'list'
-                ? 'bg-accent-teal/20 text-accent-teal'
-                : 'text-slate-500 hover:text-slate-300'
+                ? 'bg-[#37f5a0] font-semibold text-[#050b0a]'
+                : 'text-[#86958d] hover:text-[#eaf3ee]'
             }`}
           >
             LIST
@@ -589,8 +589,8 @@ export function IdeaAtlasPage() {
             onClick={() => setViewMode('graph')}
             className={`px-3 py-1 rounded transition-colors ${
               viewMode === 'graph'
-                ? 'bg-accent-teal/20 text-accent-teal'
-                : 'text-slate-500 hover:text-slate-300'
+                ? 'bg-[#37f5a0] font-semibold text-[#050b0a]'
+                : 'text-[#86958d] hover:text-[#eaf3ee]'
             }`}
           >
             GRAPH
@@ -602,8 +602,8 @@ export function IdeaAtlasPage() {
             onClick={() => setViewMode('trace')}
             className={`px-3 py-1 rounded transition-colors ${
               viewMode === 'trace'
-                ? 'bg-accent-teal/20 text-accent-teal'
-                : 'text-slate-500 hover:text-slate-300'
+                ? 'bg-[#37f5a0] font-semibold text-[#050b0a]'
+                : 'text-[#86958d] hover:text-[#eaf3ee]'
             }`}
           >
             TRACE
@@ -616,8 +616,8 @@ export function IdeaAtlasPage() {
             title="3D Thought Tree (beta) — spatial gesture graph viewer"
             className={`px-3 py-1 rounded transition-colors ${
               viewMode === 'sggs'
-                ? 'bg-violet-500/20 text-violet-300'
-                : 'text-slate-500 hover:text-slate-300'
+                ? 'bg-[#37f5a0] font-semibold text-[#050b0a]'
+                : 'text-[#86958d] hover:text-[#eaf3ee]'
             }`}
           >
             TRACE
@@ -633,8 +633,8 @@ export function IdeaAtlasPage() {
             title="Living Thought Atlas with Mode 7 network attribution"
             className={`px-3 py-1 rounded transition-colors ${
               viewMode === 'mode7live'
-                ? 'bg-cyan-500/20 text-cyan-200'
-                : 'text-slate-500 hover:text-slate-300'
+                ? 'bg-[#37f5a0] font-semibold text-[#050b0a]'
+                : 'text-[#86958d] hover:text-[#eaf3ee]'
             }`}
           >
             MODE 7
@@ -647,9 +647,9 @@ export function IdeaAtlasPage() {
 
       {/* Capture area */}
       {viewMode !== 'mode7live' && (
-      <div className="border-b border-white/[0.06] px-6 py-4">
+      <div className="border-b border-[#20302b] bg-[#0c1513] px-6 py-4">
         <div className="flex items-start gap-2">
-          <span className="font-mono text-sm font-bold shrink-0 pt-2 text-accent-teal">
+          <span className="font-mono text-sm font-bold shrink-0 pt-2 text-[#37f5a0]">
             idea&gt;
           </span>
           <div className="flex-1 min-h-[44px]">
@@ -660,12 +660,12 @@ export function IdeaAtlasPage() {
               onKeyDown={handleKeyDown}
               placeholder="Describe an idea, belief, or pattern you want to map..."
               rows={2}
-              className="w-full resize-none rounded border border-white/[0.06] bg-black/30 px-3 py-2 font-mono text-sm text-slate-200 placeholder:text-slate-600 focus:border-accent-teal/50 focus:outline-none"
+              className="w-full resize-none rounded-[2px] border border-[#20302b] bg-[#050b0a] px-3 py-2 font-mono text-sm text-[#eaf3ee] placeholder:text-[#86958d] focus:border-[#37f5a0] focus:outline-none"
               style={{ minHeight: '56px', maxHeight: '240px' }}
               disabled={backendState === 'unavailable'}
             />
             <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-              <span className="text-[10px] text-slate-600 font-mono">
+              <span className="text-[10px] text-[#86958d] font-mono">
                 Enter to capture, Shift+Enter for newline
               </span>
               <div className="flex items-center gap-2">
@@ -699,8 +699,8 @@ export function IdeaAtlasPage() {
                   }}
                   className={`rounded border px-3 py-1.5 font-mono text-xs transition-colors ${
                     listening
-                      ? 'border-red-400/50 bg-red-500/15 text-red-200 shadow-[0_0_18px_rgba(248,113,113,0.18)]'
-                      : 'border-cyan-400/25 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20'
+                      ? 'border-[#ff7b72] bg-[#13201c] text-[#ff7b72]'
+                      : 'border-[#eaf3ee] bg-transparent text-[#eaf3ee] hover:border-[#37f5a0] hover:text-[#37f5a0]'
                   }`}
                 >
                   {listening ? 'Listening...' : 'Hold to Speak'}
@@ -713,14 +713,14 @@ export function IdeaAtlasPage() {
                     submitting ||
                     backendState === 'unavailable'
                   }
-                  className="rounded border border-accent-teal/30 bg-accent-teal/10 px-3 py-1.5 font-mono text-xs text-accent-teal transition-colors hover:bg-accent-teal/20 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-accent-teal/10"
+                  className="rounded-[2px] bg-[#37f5a0] px-4 py-1.5 font-mono text-xs font-semibold text-[#050b0a] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {submitting ? 'Capturing...' : 'Capture'}
                 </button>
               </div>
             </div>
             {speechStatus && (
-              <p className={`mt-2 text-[10px] font-mono ${listening ? 'text-red-300' : 'text-slate-500'}`}>
+              <p className={`mt-2 text-[10px] font-mono ${listening ? 'text-red-300' : 'text-[#86958d]'}`}>
                 {speechStatus}
               </p>
             )}
@@ -740,11 +740,11 @@ export function IdeaAtlasPage() {
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {/* Backend-unavailable empty state — distinct from no-ideas-yet state */}
         {backendState === 'unavailable' && (
-          <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.04] p-6 text-center">
+          <div className="rounded-[2px] border border-dashed border-[#f59e0b]/60 bg-[#0c1513] p-6 text-center">
             <p className="text-amber-400 font-mono text-sm">
               Backend not yet available
             </p>
-            <p className="text-slate-500 text-xs mt-2 font-sans">
+            <p className="text-[#86958d] text-xs mt-2 font-sans">
               The Idea Atlas API endpoint hasn&apos;t been deployed yet.
               Captured ideas will be saved once the backend comes online.
             </p>
@@ -753,7 +753,7 @@ export function IdeaAtlasPage() {
 
         {/* Loading initial list */}
         {backendState !== 'unavailable' && loadingList && ideas.length === 0 && (
-          <div className="text-slate-500 font-mono text-xs animate-pulse">
+          <div className="text-[#86958d] font-mono text-xs animate-pulse">
             Loading atlas...
           </div>
         )}
@@ -762,11 +762,11 @@ export function IdeaAtlasPage() {
         {backendState !== 'unavailable' &&
           !loadingList &&
           ideas.length === 0 && (
-            <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-6 text-center">
-              <p className="text-slate-400 font-mono text-sm">
+            <div className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-6 text-center">
+              <p className="text-[#b3c2ba] font-mono text-sm">
                 No ideas captured yet.
               </p>
-              <p className="text-slate-600 text-xs mt-1 font-sans">
+              <p className="text-[#86958d] text-xs mt-1 font-sans">
                 Type something above to start your atlas.
               </p>
             </div>
@@ -778,22 +778,22 @@ export function IdeaAtlasPage() {
             {ideas.map((idea) => (
               <div
                 key={idea.id}
-                className={`animate-[fadeSlideIn_0.25s_ease-out] rounded-lg border p-4 font-mono text-xs ${rippleClass(idea.id)} ${
+                className={`animate-[fadeSlideIn_0.25s_ease-out] rounded-[2px] border p-4 font-mono text-xs ${rippleClass(idea.id)} ${
                   idea.compile_error
-                    ? 'border-red-500/20 bg-red-500/[0.03]'
+                    ? 'border-[#ff7b72]/40 bg-[#0c1513]'
                     : isPending(idea)
-                      ? 'border-white/[0.06] bg-white/[0.02]'
-                      : 'border-emerald-500/15 bg-emerald-500/[0.02]'
+                      ? 'border-[#20302b] bg-[#0c1513]'
+                      : 'border-[#20302b] bg-[#0c1513]'
                 }`}
               >
                 {/* Original text — small, dim */}
-                <p className="text-[11px] text-slate-500 font-sans leading-relaxed mb-2 whitespace-pre-wrap">
+                <p className="text-[11px] text-[#86958d] font-sans leading-relaxed mb-2 whitespace-pre-wrap">
                   {idea.text}
                 </p>
 
                 {/* CAS expression / loading / error */}
                 {isPending(idea) ? (
-                  <p className="text-slate-500 text-[12px] animate-pulse">
+                  <p className="text-[#86958d] text-[12px] animate-pulse">
                     Translating to CAS notation...
                   </p>
                 ) : idea.compile_error ? (
@@ -804,24 +804,24 @@ export function IdeaAtlasPage() {
                   </div>
                 ) : idea.cas_expression ? (
                   <div>
-                    <p className="text-accent-teal text-[13px] leading-relaxed">
+                    <p className="text-[#37f5a0] text-[13px] leading-relaxed">
                       {highlightSyntax(idea.cas_expression)}
                     </p>
                     {idea.cas_english && (
-                      <p className="text-[10px] text-slate-500 font-sans mt-1">
+                      <p className="text-[10px] text-[#86958d] font-sans mt-1">
                         {idea.cas_english}
                       </p>
                     )}
                   </div>
                 ) : (
-                  <p className="text-slate-600 text-[11px] italic">
+                  <p className="text-[#86958d] text-[11px] italic">
                     (no CAS expression returned)
                   </p>
                 )}
 
                 {/* Meta line */}
                 <div className="mt-2 flex items-center justify-between gap-2">
-                  <p className="text-[9px] uppercase tracking-wider text-slate-600">
+                  <p className="text-[9px] uppercase tracking-wider text-[#86958d]">
                     {formatTimestamp(idea.created_at)}
                   </p>
                   <button
@@ -844,11 +844,11 @@ export function IdeaAtlasPage() {
       {viewMode === 'graph' && (
         <div className="flex-1 overflow-hidden px-6 py-4">
           {backendState === 'unavailable' ? (
-            <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.04] p-6 text-center">
+            <div className="rounded-[2px] border border-dashed border-[#f59e0b]/60 bg-[#0c1513] p-6 text-center">
               <p className="text-amber-400 font-mono text-sm">
                 Backend not yet available
               </p>
-              <p className="text-slate-500 text-xs mt-2 font-sans">
+              <p className="text-[#86958d] text-xs mt-2 font-sans">
                 The Idea Atlas API endpoint hasn&apos;t been deployed yet.
               </p>
             </div>
@@ -902,7 +902,7 @@ export function IdeaAtlasPage() {
           )}
           {loadedTrace && (
             <>
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.05] px-4 py-3 font-mono text-xs text-emerald-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[2px] border border-[#37f5a0]/40 bg-[#13201c] px-4 py-3 font-mono text-xs text-[#eaf3ee]">
               <span>
                 Trace loaded: {loadedTrace.thought_tree.node_count} nodes,{' '}
                 {loadedTrace.thought_tree.edge_count} edges. Click a node in the
@@ -911,7 +911,7 @@ export function IdeaAtlasPage() {
               <button
                 type="button"
                 onClick={() => setTracePanelOpen((open) => !open)}
-                className="rounded border border-emerald-400/30 bg-black/20 px-3 py-1 text-[10px] uppercase tracking-wide text-emerald-100 transition-colors hover:bg-emerald-500/10"
+                className="rounded-[2px] border border-[#eaf3ee] bg-[#0c1513] px-3 py-1 text-[10px] uppercase tracking-wide text-[#eaf3ee] transition-colors hover:border-[#37f5a0] hover:text-[#37f5a0]"
               >
                 {tracePanelOpen ? 'Hide Details' : 'Show Details'}
               </button>
@@ -922,7 +922,7 @@ export function IdeaAtlasPage() {
               }`}
             >
               {/* Tree on the left */}
-              <div className="min-h-[520px] rounded-lg border border-white/[0.06] bg-black/30 overflow-hidden">
+              <div className="min-h-[520px] rounded-[2px] border border-[#20302b] bg-[#0c1513] overflow-hidden">
                 <ThoughtTreeView
                   tree={loadedTrace.thought_tree as unknown as TreeViewTree}
                   onNodeClick={(n) => {
@@ -935,78 +935,78 @@ export function IdeaAtlasPage() {
               </div>
               {/* Side panel — trace metadata + selected node detail */}
               {tracePanelOpen && (
-              <aside className="min-h-[520px] rounded-lg border border-white/[0.06] bg-black/30 p-4 overflow-y-auto font-mono text-[11px] text-slate-300">
+              <aside className="min-h-[520px] rounded-[2px] border border-[#20302b] bg-[#0c1513] p-4 overflow-y-auto font-mono text-[11px] text-[#b3c2ba]">
                 <div className="mb-3 flex items-start justify-between gap-3">
-                  <div className="text-accent-teal text-xs font-bold">
+                  <div className="text-[#37f5a0] text-xs font-bold">
                     TRACE DETAILS
                   </div>
                   <button
                     type="button"
                     onClick={() => setTracePanelOpen(false)}
-                    className="rounded border border-white/[0.08] px-2 py-1 text-[10px] uppercase text-slate-400 transition-colors hover:border-emerald-400/30 hover:text-emerald-200"
+                    className="rounded border border-white/[0.08] px-2 py-1 text-[10px] uppercase text-[#b3c2ba] transition-colors hover:border-emerald-400/30 hover:text-emerald-200"
                   >
                     Collapse
                   </button>
                 </div>
                 <header className="mb-3">
-                  <div className="text-accent-teal text-xs font-bold">
+                  <div className="text-[#37f5a0] text-xs font-bold">
                     TRACE METADATA
                   </div>
-                  <div className="text-slate-500 text-[10px] mt-1">
+                  <div className="text-[#86958d] text-[10px] mt-1">
                     {loadedTrace.trace_id}
                   </div>
-                  <div className="text-slate-500 text-[10px]">
+                  <div className="text-[#86958d] text-[10px]">
                     {loadedTrace.created_at}
                   </div>
                 </header>
                 <dl className="space-y-2">
                   <div>
-                    <dt className="text-slate-500 text-[10px] uppercase">
+                    <dt className="text-[#86958d] text-[10px] uppercase">
                       Input kind
                     </dt>
-                    <dd className="text-slate-200">
+                    <dd className="text-[#eaf3ee]">
                       {loadedTrace.input.input_kind}
                     </dd>
                   </div>
                   {loadedTrace.input.input_kind === 'nl_bridge' && (
                     <>
                       <div>
-                        <dt className="text-slate-500 text-[10px] uppercase">
+                        <dt className="text-[#86958d] text-[10px] uppercase">
                           User text
                         </dt>
-                        <dd className="text-slate-100 italic">
+                        <dd className="text-[#eaf3ee] italic">
                           &ldquo;{loadedTrace.input.user_text}&rdquo;
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-slate-500 text-[10px] uppercase">
+                        <dt className="text-[#86958d] text-[10px] uppercase">
                           Matched pattern
                         </dt>
-                        <dd className="text-slate-200">
+                        <dd className="text-[#eaf3ee]">
                           {loadedTrace.input.nl_bridge.matched_pattern}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-slate-500 text-[10px] uppercase">
+                        <dt className="text-[#86958d] text-[10px] uppercase">
                           Confidence
                         </dt>
-                        <dd className="text-slate-200">
+                        <dd className="text-[#eaf3ee]">
                           {loadedTrace.input.nl_bridge.confidence.toFixed(2)}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-slate-500 text-[10px] uppercase">
+                        <dt className="text-[#86958d] text-[10px] uppercase">
                           Inferred CAS
                         </dt>
-                        <dd className="text-accent-teal">
+                        <dd className="text-[#37f5a0]">
                           {loadedTrace.input.nl_bridge.inferred_cas_expression}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-slate-500 text-[10px] uppercase">
+                        <dt className="text-[#86958d] text-[10px] uppercase">
                           Rationale
                         </dt>
-                        <dd className="text-slate-200">
+                        <dd className="text-[#eaf3ee]">
                           {loadedTrace.input.nl_bridge.rationale}
                         </dd>
                       </div>
@@ -1014,33 +1014,33 @@ export function IdeaAtlasPage() {
                   )}
                   {loadedTrace.input.input_kind === 'cas_expression' && (
                     <div>
-                      <dt className="text-slate-500 text-[10px] uppercase">
+                      <dt className="text-[#86958d] text-[10px] uppercase">
                         CAS expression
                       </dt>
-                      <dd className="text-accent-teal">
+                      <dd className="text-[#37f5a0]">
                         {loadedTrace.input.cas_expression}
                       </dd>
                     </div>
                   )}
                   <div>
-                    <dt className="text-slate-500 text-[10px] uppercase">
+                    <dt className="text-[#86958d] text-[10px] uppercase">
                       Generated English
                     </dt>
-                    <dd className="text-slate-100">
+                    <dd className="text-[#eaf3ee]">
                       {loadedTrace.output.english}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-slate-500 text-[10px] uppercase">
+                    <dt className="text-[#86958d] text-[10px] uppercase">
                       Coverage
                     </dt>
-                    <dd className="text-slate-200">
+                    <dd className="text-[#eaf3ee]">
                       {loadedTrace.confidence.qualitative_coverage}
                     </dd>
                   </div>
                   {loadedTrace.confidence.warning_flags.length > 0 && (
                     <div>
-                      <dt className="text-slate-500 text-[10px] uppercase">
+                      <dt className="text-[#86958d] text-[10px] uppercase">
                         Warnings
                       </dt>
                       <dd className="space-y-1">
@@ -1052,7 +1052,7 @@ export function IdeaAtlasPage() {
                                 ? 'bg-rose-500/15 text-rose-300'
                                 : flag.severity === 'warning'
                                   ? 'bg-amber-500/15 text-amber-300'
-                                  : 'bg-slate-500/15 text-slate-300'
+                                  : 'bg-slate-500/15 text-[#b3c2ba]'
                             }`}
                           >
                             {flag.message}
@@ -1065,42 +1065,42 @@ export function IdeaAtlasPage() {
                 {selectedTraceNode && (
                   <section
                     ref={selectedNodeSectionRef}
-                    className="mt-4 rounded bg-emerald-500/[0.06] border border-emerald-400/30 p-3"
+                    className="mt-4 rounded-[2px] bg-[#13201c] border border-[#37f5a0]/50 p-3"
                   >
                     <div className="text-emerald-300 text-xs font-bold mb-2">
                       SELECTED NODE
                     </div>
                     <dl className="space-y-2">
                       <div>
-                        <dt className="text-slate-500 text-[10px] uppercase">
+                        <dt className="text-[#86958d] text-[10px] uppercase">
                           Kind
                         </dt>
-                        <dd className="text-slate-200">
+                        <dd className="text-[#eaf3ee]">
                           {selectedTraceNode.kind}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-slate-500 text-[10px] uppercase">
+                        <dt className="text-[#86958d] text-[10px] uppercase">
                           Role
                         </dt>
-                        <dd className="text-slate-200">
+                        <dd className="text-[#eaf3ee]">
                           {selectedTraceNode.role}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-slate-500 text-[10px] uppercase">
+                        <dt className="text-[#86958d] text-[10px] uppercase">
                           Label
                         </dt>
-                        <dd className="text-slate-100">
+                        <dd className="text-[#eaf3ee]">
                           {selectedTraceNode.label}
                         </dd>
                       </div>
                       {selectedTraceNode.text && (
                         <div>
-                          <dt className="text-slate-500 text-[10px] uppercase">
+                          <dt className="text-[#86958d] text-[10px] uppercase">
                             Text
                           </dt>
-                          <dd className="text-slate-100">
+                          <dd className="text-[#eaf3ee]">
                             {selectedTraceNode.text}
                           </dd>
                         </div>
@@ -1114,7 +1114,7 @@ export function IdeaAtlasPage() {
             </>
           )}
           {!loadedTrace && !traceError && (
-            <div className="rounded-lg border border-white/[0.06] bg-black/20 p-6 text-center font-mono text-xs text-slate-500">
+            <div className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-6 text-center font-mono text-xs text-[#86958d]">
               Load a traceability_v0 JSON to see the Thought Tree.
             </div>
           )}
@@ -1134,7 +1134,7 @@ export function IdeaAtlasPage() {
             </div>
           )}
           {loadedTrace && (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-violet-500/20 bg-violet-500/[0.05] px-4 py-3 font-mono text-xs text-violet-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[2px] border border-[#20302b] bg-[#13201c] px-4 py-3 font-mono text-xs text-[#eaf3ee]">
               <span>
                 SGGS 3D · {loadedTrace.thought_tree.node_count} nodes,{' '}
                 {loadedTrace.thought_tree.edge_count} edges · drag to orbit,
@@ -1158,21 +1158,21 @@ export function IdeaAtlasPage() {
               // entirely and guarantees the canvas has a real
               // computed height per Codex audit 8939e62 blocker 1.
               style={{ height: sggsFullscreen ? '100vh' : 560 }}
-              className="relative w-full shrink-0 rounded-lg border-2 border-violet-500/30 bg-black/30 overflow-hidden"
+              className="relative w-full shrink-0 rounded-[2px] border border-[#37f5a0]/50 bg-[#050b0a] overflow-hidden"
             >
               {/* Visible scaffolding so the wrapper is obvious even if
                   the SggsScene fails to mount. If the canvas renders
                   on top, this becomes invisible behind it. */}
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 flex items-center justify-center font-mono text-xs text-slate-600"
+                className="pointer-events-none absolute inset-0 flex items-center justify-center font-mono text-xs text-[#86958d]"
               >
                 3D canvas mounts here · 560 px scene box
               </div>
               <SggsErrorBoundary>
                 <Suspense
                   fallback={
-                    <div className="absolute inset-0 flex items-center justify-center font-mono text-xs text-slate-400">
+                    <div className="absolute inset-0 flex items-center justify-center font-mono text-xs text-[#b3c2ba]">
                       Loading 3D scene (~600 KB three.js + sprite atlas)…
                     </div>
                   }
@@ -1193,7 +1193,7 @@ export function IdeaAtlasPage() {
                 onClick={toggleSggsFullscreen}
                 aria-label={sggsFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
                 title={sggsFullscreen ? 'Exit fullscreen' : 'Fullscreen the 3D scene'}
-                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-md bg-black/45 text-slate-200 backdrop-blur-sm transition-colors hover:bg-white/10 hover:text-white"
+                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-md bg-black/45 text-[#eaf3ee] backdrop-blur-sm transition-colors hover:bg-white/10 hover:text-white"
               >
                 {sggsFullscreen ? (
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1218,9 +1218,9 @@ export function IdeaAtlasPage() {
                 role="group"
                 aria-label="Spatial Gesture Graph color key"
                 onWheel={handleSggsKeyWheel}
-                className="absolute bottom-2 left-2 z-20 flex max-w-[min(330px,calc(100%-1rem))] flex-col gap-1.5 rounded-md bg-black/70 px-3 py-2 font-mono text-[10px] text-slate-200 backdrop-blur-sm"
+                className="absolute bottom-2 left-2 z-20 flex max-w-[min(330px,calc(100%-1rem))] flex-col gap-1.5 rounded-md bg-black/70 px-3 py-2 font-mono text-[10px] text-[#eaf3ee] backdrop-blur-sm"
               >
-                <div className="text-[9px] uppercase tracking-wider text-slate-400">
+                <div className="text-[9px] uppercase tracking-wider text-[#b3c2ba]">
                   Color key
                 </div>
                 <div className="max-h-32 overflow-y-auto pr-1 scroll-glow">
@@ -1235,7 +1235,7 @@ export function IdeaAtlasPage() {
                         className={`mb-1 flex w-full items-center gap-1.5 rounded px-1.5 py-1 text-left transition-colors ${
                           active
                             ? 'bg-white/10 text-white'
-                            : 'text-slate-300 hover:bg-white/[0.06] hover:text-white'
+                            : 'text-[#b3c2ba] hover:bg-white/[0.06] hover:text-white'
                         }`}
                       >
                         <span
@@ -1251,7 +1251,7 @@ export function IdeaAtlasPage() {
                   })}
                 </div>
                 <div className="mt-1 rounded border border-white/10 bg-white/[0.04] p-2" aria-live="polite">
-                  <div className="mb-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-slate-300">
+                  <div className="mb-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-[#b3c2ba]">
                     <span
                       className="inline-block h-2 w-2 rounded-sm"
                       style={{
@@ -1261,11 +1261,11 @@ export function IdeaAtlasPage() {
                     />
                     {activeSggsKey.label}
                   </div>
-                  <p className="font-sans text-[11px] leading-snug text-slate-200">
+                  <p className="font-sans text-[11px] leading-snug text-[#eaf3ee]">
                     {activeSggsKey.explanation}
                   </p>
                 </div>
-                <div className="border-t border-white/10 pt-1 text-[9px] text-slate-400">
+                <div className="border-t border-white/10 pt-1 text-[9px] text-[#b3c2ba]">
                   click a color or scroll this key
                 </div>
               </div>
@@ -1273,14 +1273,14 @@ export function IdeaAtlasPage() {
               {/* Hint strip — bottom-right overlay */}
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/45 px-2 py-1 font-mono text-[9px] text-slate-400 backdrop-blur-sm"
+                className="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/45 px-2 py-1 font-mono text-[9px] text-[#b3c2ba] backdrop-blur-sm"
               >
                 drag to orbit · wheel to zoom · click a card
               </div>
             </div>
           )}
           {!loadedTrace && !traceError && (
-            <div className="rounded-lg border border-white/[0.06] bg-black/20 p-6 text-center font-mono text-xs text-slate-500">
+            <div className="rounded-[2px] border border-[#20302b] bg-[#0c1513] p-6 text-center font-mono text-xs text-[#86958d]">
               Load a traceability_v0 JSON to see the 3D Spatial Gesture Graph.
             </div>
           )}

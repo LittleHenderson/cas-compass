@@ -86,15 +86,11 @@ function cardStyle(selected: boolean): CSSProperties {
     flexDirection: 'column',
     gap: 4,
     padding: 10,
-    // Wave 5.2: no glow halo, no heavy backdrop blur. Selected = subtle
-    // teal-tinted background + teal border. Unselected = hairline border.
-    background: selected
-      ? 'rgba(45, 212, 191, 0.08)'
-      : 'rgba(255, 255, 255, 0.02)',
+    background: selected ? '#13201c' : '#050b0a',
     border: selected
       ? `1px solid ${ATLAS_STATUS_COLORS.activeTrace}`
-      : '1px solid rgba(255, 255, 255, 0.06)',
-    borderRadius: 6,
+      : '1px solid #20302b',
+    borderRadius: 2,
     cursor: 'pointer',
     outline: 'none',
     boxShadow: 'none',
@@ -121,7 +117,7 @@ const glyphStyle: CSSProperties = {
   fontSize: 14,
   width: 16,
   textAlign: 'center',
-  color: '#cbd5e1',
+  color: '#b3c2ba',
 };
 
 const labelStyle: CSSProperties = {
@@ -133,15 +129,15 @@ const labelStyle: CSSProperties = {
 };
 
 const casLabelStyle: CSSProperties = {
-  fontFamily: '"JetBrains Mono", Menlo, Consolas, monospace',
+  fontFamily: "'Geist Mono', 'SF Mono', Menlo, Consolas, monospace",
   fontSize: 12,
-  color: '#94a3b8',
+  color: '#86958d',
   wordBreak: 'break-all',
 };
 
 const englishStyle: CSSProperties = {
   fontSize: 12,
-  color: '#cbd5e1',
+  color: '#b3c2ba',
 };
 
 const footerStyle: CSSProperties = {
@@ -152,17 +148,15 @@ const footerStyle: CSSProperties = {
   marginTop: 4,
 };
 
-function pillStyle(bg: string, fg = '#0f172a'): CSSProperties {
+function pillStyle(bg: string, fg = '#050b0a'): CSSProperties {
   return {
     display: 'inline-block',
-    padding: '2px 8px',
-    borderRadius: 999,
+    padding: '2px 7px',
+    borderRadius: 2,
     fontSize: 11,
     fontWeight: 600,
     color: fg,
     background: bg,
-    backdropFilter: 'blur(8px) saturate(140%)',
-    WebkitBackdropFilter: 'blur(8px) saturate(140%)',
   };
 }
 
@@ -170,11 +164,12 @@ const evidenceButtonStyle: CSSProperties = {
   padding: '4px 10px',
   fontSize: 11,
   fontWeight: 600,
-  letterSpacing: 0.3,
+  letterSpacing: 0.4,
+  textTransform: 'uppercase',
   color: ATLAS_STATUS_COLORS.activeTrace,
-  background: 'rgba(45, 212, 191, 0.10)',
+  background: '#0c1513',
   border: `1px solid ${ATLAS_STATUS_COLORS.activeTrace}`,
-  borderRadius: 6,
+  borderRadius: 2,
   cursor: 'pointer',
 };
 

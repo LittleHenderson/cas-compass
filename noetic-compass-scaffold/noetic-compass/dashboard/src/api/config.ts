@@ -2,14 +2,14 @@
  * API base URL.
  *
  * - Dev/default: use VITE_API_URL when provided, otherwise "/api"
- * - Vercel production: use same-origin "/api" and let Vercel rewrite to Render
- * - Local static production builds: use the deployed Render API directly
+ * - Vercel production: use same-origin "/api" and let Vercel rewrite to CAS Lab API
+ * - Local static production builds: use the deployed CAS Lab API directly
  *
  * The local static case matters for stakeholder demos run from `dist/` with a
  * simple file server. That server can serve JS, but it cannot proxy POST
  * requests to `/api`, so same-origin `/api` fails with "Unsupported method".
  */
-const DEPLOYED_API_BASE = 'https://noetic-compass-api.onrender.com';
+const DEPLOYED_API_BASE = 'https://api.caslabai.com';
 
 function isLocalStaticHost(): boolean {
   if (typeof window === 'undefined') return false;

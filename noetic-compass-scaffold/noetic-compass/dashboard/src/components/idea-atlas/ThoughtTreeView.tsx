@@ -353,8 +353,7 @@ function EmptyState({ className }: { className?: string }) {
       data-testid="thought-tree-empty"
       className={[
         'flex h-full min-h-[280px] w-full items-center justify-center',
-        'rounded-lg border border-white/[0.06] bg-white/[0.02]',
-        'dark:border-white/[0.08] dark:bg-white/[0.03]',
+        'rounded-[2px] border border-[#20302b] bg-[#0c1513]',
         className ?? '',
       ]
         .filter(Boolean)
@@ -524,8 +523,7 @@ export function ThoughtTreeView({
       data-fullscreen={isFullscreen ? 'true' : 'false'}
       className={[
         'relative h-full min-h-[280px] w-full',
-        'rounded-lg border border-white/[0.06] bg-black/30',
-        'dark:border-white/[0.08] dark:bg-black/40',
+        'rounded-[2px] border border-[#20302b] bg-[#050b0a]',
         'overflow-hidden',
         className ?? '',
       ]
@@ -797,14 +795,14 @@ export function ThoughtTreeView({
           trackpad-scroll-to-zoom is not discoverable. */}
       <div
         data-testid="thought-tree-toolbar"
-        className="absolute right-2 top-2 flex flex-col gap-1 rounded-md bg-black/45 p-1 backdrop-blur-sm"
+        className="absolute right-2 top-2 flex flex-col gap-1 rounded-[2px] border border-[#20302b] bg-[#0c1513]/95 p-1"
       >
         <button
           type="button"
           aria-label="Zoom in"
           title="Zoom in"
           onClick={() => setZoom((z) => Math.min(3, z * 1.2))}
-          className="flex h-7 w-7 items-center justify-center rounded text-slate-200 hover:bg-white/10 hover:text-white"
+          className="flex h-7 w-7 items-center justify-center rounded-[2px] text-[#eaf3ee] hover:bg-[#13201c] hover:text-[#37f5a0]"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -816,7 +814,7 @@ export function ThoughtTreeView({
           aria-label="Zoom out"
           title="Zoom out"
           onClick={() => setZoom((z) => Math.max(0.4, z / 1.2))}
-          className="flex h-7 w-7 items-center justify-center rounded text-slate-200 hover:bg-white/10 hover:text-white"
+          className="flex h-7 w-7 items-center justify-center rounded-[2px] text-[#eaf3ee] hover:bg-[#13201c] hover:text-[#37f5a0]"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
             <line x1="5" y1="12" x2="19" y2="12" />
@@ -830,7 +828,7 @@ export function ThoughtTreeView({
             setZoom(1);
             setPan({ x: 0, y: 0 });
           }}
-          className="flex h-7 w-7 items-center justify-center rounded text-slate-200 hover:bg-white/10 hover:text-white"
+          className="flex h-7 w-7 items-center justify-center rounded-[2px] text-[#eaf3ee] hover:bg-[#13201c] hover:text-[#37f5a0]"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M3 9V5a2 2 0 0 1 2-2h4" />
@@ -844,7 +842,7 @@ export function ThoughtTreeView({
           aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
           title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen the tree'}
           onClick={toggleFullscreen}
-          className="flex h-7 w-7 items-center justify-center rounded text-slate-200 hover:bg-white/10 hover:text-white"
+          className="flex h-7 w-7 items-center justify-center rounded-[2px] text-[#eaf3ee] hover:bg-[#13201c] hover:text-[#37f5a0]"
         >
           {isFullscreen ? (
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -873,7 +871,7 @@ export function ThoughtTreeView({
       {/* Legend — color encoding key, bottom-left overlay */}
       <div
         data-testid="thought-tree-legend"
-        className="pointer-events-none absolute bottom-2 left-2 flex flex-col gap-1 rounded-md bg-black/40 px-2 py-1.5 font-mono text-[10px] text-slate-200 backdrop-blur-sm dark:bg-black/50"
+        className="pointer-events-none absolute bottom-2 left-2 flex flex-col gap-1 rounded-[2px] border border-[#20302b] bg-[#0c1513]/95 px-2 py-1.5 font-mono text-[10px] text-[#eaf3ee]"
         aria-hidden="true"
       >
         {Object.entries(KIND_PALETTE).map(([kind, p]) => (
@@ -890,7 +888,7 @@ export function ThoughtTreeView({
       {/* Bottom-right hint — discoverability for trackpad zoom + drag pan */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/40 px-2 py-1 font-mono text-[9px] text-slate-400 backdrop-blur-sm"
+        className="pointer-events-none absolute bottom-2 right-2 rounded-[2px] border border-[#20302b] bg-[#0c1513]/95 px-2 py-1 font-mono text-[9px] text-[#86958d]"
       >
         scroll to zoom · drag to pan · click a card
       </div>

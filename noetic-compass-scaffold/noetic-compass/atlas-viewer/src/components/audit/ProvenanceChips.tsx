@@ -66,34 +66,34 @@ const stateTone: Record<
   { color: string; border: string; fill: string }
 > = {
   verified: {
-    color: '#ccfbf1',
-    border: 'rgba(45, 212, 191, 0.42)',
-    fill: 'rgba(45, 212, 191, 0.11)',
+    color: ACCENT_TEAL,
+    border: ACCENT_TEAL,
+    fill: COLORS.card,
   },
   present: {
-    color: '#dbeafe',
-    border: 'rgba(59, 130, 246, 0.36)',
-    fill: 'rgba(59, 130, 246, 0.10)',
+    color: COLORS.textPrimary,
+    border: COLORS.borderInk,
+    fill: COLORS.stripe,
   },
   pending: {
-    color: '#e2e8f0',
-    border: 'rgba(148, 163, 184, 0.22)',
-    fill: 'rgba(255, 255, 255, 0.04)',
+    color: COLORS.textSecondary,
+    border: COLORS.rule,
+    fill: COLORS.ground,
   },
   missing: {
-    color: '#fef3c7',
-    border: 'rgba(251, 191, 36, 0.38)',
-    fill: 'rgba(251, 191, 36, 0.10)',
+    color: ACCENT_AMBER,
+    border: ACCENT_AMBER,
+    fill: COLORS.card,
   },
   failed: {
-    color: '#ffe4e6',
-    border: 'rgba(251, 113, 133, 0.40)',
-    fill: 'rgba(251, 113, 133, 0.10)',
+    color: COLORS.error,
+    border: COLORS.error,
+    fill: COLORS.card,
   },
   unavailable: {
-    color: '#cbd5e1',
-    border: 'rgba(148, 163, 184, 0.24)',
-    fill: 'rgba(148, 163, 184, 0.06)',
+    color: COLORS.textMuted,
+    border: COLORS.dash,
+    fill: COLORS.ground,
   },
 };
 
@@ -122,14 +122,17 @@ const chipStyle = (state: AuditStatus | 'pending'): CSSProperties => {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 8,
-    minHeight: 32,
-    padding: '6px 10px',
-    borderRadius: 6,
-    border: `1px solid ${tone.border}`,
+    minHeight: 30,
+    padding: '5px 10px',
+    borderRadius: 2,
+    border:
+      state === 'unavailable' || state === 'missing'
+        ? `1px dashed ${tone.border}`
+        : `1px solid ${tone.border}`,
     background: tone.fill,
     color: tone.color,
     fontSize: 12,
-    fontWeight: 700,
+    fontWeight: 600,
     whiteSpace: 'nowrap',
   };
 };
@@ -137,16 +140,16 @@ const chipStyle = (state: AuditStatus | 'pending'): CSSProperties => {
 const dotStyle = (state: AuditStatus | 'pending'): CSSProperties => ({
   width: 7,
   height: 7,
-  borderRadius: '50%',
+  borderRadius: 2,
   background:
     state === 'verified'
       ? ACCENT_TEAL
       : state === 'present'
-        ? '#60a5fa'
+        ? COLORS.textPrimary
         : state === 'missing'
           ? ACCENT_AMBER
           : state === 'failed'
-            ? '#fb7185'
+            ? COLORS.error
             : COLORS.textMuted,
 });
 

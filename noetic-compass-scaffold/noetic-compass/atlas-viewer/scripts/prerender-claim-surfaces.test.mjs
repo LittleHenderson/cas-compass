@@ -12,8 +12,8 @@ const CONTENT_PATH = resolve(HERE, '..', 'src', 'claimSurfaces.json');
 const RENDER_ROUTES_PATH = resolve(HERE, '..', 'render-route-rules.json');
 const BASE_HTML = [
   '<!doctype html><html lang="en"><head><meta charset="UTF-8" />',
-  '<title>Atlas Viewer - Alpha</title>',
-  '<meta name="description" content="Private alpha preview." />',
+  '<title>CAS Compass · Audit &amp; Cockpit | CAS Lab</title>',
+  '<meta name="description" content="CAS Compass — CAS Harness Audit Console and 3D Mechanistic Cockpit by CAS Lab." />',
   '</head><body><div id="root"></div>',
   '<script type="module" crossorigin src="/assets/index-abc123.js"></script>',
   '</body></html>',
@@ -64,10 +64,16 @@ test('writes deterministic exact-route documents and a neutral SPA fallback', as
   assert.equal(audit, auditAgain);
   assert.match(product, /data-cas-prerendered-route="\/"/);
   assert.match(product, /data-cas-prerender-kind="product_app"/);
-  assert.match(product, /<h1[^>]*>Atlas Model Audit<\/h1>/);
+  assert.match(product, /<title>CAS Compass · Model Audit \| CAS Lab<\/title>/);
+  assert.match(product, /<h1[^>]*>CAS Compass Model Audit<\/h1>/);
+  assert.match(product, /CAS Harness product boundary/);
   assert.match(product, /Customer-production status: OPEN\./);
+  assert.match(product, /Research verdicts do not establish customer-production ACCEPT\./);
+  assert.match(product, /Evidence is present only when a named artifact passes its contract; otherwise that evidence is unavailable\./);
+  assert.match(product, /No compliance certification or universal safety conclusion is asserted\./);
   assert.match(audit, /data-cas-prerendered-route="\/audit-console"/);
   assert.match(audit, /data-cas-prerender-kind="audit_console"/);
+  assert.match(audit, /<title>Audit Console \| CAS Compass<\/title>/);
   assert.match(audit, /<h1[^>]*>Audit Console<\/h1>/);
   assert.match(audit, /FLAG_FOR_HUMAN_REVIEW/);
 
@@ -117,7 +123,7 @@ test('fails closed when a pinned route uses the generic login heading', async (c
   const distDir = await fixture();
   context.after(() => rm(distDir, { recursive: true, force: true }));
   const content = JSON.parse(await readFile(CONTENT_PATH, 'utf8'));
-  content.surfaces.product_app.heading = 'Log in to Noetic Compass';
+  content.surfaces.product_app.heading = 'Log in to CAS Compass';
   const invalidContentPath = resolve(distDir, 'invalid-heading.json');
   await writeFile(invalidContentPath, JSON.stringify(content), 'utf8');
 
@@ -147,7 +153,7 @@ test('pins the fail-closed full Render route replacement', async () => {
   assert.deepEqual(contract, {
     schemaVersion: 'atlas_render_static_routes.v1',
     dashboardManaged: true,
-    requiredApiBaseUrl: 'https://api.noeticcompass.com/atlas',
+    requiredApiBaseUrl: 'https://api.caslabai.com/atlas',
     requiredAccountsEnabled: 'true',
     expectedCurrentRoutes: [
       {

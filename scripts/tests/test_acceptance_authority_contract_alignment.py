@@ -331,7 +331,7 @@ class AcceptanceAuthorityContractAlignmentTests(unittest.TestCase):
                     )
 
     def test_customer_provider_identity_is_aligned_across_active_contracts(self) -> None:
-        origin = "https://api.noeticcompass.com"
+        origin = "https://api.caslabai.com"
         service_id = "i-0bd0a082507a51ae3"
         service_name = "cas-harness-customer-api"
         disk_id = "vol-056e0897eb5b72c4c"
@@ -714,7 +714,7 @@ class AcceptanceAuthorityContractAlignmentTests(unittest.TestCase):
         cases: list[tuple[str, dict]] = []
         legal = deepcopy(payloads["legal_publication_approval"])
         legal["approvals"][0]["approval_artifact_uri"] = (  # type: ignore[index]
-            "https://atlas.noeticcompass.com/approvals/legal"
+            "https://compass.caslabai.com/approvals/legal"
         )
         cases.append(("legal_publication_approval", legal))
 
@@ -726,13 +726,13 @@ class AcceptanceAuthorityContractAlignmentTests(unittest.TestCase):
 
         tabletop = deepcopy(payloads["incident_tabletop"])
         tabletop["tabletop"]["evidence_uri"] = (  # type: ignore[index]
-            "https://atlas.noeticcompass.com/tabletops/proof"
+            "https://compass.caslabai.com/tabletops/proof"
         )
         cases.append(("incident_tabletop", tabletop))
 
         claim = deepcopy(payloads["claim_honesty"])
         claim["approvals"][0]["approval_artifact_uri"] = (  # type: ignore[index]
-            "https://atlas.noeticcompass.com/approvals/claim"
+            "https://compass.caslabai.com/approvals/claim"
         )
         cases.append(("claim_honesty", claim))
 

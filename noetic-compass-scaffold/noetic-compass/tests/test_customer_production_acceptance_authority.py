@@ -136,7 +136,7 @@ def _legal_evidence(now: datetime) -> dict[str, object]:
         "schema_version": authority.EVIDENCE_SCHEMA_VERSION,
         "gate": "legal_publication_approval",
         "environment": "public-production",
-        "repository": "LittleHenderson/noetic-compass",
+        "repository": "LittleHenderson/cas-compass",
         "master_head_sha": "a" * 40,
         "deploy_id": "dep-authoritytest001",
         "event_at_utc": stamp,

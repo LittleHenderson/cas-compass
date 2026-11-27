@@ -153,28 +153,24 @@ const statusPillStyle = (status: AuditLifecycleStatus): CSSProperties => {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 8,
-    minHeight: 30,
-    padding: '5px 10px',
-    borderRadius: 6,
+    minHeight: 28,
+    padding: '4px 10px',
+    borderRadius: 2,
     border: `1px solid ${
       failed
-        ? 'rgba(251, 113, 133, 0.42)'
+        ? COLORS.error
         : complete
-          ? 'rgba(45, 212, 191, 0.42)'
+          ? ACCENT_TEAL
           : active
-            ? 'rgba(251, 191, 36, 0.38)'
-            : COLORS.borderStrong
+            ? ACCENT_AMBER
+            : COLORS.rule
     }`,
-    background: failed
-      ? 'rgba(251, 113, 133, 0.10)'
-      : complete
-        ? 'rgba(45, 212, 191, 0.11)'
-        : active
-          ? 'rgba(251, 191, 36, 0.10)'
-          : 'rgba(255, 255, 255, 0.04)',
-    color: failed ? '#ffe4e6' : complete ? '#ccfbf1' : active ? '#fef3c7' : COLORS.textSecondary,
-    fontSize: 12,
-    fontWeight: 800,
+    background: COLORS.card,
+    color: failed ? COLORS.error : complete ? ACCENT_TEAL : active ? ACCENT_AMBER : COLORS.textSecondary,
+    fontSize: 11,
+    fontWeight: 500,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
     whiteSpace: 'nowrap',
   };
 };
@@ -186,18 +182,18 @@ const infoTipStyle: CSSProperties = {
   width: 22,
   height: 22,
   marginTop: 8,
-  borderRadius: 5,
-  border: '1px solid rgba(45, 212, 191, 0.24)',
-  background: 'rgba(45, 212, 191, 0.07)',
-  color: '#ccfbf1',
+  borderRadius: 2,
+  border: `1px solid ${COLORS.rule}`,
+  background: COLORS.card,
+  color: ACCENT_TEAL,
   cursor: 'help',
-  fontSize: 12,
-  fontWeight: 900,
+  fontSize: 11.5,
+  fontWeight: 600,
 };
 
 const stepListStyle: CSSProperties = {
   display: 'grid',
-  gap: 9,
+  gap: 8,
   margin: 0,
   padding: 0,
   listStyle: 'none',
@@ -205,59 +201,52 @@ const stepListStyle: CSSProperties = {
 
 const stepStyle = (state: 'done' | 'active' | 'pending' | 'failed'): CSSProperties => ({
   display: 'grid',
-  gridTemplateColumns: '22px minmax(0, 1fr)',
+  gridTemplateColumns: '20px minmax(0, 1fr)',
   gap: 10,
   alignItems: 'flex-start',
   padding: '10px 11px',
-  borderRadius: 8,
+  borderRadius: 2,
   border: `1px solid ${
     state === 'failed'
-      ? 'rgba(251, 113, 133, 0.40)'
-      : state === 'active'
-        ? 'rgba(251, 191, 36, 0.38)'
-        : state === 'done'
-          ? 'rgba(45, 212, 191, 0.30)'
-          : COLORS.borderSubtle
-  }`,
-  background:
-    state === 'failed'
-      ? 'rgba(251, 113, 133, 0.08)'
-      : state === 'active'
-        ? 'rgba(251, 191, 36, 0.08)'
-        : state === 'done'
-          ? 'rgba(45, 212, 191, 0.07)'
-          : 'rgba(2, 6, 23, 0.28)',
-});
-
-const markerStyle = (state: 'done' | 'active' | 'pending' | 'failed'): CSSProperties => ({
-  width: 18,
-  height: 18,
-  marginTop: 1,
-  borderRadius: '50%',
-  border: `1px solid ${
-    state === 'failed'
-      ? '#fb7185'
+      ? COLORS.error
       : state === 'active'
         ? ACCENT_AMBER
         : state === 'done'
           ? ACCENT_TEAL
-          : COLORS.borderStrong
+          : COLORS.rule
+  }`,
+  background: state === 'pending' ? COLORS.ground : COLORS.card,
+});
+
+const markerStyle = (state: 'done' | 'active' | 'pending' | 'failed'): CSSProperties => ({
+  width: 14,
+  height: 14,
+  marginTop: 2,
+  borderRadius: 2,
+  border: `1px solid ${
+    state === 'failed'
+      ? COLORS.error
+      : state === 'active'
+        ? ACCENT_AMBER
+        : state === 'done'
+          ? ACCENT_TEAL
+          : COLORS.rule
   }`,
   background:
     state === 'failed'
-      ? 'rgba(251, 113, 133, 0.22)'
+      ? COLORS.error
       : state === 'active'
-        ? 'rgba(251, 191, 36, 0.22)'
+        ? ACCENT_AMBER
         : state === 'done'
-          ? 'rgba(45, 212, 191, 0.20)'
-          : 'rgba(255, 255, 255, 0.03)',
+          ? ACCENT_TEAL
+          : COLORS.ground,
 });
 
 const stepLabelStyle: CSSProperties = {
   margin: 0,
   color: COLORS.textPrimary,
   fontSize: 13,
-  fontWeight: 800,
+  fontWeight: 600,
   lineHeight: 1.25,
 };
 
@@ -313,10 +302,10 @@ export function AuditSessionProgress({
             style={{
               margin: 0,
               padding: '10px 12px',
-              borderRadius: 8,
-              border: '1px solid rgba(251, 113, 133, 0.36)',
-              background: 'rgba(251, 113, 133, 0.08)',
-              color: '#ffe4e6',
+              borderRadius: 2,
+              border: `1px solid ${COLORS.error}`,
+              background: COLORS.card,
+              color: COLORS.error,
               fontSize: 13,
               lineHeight: 1.45,
             }}

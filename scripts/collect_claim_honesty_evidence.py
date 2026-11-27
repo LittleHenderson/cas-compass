@@ -42,8 +42,8 @@ MIN_VISIBLE_TEXT_CHARACTERS = 32
 MIN_VISIBLE_WORDS = 5
 
 PINNED_SURFACES: tuple[tuple[str, str], ...] = (
-    ("product_app", "https://atlas.noeticcompass.com"),
-    ("audit_console", "https://atlas.noeticcompass.com/audit-console"),
+    ("product_app", "https://compass.caslabai.com"),
+    ("audit_console", "https://compass.caslabai.com/audit-console"),
     ("landing", "https://cascompass.ai"),
     ("legal", "https://cascompass.ai/legal"),
     ("privacy", "https://cascompass.ai/privacy"),

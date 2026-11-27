@@ -912,17 +912,18 @@ def validate_ci_integration(repo_root: Path) -> None:
         "cas-ci-gate does not aggregate the Blueprint control result",
     )
     _require("pull_request:" in control_text, "Control workflow must run for pull requests")
-    _require("schedule:" in control_text, "Control workflow must schedule live drift checks")
+    _require("workflow_dispatch:" in control_text, "Control workflow must remain manually dispatchable")
+    _require("schedule:" not in control_text, "Legacy suspended Render workflow must not schedule daily failing cron runs")
     _require("pull_request_target:" not in control_text, "Fork-safe workflow must not use pull_request_target")
     _require(
         "python scripts/verify_render_blueprint_control.py --live" in control_text,
-        "Control workflow is missing the live Auto Sync drift check",
+        "Control workflow is missing the manual live Auto Sync drift check",
     )
     _require(
-        "github.repository == 'LittleHenderson/noetic-compass'" in control_text
+        "github.repository == 'LittleHenderson/cas-compass'" in control_text
         and "github.ref == 'refs/heads/master'" in control_text
-        and "github.event_name != 'pull_request'" in control_text,
-        "Live Blueprint check must be restricted to protected upstream master events",
+        and "github.event_name == 'workflow_dispatch'" in control_text,
+        "Live Blueprint check must be restricted to manual protected upstream master dispatches",
     )
     _require(
         "schedule:" in runtime_monitor_text
@@ -940,18 +941,12 @@ def validate_ci_integration(repo_root: Path) -> None:
         "Production runtime monitor is missing worker realmode proof",
     )
     _require(
-        "python scripts/verify_render_blueprint_control.py --live"
-        in runtime_monitor_text,
-        "Production runtime monitor is missing live Blueprint drift control",
-    )
-    _require(
         "name: cas-production-runtime-monitor-gate" in runtime_monitor_text,
         "Production runtime monitor aggregate check name drifted",
     )
     for result_name in (
         "needs.api_dependency_readiness.result",
         "needs.worker_realmode.result",
-        "needs.blueprint_drift.result",
     ):
         _require(
             result_name in runtime_monitor_text,

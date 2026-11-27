@@ -1,3 +1,9 @@
+# LEGACY — RENDER SUSPENDED 2026-09-26.
+# Production moved to AWS (see `.aws/deployment-control.json` and
+# `.github/workflows/aws-deployment-control.yml`). The daily Render live cron
+# has been removed; the offline check stays active while
+# `render-blueprint-control-offline` remains a required status check, and the
+# live job runs only on explicit manual workflow_dispatch.
 name: Render Blueprint Control
 
 on:
@@ -6,8 +12,6 @@ on:
   pull_request:
     branches: [master]
   workflow_dispatch:
-  schedule:
-    - cron: '23 09 * * *'
 
 permissions:
   contents: read
@@ -40,7 +44,7 @@ jobs:
   live:
     name: render-blueprint-auto-sync-live
     needs: offline
-    if: ${{ needs.offline.result == 'success' && github.repository == 'LittleHenderson/noetic-compass' && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' }}
+    if: ${{ needs.offline.result == 'success' && github.repository == 'LittleHenderson/cas-compass' && github.ref == 'refs/heads/master' && github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:

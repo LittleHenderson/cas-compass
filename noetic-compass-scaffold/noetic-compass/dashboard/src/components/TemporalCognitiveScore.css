@@ -1,7 +1,8 @@
 .temporal-score {
   display: grid;
   gap: 1rem;
-  color: #e2e8f0;
+  color: #eaf3ee;
+  font-family: 'Geist', system-ui, -apple-system, sans-serif;
 }
 
 .temporal-score__header {
@@ -14,38 +15,41 @@
 
 .temporal-score__eyebrow {
   margin: 0 0 0.35rem;
-  color: #2dd4bf;
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: 0.18em;
+  color: #37f5a0;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .temporal-score__title {
   margin: 0;
-  color: #f8fafc;
-  font-size: clamp(1.35rem, 3vw, 2rem);
-  font-weight: 900;
+  color: #eaf3ee;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  font-weight: 700;
   letter-spacing: -0.03em;
 }
 
 .temporal-score__subtitle {
   max-width: 42rem;
   margin: 0.45rem 0 0;
-  color: #94a3b8;
-  font-size: 0.9rem;
+  color: #b3c2ba;
+  font-size: 0.875rem;
   line-height: 1.6;
 }
 
 .temporal-score__status {
-  border: 1px solid rgba(45, 212, 191, 0.25);
-  border-radius: 999px;
-  background: rgba(45, 212, 191, 0.08);
-  color: #5eead4;
-  padding: 0.45rem 0.8rem;
+  border: 1px solid rgba(55, 245, 160, 0.4);
+  border-radius: 2px;
+  background: #13201c;
+  color: #37f5a0;
+  padding: 0.4rem 0.75rem;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
   font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -56,9 +60,9 @@
 }
 
 .temporal-score__meta-grid > div {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0.85rem;
-  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid #20302b;
+  border-radius: 2px;
+  background: #13201c;
   padding: 0.85rem;
 }
 
@@ -66,28 +70,27 @@
 .temporal-score__fine-controls span,
 .temporal-score__slider span {
   display: block;
-  color: #64748b;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  color: #86958d;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .temporal-score__meta-grid strong {
   display: block;
   margin-top: 0.35rem;
-  color: #e2e8f0;
-  font-size: 0.9rem;
+  color: #eaf3ee;
+  font-size: 0.875rem;
 }
 
 .temporal-score__staves {
   display: grid;
   gap: 0.55rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1rem;
-  background:
-    linear-gradient(135deg, rgba(45, 212, 191, 0.05), transparent 35%),
-    rgba(2, 6, 23, 0.35);
+  border: 1px solid #20302b;
+  border-radius: 2px;
+  background: #050b0a;
   padding: 1rem;
 }
 
@@ -97,48 +100,61 @@
   align-items: center;
   gap: 0.75rem;
   min-height: 3.15rem;
-  border: 1px solid rgba(255, 255, 255, 0.055);
-  border-radius: 0.75rem;
-  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid #20302b;
+  border-radius: 2px;
+  background: #0c1513;
   padding: 0.55rem 0.75rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 
 .temporal-score__stave--active {
-  border-color: rgba(45, 212, 191, 0.55);
-  box-shadow: 0 0 24px rgba(45, 212, 191, 0.16);
-  transform: translateX(3px);
+  border-color: #37f5a0;
+  background: #13201c;
+  transform: translateX(2px);
 }
 
 .temporal-score__stave-label span {
   display: block;
-  color: #f8fafc;
+  color: #eaf3ee;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
   font-size: 1rem;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .temporal-score__stave-label small,
 .temporal-score__instrument {
-  color: #94a3b8;
+  color: #86958d;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
   font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
 }
+
+/* Preserve Okabe-Ito colorblind-safe per-domain accents on the four staves */
+.temporal-score__stave[data-domain='P'] .temporal-score__stave-label span { color: #0072B2; }
+.temporal-score__stave[data-domain='C'] .temporal-score__stave-label span { color: #009E73; }
+.temporal-score__stave[data-domain='E'] .temporal-score__stave-label span { color: #E69F00; }
+.temporal-score__stave[data-domain='O'] .temporal-score__stave-label span { color: #D55E00; }
 
 .temporal-score__stave-line {
   position: relative;
   height: 0.45rem;
   overflow: hidden;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  background: #13201c;
+  border: 1px solid #20302b;
 }
 
 .temporal-score__stave-line span {
   position: absolute;
   inset: 0 auto 0 0;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #2dd4bf, #22d3ee);
+  background: #37f5a0;
 }
+
+.temporal-score__stave[data-domain='P'] .temporal-score__stave-line span { background: #0072B2; }
+.temporal-score__stave[data-domain='C'] .temporal-score__stave-line span { background: #009E73; }
+.temporal-score__stave[data-domain='E'] .temporal-score__stave-line span { background: #E69F00; }
+.temporal-score__stave[data-domain='O'] .temporal-score__stave-line span { background: #D55E00; }
 
 .temporal-score__controls {
   display: flex;
@@ -148,18 +164,37 @@
 
 .temporal-score__controls button {
   min-height: 2.7rem;
-  border: 1px solid rgba(45, 212, 191, 0.25);
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, rgba(45, 212, 191, 0.18), rgba(34, 211, 238, 0.08));
-  color: #ecfeff;
+  border: 1px solid #eaf3ee;
+  border-radius: 2px;
+  background: transparent;
+  color: #eaf3ee;
   cursor: pointer;
-  font-weight: 800;
-  padding: 0.65rem 1rem;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.65rem 1.1rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.temporal-score__controls button:first-child {
+  border-color: #37f5a0;
+  background: #37f5a0;
+  color: #050b0a;
+}
+
+.temporal-score__controls button:hover:not(:disabled) {
+  background: #13201c;
+}
+
+.temporal-score__controls button:first-child:hover:not(:disabled) {
+  background: #2ee090;
 }
 
 .temporal-score__controls button:disabled {
   cursor: not-allowed;
-  opacity: 0.42;
+  opacity: 0.4;
 }
 
 .temporal-score__slider,
@@ -171,6 +206,7 @@
 .temporal-score__slider input,
 .temporal-score__fine-controls input {
   width: 100%;
+  accent-color: #37f5a0;
 }
 
 .temporal-score__fine-controls {
@@ -180,25 +216,27 @@
 }
 
 .temporal-score__fine-controls small {
-  color: #94a3b8;
-  font-size: 0.78rem;
+  color: #86958d;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.75rem;
 }
 
 .temporal-score__caption {
-  border-left: 3px solid #2dd4bf;
-  border-radius: 0.75rem;
-  background: rgba(45, 212, 191, 0.055);
-  color: #ccfbf1;
+  border: 1px solid #20302b;
+  border-left: 3px solid #37f5a0;
+  border-radius: 2px;
+  background: #13201c;
+  color: #eaf3ee;
   min-height: 3rem;
   padding: 0.8rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
 .temporal-score__transcript {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0.9rem;
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #20302b;
+  border-radius: 2px;
+  background: #0c1513;
   padding: 0.9rem;
 }
 
@@ -208,12 +246,15 @@
   justify-content: space-between;
   gap: 0.5rem;
   margin-bottom: 0.65rem;
-  color: #cbd5e1;
+  color: #eaf3ee;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
   font-size: 0.85rem;
 }
 
 .temporal-score__transcript-head span {
-  color: #94a3b8;
+  color: #86958d;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.75rem;
 }
 
 .temporal-score__transcript ol {
@@ -226,8 +267,9 @@
 }
 
 .temporal-score__transcript li {
-  color: #94a3b8;
-  font-size: 0.82rem;
+  color: #b3c2ba;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.78rem;
   line-height: 1.45;
 }
 
@@ -238,12 +280,13 @@
 }
 
 .temporal-score__legend span {
-  border: 1px solid rgba(255, 255, 255, 0.075);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.035);
-  color: #94a3b8;
-  padding: 0.4rem 0.65rem;
-  font-size: 0.72rem;
+  border: 1px solid #20302b;
+  border-radius: 2px;
+  background: #13201c;
+  color: #86958d;
+  padding: 0.35rem 0.6rem;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.7rem;
 }
 
 @media (max-width: 760px) {

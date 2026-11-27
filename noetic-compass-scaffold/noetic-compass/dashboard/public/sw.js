@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'noetic-compass-v2';
-const STATIC_CACHE = 'noetic-static-v2';
+const CACHE_NAME = 'cas-compass-v1';
+const STATIC_CACHE = 'cas-compass-static-v1';
 
 const STATIC_EXTENSIONS = ['.js', '.css', '.woff', '.woff2', '.ttf', '.svg', '.png', '.jpg', '.ico'];
 
@@ -45,7 +45,7 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests — let the browser handle them directly
   if (request.method !== 'GET') return;
 
-  // Cross-origin requests (API calls to Railway, etc.) — pass through untouched.
+  // Cross-origin requests (API calls, external CAS Lab assets) — pass through untouched.
   // The service worker should NOT intercept or cache these. Let the browser
   // handle them natively so errors propagate correctly.
   if (url.origin !== self.location.origin) return;

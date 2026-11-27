@@ -7,13 +7,13 @@ import {
 } from 'react';
 import { motion } from 'framer-motion';
 import {
+  COLORS,
   GLASS_PANEL_FILL,
   GLASS_PANEL_BORDER,
   GLASS_PANEL_SHADOW,
   GLASS_RADIUS,
   SPRING_SNAPPY,
   type GlassIntensity,
-  glassBlurFor,
 } from '../../lib/designTokens';
 
 type AsTag = 'div' | 'section' | 'aside' | 'nav';
@@ -64,27 +64,26 @@ function GlassPanelBase(
   }: GlassPanelProps,
   ref: Ref<HTMLElement>,
 ) {
-  const blur = glassBlurFor(intensity);
+  const background =
+    intensity === 'thin'
+      ? COLORS.stripe
+      : intensity === 'thick'
+        ? COLORS.card
+        : GLASS_PANEL_FILL;
 
   const baseStyle: CSSProperties = {
-    background: GLASS_PANEL_FILL,
+    background,
     border: GLASS_PANEL_BORDER,
     boxShadow: GLASS_PANEL_SHADOW,
     borderRadius: GLASS_RADIUS,
-    backdropFilter: blur,
-    WebkitBackdropFilter: blur,
     padding,
-    color: '#e2e8f0',
+    color: COLORS.textPrimary,
     cursor: interactive || onClick ? 'pointer' : undefined,
     ...style,
   };
 
   const MotionComponent = motion[as] as typeof motion.div;
 
-  // Wave 5.2: dropped the whileHover scale-up. Container scaling on every
-  // hover read as "click-me-I'm-a-toy" — production tools don't do that.
-  // Interactive surfaces now signal hover via border + background hue
-  // changes from the consumer's style, not by physically growing.
   return (
     <MotionComponent
       ref={ref as Ref<HTMLDivElement>}

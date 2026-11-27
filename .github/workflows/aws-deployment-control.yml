@@ -50,7 +50,7 @@ jobs:
   live:
     name: aws-deployment-control-live
     needs: offline
-    if: ${{ needs.offline.result == 'success' && github.repository == 'LittleHenderson/noetic-compass' && github.event_name != 'pull_request' }}
+    if: ${{ needs.offline.result == 'success' && github.repository == 'LittleHenderson/cas-compass' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:

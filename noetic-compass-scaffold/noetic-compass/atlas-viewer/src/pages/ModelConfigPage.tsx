@@ -6,8 +6,9 @@ import { PageShell } from '../components/ui/PageShell';
 import {
   ACCENT_TEAL,
   COLORS,
+  FONT_DISPLAY,
+  FONT_MONO,
   SPRING_SNAPPY,
-  THEME,
 } from '../lib/designTokens';
 
 interface ModelOption {
@@ -48,9 +49,20 @@ const MODELS: ModelOption[] = [
   },
 ];
 
+const eyebrowStyle: CSSProperties = {
+  margin: '0 0 8px 0',
+  fontFamily: FONT_MONO,
+  fontSize: 11,
+  fontWeight: 500,
+  letterSpacing: 1.2,
+  textTransform: 'uppercase',
+  color: ACCENT_TEAL,
+};
+
 const headingStyle: CSSProperties = {
   margin: 0,
-  fontSize: 24,
+  fontFamily: FONT_DISPLAY,
+  fontSize: 26,
   fontWeight: 700,
   letterSpacing: -0.3,
   color: COLORS.textPrimary,
@@ -66,8 +78,8 @@ const subheadingStyle: CSSProperties = {
 const listStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
-  gap: 6,
-  marginBottom: 14,
+  gap: 8,
+  marginBottom: 16,
 };
 
 const rowStyle = (active: boolean, available: boolean): CSSProperties => ({
@@ -75,14 +87,12 @@ const rowStyle = (active: boolean, available: boolean): CSSProperties => ({
   gridTemplateColumns: '1fr auto',
   alignItems: 'center',
   gap: 12,
-  padding: '12px 14px',
-  borderRadius: 6,
+  padding: '13px 14px',
+  borderRadius: 2,
   border: active
     ? `1px solid ${ACCENT_TEAL}`
-    : '1px solid rgba(255, 255, 255, 0.06)',
-  background: active
-    ? 'rgba(45, 212, 191, 0.08)'
-    : 'rgba(255, 255, 255, 0.02)',
+    : `1px solid ${COLORS.rule}`,
+  background: active ? COLORS.stripe : COLORS.ground,
   cursor: available ? 'pointer' : 'not-allowed',
   opacity: available ? 1 : 0.55,
   transition: 'border-color 0.15s ease, background 0.15s ease',
@@ -92,7 +102,8 @@ const rowTitleStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'baseline',
   gap: 10,
-  fontSize: 14,
+  fontFamily: FONT_DISPLAY,
+  fontSize: 15,
   fontWeight: 600,
   color: COLORS.textPrimary,
 };
@@ -100,51 +111,52 @@ const rowTitleStyle: CSSProperties = {
 const rowMetaStyle: CSSProperties = {
   fontSize: 11.5,
   color: COLORS.textMuted,
-  fontFamily: THEME.fontMono,
+  fontFamily: FONT_MONO,
 };
 
 const rowNotesStyle: CSSProperties = {
   marginTop: 4,
-  fontSize: 12,
+  fontSize: 12.5,
   lineHeight: 1.5,
   color: COLORS.textSecondary,
 };
 
 const tagStyle = (kind: 'live' | 'soon'): CSSProperties => ({
-  fontSize: 10,
-  fontWeight: 700,
-  letterSpacing: 1,
+  fontFamily: FONT_MONO,
+  fontSize: 11,
+  fontWeight: 500,
+  letterSpacing: 0.9,
   textTransform: 'uppercase',
   padding: '3px 8px',
-  borderRadius: 4,
-  background:
-    kind === 'live' ? 'rgba(45, 212, 191, 0.08)' : 'rgba(148, 163, 184, 0.06)',
+  borderRadius: 2,
+  background: kind === 'live' ? COLORS.card : COLORS.ground,
   border:
     kind === 'live'
-      ? '1px solid rgba(45, 212, 191, 0.35)'
-      : '1px solid rgba(148, 163, 184, 0.20)',
+      ? `1px solid ${ACCENT_TEAL}`
+      : `1px dashed ${COLORS.dash}`,
   color: kind === 'live' ? ACCENT_TEAL : COLORS.textMuted,
 });
 
 const buttonStyle: CSSProperties = {
   width: '100%',
   marginTop: 6,
-  padding: '10px 16px',
-  borderRadius: 6,
+  padding: '11px 16px',
+  borderRadius: 2,
   border: `1px solid ${ACCENT_TEAL}`,
-  background: 'rgba(45, 212, 191, 0.08)',
-  color: ACCENT_TEAL,
-  fontSize: 13,
-  fontWeight: 600,
-  letterSpacing: 0.3,
-  fontFamily: THEME.fontFamily,
+  background: ACCENT_TEAL,
+  color: COLORS.ground,
+  fontSize: 13.5,
+  fontWeight: 700,
+  letterSpacing: 0.2,
+  fontFamily: FONT_DISPLAY,
   cursor: 'pointer',
 };
 
 const footnoteStyle: CSSProperties = {
   marginTop: 16,
   paddingTop: 14,
-  borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+  borderTop: `1px dashed ${COLORS.dash}`,
+  fontFamily: FONT_MONO,
   fontSize: 11.5,
   lineHeight: 1.55,
   color: COLORS.textMuted,
@@ -155,8 +167,9 @@ export default function ModelConfigPage() {
   const [selected, setSelected] = useState<string>('pythia-160m');
 
   return (
-    <PageShell cardMaxWidth={540}>
+    <PageShell cardMaxWidth={560}>
       <GlassPanel intensity="regular" padding={24} ariaLabel="Choose a model">
+        <p style={eyebrowStyle}>CAS Compass · Step 01</p>
         <h1 style={headingStyle}>Choose a model</h1>
         <p style={subheadingStyle}>
           Pythia-160M is available through the hosted live worker. The connect step
@@ -208,8 +221,7 @@ export default function ModelConfigPage() {
           type="button"
           style={buttonStyle}
           whileHover={{
-            background: 'rgba(45, 212, 191, 0.16)',
-            borderColor: '#5eead4',
+            opacity: 0.92,
           }}
           whileTap={{ scale: 0.99 }}
           transition={SPRING_SNAPPY}

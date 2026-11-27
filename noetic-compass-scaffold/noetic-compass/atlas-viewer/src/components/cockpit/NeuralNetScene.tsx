@@ -145,18 +145,11 @@ const DETACHED_TRAY_START_Y = -4.1;
 const DETACHED_TRAY_COL_GAP = 2.7;
 const DETACHED_TRAY_ROW_GAP = 1.25;
 
-const DIM_COLOR = new Color('#2a2a3a');
-const PLANE_COLOR = new Color('#0f172a');
-// Cockpit ambient tint — subtle dark-blue base to complement the floating
-// glass UI overhead. Wave 5 darkened the previous '#05070d' to '#03060f'
-// so the glass panels read more cleanly against the 3D scene. Spec allowed
-// a gradient (top '#050818' / bottom '#02030a') but a solid is cheaper and
-// indistinguishable on the rendered canvas at typical FOV.
-const SCENE_BG = new Color('#03060f');
-// Planes pick up ACCENT_BLUE at very low intensity to give a sense of depth
-// without colouring the neurons themselves. Lambert material reacts to the
-// existing AmbientLight + DirectionalLight; emissive carries the tint when
-// the lights aren't striking the plane directly.
+const DIM_COLOR = new Color('#20302b');
+const PLANE_COLOR = new Color('#0c1513');
+// CAS Lab Biolume solid canvas background matching the surrounding shell.
+const SCENE_BG = new Color('#050b0a');
+// Planes pick up ACCENT_BLUE (#37f5a0) at very low intensity for subtle depth.
 const PLANE_EMISSIVE = new Color(ACCENT_BLUE);
 const PLANE_EMISSIVE_INTENSITY = 0.05;
 
@@ -884,7 +877,7 @@ export function NeuralNetScene({
         ];
         const geometry = new BufferGeometry().setFromPoints(points);
         const material = new LineBasicMaterial({
-          color: '#2dd4bf',
+          color: '#37f5a0',
           transparent: true,
           opacity: stringOpacity,
         });
@@ -932,7 +925,7 @@ export function NeuralNetScene({
     const blindspotColor = new Color(ATLAS_STATUS_COLORS.suppress);
     const traceColor = new Color(ATLAS_STATUS_COLORS.activeTrace);
     const selectedColor = new Color(ATLAS_STATUS_COLORS.intervention);
-    const focusedBaseColor = new Color('#2dd4bf');
+    const focusedBaseColor = new Color('#37f5a0');
     const focusedPulseColor = new Color('#facc15');
     const pulseAmount =
       focusedBlindspotSet.size > 0 ? (Math.sin(focusPulse / 150) + 1) / 2 : 0;
@@ -1168,13 +1161,13 @@ export function NeuralNetScene({
   const layerActionButtonStyle: CSSProperties = {
     minHeight: 25,
     padding: '4px 8px',
-    borderRadius: 6,
-    border: '1px solid rgba(45, 212, 191, 0.32)',
-    background: 'rgba(15, 23, 42, 0.72)',
-    color: '#ccfbf1',
+    borderRadius: 2,
+    border: '1px solid #37f5a0',
+    background: '#0c1513',
+    color: '#37f5a0',
     cursor: 'pointer',
     fontSize: 11,
-    fontWeight: 700,
+    fontWeight: 600,
   };
 
   const dockSelectRowStyle: CSSProperties = {
@@ -1186,10 +1179,10 @@ export function NeuralNetScene({
 
   const dockLayerSelectStyle: CSSProperties = {
     minHeight: 30,
-    borderRadius: 6,
-    border: '1px solid rgba(148, 163, 184, 0.24)',
-    background: 'rgba(15, 23, 42, 0.68)',
-    color: '#cbd5e1',
+    borderRadius: 2,
+    border: '1px solid #20302b',
+    background: '#050b0a',
+    color: '#eaf3ee',
     fontSize: 12,
     fontFamily: 'inherit',
     padding: '4px 8px',
@@ -1197,13 +1190,13 @@ export function NeuralNetScene({
 
   const dockLayerButtonStyle: CSSProperties = {
     minHeight: 30,
-    borderRadius: 6,
-    border: '1px solid rgba(45, 212, 191, 0.42)',
-    background: 'rgba(20, 184, 166, 0.16)',
-    color: '#ccfbf1',
+    borderRadius: 2,
+    border: '1px solid #37f5a0',
+    background: '#37f5a0',
+    color: '#050b0a',
     cursor: 'pointer',
     fontSize: 11,
-    fontWeight: 800,
+    fontWeight: 700,
     fontFamily: 'inherit',
     padding: '4px 10px',
   };
