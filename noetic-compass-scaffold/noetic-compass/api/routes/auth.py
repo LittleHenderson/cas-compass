@@ -25,6 +25,8 @@ per-key verification and the debug-gated open path should be removed.
 """
 
 import hmac
+import logging
+import secrets
 
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -34,6 +36,7 @@ from api.services.accounts.models import can_manage_role
 from api.middleware.auth import create_token
 
 router = APIRouter(tags=["auth"])
+logger = logging.getLogger(__name__)
 
 
 class TokenRequest(BaseModel):
@@ -60,11 +63,15 @@ def _authorize_mint(request: Request, body: TokenRequest) -> None:
     """
     from api.config import settings
 
-    configured = settings.auth_mint_secret
+    configured = (settings.auth_mint_secret or "").strip()
 
     if not configured:
         # No shared secret set: open mint allowed for local dev only.
         if settings.debug:
+            logger.warning(
+                "Issuing legacy accounts-off token via debug-only open mint; "
+                "enable NC_ACCOUNTS_ENABLED=true for production deployments."
+            )
             return
         raise HTTPException(
             status_code=401,
@@ -77,7 +84,9 @@ def _authorize_mint(request: Request, body: TokenRequest) -> None:
     # A shared secret is configured -> it must be presented and must match.
     presented = request.headers.get("X-Auth-Mint-Secret") or body.mint_secret or ""
     # Constant-time comparison; encode to bytes so non-ASCII secrets compare safely.
-    if not hmac.compare_digest(presented.encode("utf-8"), configured.encode("utf-8")):
+    if not presented or not hmac.compare_digest(
+        presented.encode("utf-8"), configured.encode("utf-8")
+    ):
         raise HTTPException(
             status_code=401,
             detail="Invalid or missing mint credential.",
@@ -92,17 +101,18 @@ async def generate_token(
 
     Two postures, selected by ``settings.accounts_enabled`` (default OFF):
 
-    * **accounts_enabled=False (default).** Byte-for-byte the historical behaviour: the Phase-1
-      mint lock (:func:`_authorize_mint`) gates the request, then a ``dashboard:<username>`` token
-      is minted for the supplied username. The shared-secret/debug-open path is untouched, so the
-      current internal smoke flow keeps working exactly as before.
+    * **accounts_enabled=False (default).** The Phase-1 mint lock (:func:`_authorize_mint`)
+      gates the request (failing closed outside debug mode unless ``NC_AUTH_MINT_SECRET`` is
+      configured and matched). The minted legacy token is bound to a server-assigned,
+      unguessable random principal (``dashboard:session-<hex>``) rather than the
+      caller-supplied username so one caller cannot impersonate another caller's
+      namespace. Legacy tokens never carry a server-verified operator role.
 
     * **accounts_enabled=True.** The deployment-global mint secret is disabled. The supplied
       username/email and per-account credential must authenticate an EXISTING, ACTIVE account,
       or the mint is refused (401). When it resolves, the token is bound to that account's
-      SERVER-DERIVED
-      ``account_id``/``tenant_id``/``role`` -- never to anything from the request body. An unknown
-      identity cannot log in; a disabled account cannot log in.
+      SERVER-DERIVED ``account_id``/``tenant_id``/``role`` -- never to anything from the
+      request body. An unknown identity cannot log in; a disabled account cannot log in.
     """
     from api.config import settings
     response.headers["Cache-Control"] = "no-store"
@@ -113,13 +123,17 @@ async def generate_token(
         # the individual account credential issued by invite redemption or first-owner bootstrap.
         return _mint_for_account(request, normalized, body.api_credential)
 
-    # Phase-1 mint lock: PRESERVED unchanged, and it runs in BOTH postures. With accounts off this
-    # is the whole gate; with accounts on it is the outer credential gate before the identity check.
+    # Phase-1 mint lock: strictly requires NC_AUTH_MINT_SECRET outside debug mode.
     _authorize_mint(request, body)
 
-    # Default posture: unchanged shared-secret mint.
-    api_key = f"dashboard:{normalized.lower()}"
-    token = create_token(sub=normalized, api_key=api_key, exp_minutes=settings.jwt_expiry_minutes)
+    # Assign an unguessable server-generated session principal so caller-supplied
+    # usernames cannot collide with or impersonate predictable dashboard namespaces.
+    principal = f"dashboard:session-{secrets.token_hex(12)}"
+    token = create_token(
+        sub=principal,
+        api_key=principal,
+        exp_minutes=settings.jwt_expiry_minutes,
+    )
     return TokenResponse(token=token, expires_in_minutes=settings.jwt_expiry_minutes)
 
 

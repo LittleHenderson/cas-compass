@@ -8,8 +8,9 @@
 # This image is self-contained and exposure-ready: it bakes the HF +
 # FastAPI stack, pre-pulls pythia-160m, serves app.main:app on
 # ${PORT:-8080}, EXPOSEs that port for the RunPod HTTP proxy, and keeps the
-# demo-mode fallback when torch is absent. App-level auth is OPTIONAL and
-# OFF by default (set ATLAS_LIVE_WORKER_TOKEN to require X-Atlas-Worker-Token).
+# demo-mode fallback when torch is absent. App-level auth is FAIL-CLOSED by
+# default: ATLAS_LIVE_WORKER_TOKEN (>= 16 chars; >= 24 chars on RunPod) is
+# required before binding 0.0.0.0.
 # See docs/working/atlas_live_worker_launch_grade_exposure_2026_05_31.md.
 
 FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-runtime
@@ -26,7 +27,8 @@ WORKDIR /worker
 # weights baked below are used.
 ENV HF_HOME=/worker/.cache/huggingface \
     PYTHONUNBUFFERED=1 \
-    PORT=8080
+    PORT=8080 \
+    ATLAS_LIVE_WORKER_HOST=0.0.0.0
 
 # Install Python deps. torch is already in the base image; we only add the
 # Hugging Face + FastAPI stack on top.

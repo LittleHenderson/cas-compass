@@ -35,32 +35,54 @@ Atlas Viewer UI
 
 ## Local development
 
+The worker is **fail-closed by default**: every non-health endpoint requires
+`ATLAS_LIVE_WORKER_TOKEN` (at least 16 characters; RunPod production startup
+requires at least 24 characters) sent via `X-Atlas-Worker-Token`.
+
+For **loopback-only local development in fake/demo mode** without a token, you
+must explicitly opt in with BOTH `ATLAS_LIVE_ALLOW_INSECURE_LOCAL_DEV=1` and
+`LIVE_TRACE_USE_FAKE=1` while bound to a loopback address (`127.0.0.1`,
+`localhost`, or `::1`). Tokenless startup is always rejected in real-model mode
+(`LIVE_TRACE_USE_FAKE=0`) or on non-loopback hosts (`0.0.0.0`).
+
 ```bash
 cd noetic-compass-scaffold/noetic-compass/live-trace-worker
 python -m venv .venv
 . .venv/Scripts/activate      # Windows
 # . .venv/bin/activate        # macOS/Linux
 pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8080
+
+# Option A (recommended): run with a shared worker token
+ATLAS_LIVE_WORKER_TOKEN="local-dev-worker-token-0123456789" \
+  LIVE_TRACE_USE_FAKE=1 \
+  uvicorn app.main:app --host 127.0.0.1 --port 8080
+
+# Option B (loopback-only fake-mode dev without a token)
+ATLAS_LIVE_ALLOW_INSECURE_LOCAL_DEV=1 \
+  LIVE_TRACE_USE_FAKE=1 \
+  uvicorn app.main:app --host 127.0.0.1 --port 8080
 ```
 
-Then:
+Then (passing `-H "X-Atlas-Worker-Token: $ATLAS_LIVE_WORKER_TOKEN"` when using Option A):
 
 ```bash
-# Health
-curl http://localhost:8080/health
+# Health (reports auth_configured and ready)
+curl http://127.0.0.1:8080/health
 
 # Start a session
-curl -X POST http://localhost:8080/sessions \
+curl -X POST http://127.0.0.1:8080/sessions \
   -H 'Content-Type: application/json' \
+  -H "X-Atlas-Worker-Token: ${ATLAS_LIVE_WORKER_TOKEN}" \
   -d '{"prompt":"I noticed a warm coffee cup on the table.","seed":42}'
 
-# Subscribe to the SSE stream (replace <id> with the returned session_id)
-curl -N http://localhost:8080/sessions/<id>/events
+# Subscribe to the single-use SSE stream (replace <id> with the returned session_id)
+curl -N -H "X-Atlas-Worker-Token: ${ATLAS_LIVE_WORKER_TOKEN}" \
+  http://127.0.0.1:8080/sessions/<id>/events
 
 # Or get the full event list as JSON (test/debug helper)
-curl -X POST http://localhost:8080/sessions/dump \
+curl -X POST http://127.0.0.1:8080/sessions/dump \
   -H 'Content-Type: application/json' \
+  -H "X-Atlas-Worker-Token: ${ATLAS_LIVE_WORKER_TOKEN}" \
   -d '{"prompt":"I noticed a warm coffee cup.","seed":42}'
 ```
 
@@ -199,13 +221,28 @@ stays blocked.
 
 ## Security posture
 
+- **Fail-closed authentication.** The worker refuses to start in real-model mode
+  or on non-loopback interfaces (`0.0.0.0`) unless `ATLAS_LIVE_WORKER_TOKEN` is
+  set (`>= 16` chars in-app, `>= 24` chars in
+  `scripts/runpod_start_atlas_live_worker.sh`). Every non-health request rejects
+  missing/invalid `X-Atlas-Worker-Token` headers. `/health` reports
+  `auth_configured` and `ready`, and `/health/realmode` returns HTTP `503` with
+  `ready: false` whenever production auth is not configured.
+- **Explicit loopback-only dev opt-in.** Tokenless local operation is permitted
+  only when `ATLAS_LIVE_ALLOW_INSECURE_LOCAL_DEV=1` AND `LIVE_TRACE_USE_FAKE=1`
+  are both set and the listener is bound to loopback (`127.0.0.1`, `localhost`,
+  `::1`).
+- **Bounded single-use sessions and concurrency.** In-memory sessions are
+  bounded (`ATLAS_WORKER_MAX_SESSIONS`, default `64`;
+  `ATLAS_WORKER_SESSION_TTL_SECONDS`, default `300`), atomically consumed on
+  first SSE stream attach, and deleted on completion/error/disconnect. Parallel
+  generations are capped globally (`ATLAS_WORKER_MAX_CONCURRENT_STREAMS`,
+  default `4`).
 - **No public exposure.** The worker MUST sit on a private network or
   behind an auth gate. The noetic-compass-api proxy is the only allowed
   caller.
 - **No user-identifying data.** The worker only sees session IDs +
   prompts. User identity is the API's responsibility.
-- **No persistence at m1.** Sessions live in-memory; restarts clear
-  state. Persistence (and Redis fanout) lands at m2 or later if needed.
 
 ## Why this folder, not its own repo
 

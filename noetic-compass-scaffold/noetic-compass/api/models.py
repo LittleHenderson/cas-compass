@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -109,15 +109,34 @@ class WrapRequest(BaseModel):
         return self
 
 
-class BatchRequest(BaseModel):
-    """Batch assessment request."""
+MAX_BATCH_ITEMS = 50
+MAX_BATCH_TEXT_LENGTH = 10_000
+MAX_BATCH_TOTAL_CHARS = 100_000
+MAX_BATCH_CONCURRENCY = 10
 
-    texts: list[str] = Field(min_length=1, max_length=1000)
+
+class BatchRequest(BaseModel):
+    """Batch assessment request with bounded item count, text size, and concurrency."""
+
+    texts: list[Annotated[str, Field(min_length=1, max_length=MAX_BATCH_TEXT_LENGTH)]] = Field(
+        min_length=1,
+        max_length=MAX_BATCH_ITEMS,
+    )
     provider: str = Field(default="mock")
     dial_config: DialConfigSchema = Field(default_factory=DialConfigSchema)
     model: str | None = None
     mock: bool = False
-    max_concurrency: int = Field(default=10, ge=1, le=100)
+    max_concurrency: int = Field(default=5, ge=1, le=MAX_BATCH_CONCURRENCY)
+
+    @model_validator(mode="after")
+    def validate_aggregate_batch_size(self) -> "BatchRequest":
+        total_chars = sum(len(text) for text in self.texts)
+        if total_chars > MAX_BATCH_TOTAL_CHARS:
+            raise ValueError(
+                f"Aggregate batch text length ({total_chars} chars) exceeds maximum "
+                f"allowed budget of {MAX_BATCH_TOTAL_CHARS} characters."
+            )
+        return self
 
 
 class LLMResponseSchema(BaseModel):

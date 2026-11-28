@@ -1006,30 +1006,78 @@ def test_account_mode_tenant_roles_cannot_read_global_support_pii(
     assert platform_response.json()["tickets"][0]["email"] == private_email
 
 
-def test_authenticated_operator_lifecycle_records_real_actions(support_client) -> None:
-    headers = _headers("support-test")
+def test_legacy_accounts_off_jwt_cannot_access_private_support_routes(
+    support_client,
+) -> None:
     created = support_client.post(
+        "/api/support/public/tickets", json=_public_payload()
+    )
+    assert created.status_code == 201
+    ticket_id = created.json()["ticket_id"]
+    legacy_headers = _headers("legacy-user")
+
+    assert support_client.get("/api/support/tickets", headers=legacy_headers).status_code == 403
+    assert (
+        support_client.get(f"/api/support/tickets/{ticket_id}", headers=legacy_headers).status_code
+        == 403
+    )
+    assert (
+        support_client.post(
+            f"/api/support/tickets/{ticket_id}/route",
+            json={"owner": "legacy-user"},
+            headers=legacy_headers,
+        ).status_code
+        == 403
+    )
+    assert (
+        support_client.post(
+            f"/api/support/tickets/{ticket_id}/acknowledge", headers=legacy_headers
+        ).status_code
+        == 403
+    )
+    assert (
+        support_client.post(
+            f"/api/support/tickets/{ticket_id}/resolve",
+            json={"resolution_summary": "unauthorized"},
+            headers=legacy_headers,
+        ).status_code
+        == 403
+    )
+
+
+def test_authenticated_operator_lifecycle_records_real_actions(
+    account_mode_support_client,
+) -> None:
+    client, store = account_mode_support_client
+    headers, account_id = _account_mode_headers(
+        client,
+        store,
+        identity="support-operator@example.com",
+        role="system",
+        tenant_id="platform",
+    )
+    created = client.post(
         "/api/support/public/tickets", json=_public_payload()
     )
     ticket_id = created.json()["ticket_id"]
 
-    routed = support_client.post(
+    routed = client.post(
         f"/api/support/tickets/{ticket_id}/route",
-        json={"owner": "support-test"},
+        json={"owner": account_id},
         headers=headers,
     )
     assert routed.status_code == 200, routed.text
     assert routed.json()["status"] == "routed"
-    assert routed.json()["owner"] == "support-test"
+    assert routed.json()["owner"] == account_id
 
-    acknowledged = support_client.post(
+    acknowledged = client.post(
         f"/api/support/tickets/{ticket_id}/acknowledge", headers=headers
     )
     assert acknowledged.status_code == 200, acknowledged.text
     assert acknowledged.json()["status"] == "acknowledged"
     assert acknowledged.json()["acknowledged_at_utc"]
 
-    resolved = support_client.post(
+    resolved = client.post(
         f"/api/support/tickets/{ticket_id}/resolve",
         json={"resolution_summary": "Customer confirmed the issue is resolved."},
         headers=headers,
@@ -1039,19 +1087,37 @@ def test_authenticated_operator_lifecycle_records_real_actions(support_client) -
     assert resolved.json()["resolved_at_utc"]
 
 
-def test_wrong_authenticated_actor_cannot_acknowledge(support_client) -> None:
-    created = support_client.post(
+def test_wrong_authenticated_actor_cannot_acknowledge(
+    account_mode_support_client,
+) -> None:
+    client, store = account_mode_support_client
+    operator_headers, _ = _account_mode_headers(
+        client,
+        store,
+        identity="operator-1@example.com",
+        role="system",
+        tenant_id="platform",
+    )
+    different_headers, _ = _account_mode_headers(
+        client,
+        store,
+        identity="operator-2@example.com",
+        role="system",
+        tenant_id="platform",
+    )
+    created = client.post(
         "/api/support/public/tickets", json=_public_payload()
     )
     ticket_id = created.json()["ticket_id"]
-    support_client.post(
+    routed = client.post(
         f"/api/support/tickets/{ticket_id}/route",
         json={"owner": "assigned-owner"},
-        headers=_headers("operator"),
+        headers=operator_headers,
     )
-    response = support_client.post(
+    assert routed.status_code == 200, routed.text
+    response = client.post(
         f"/api/support/tickets/{ticket_id}/acknowledge",
-        headers=_headers("different-actor"),
+        headers=different_headers,
     )
     assert response.status_code == 409
     assert "assigned owner" in response.json()["detail"]

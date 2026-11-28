@@ -25,7 +25,7 @@ const DRIVE_NAMES: [&str; 7] = [
 pub fn diagnose_chain(result: &RpmChainResult) -> String {
     let drive_name = DRIVE_NAMES.get(result.drive_index).unwrap_or(&"Unknown");
 
-    if result.first_failure.is_none() {
+    let Some(failure) = result.first_failure.as_ref() else {
         return format!(
             "F{} ({}) chain complete. Stages: {} motivation, {} knowledge, {} capability.",
             result.drive_index + 1,
@@ -34,9 +34,7 @@ pub fn diagnose_chain(result: &RpmChainResult) -> String {
             result.wisdom_stage,
             result.power_stage,
         );
-    }
-
-    let failure = result.first_failure.as_ref().unwrap();
+    };
 
     if !result.a0_satisfied {
         return format!(

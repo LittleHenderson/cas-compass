@@ -508,8 +508,10 @@ def export_evidence_csv(
     buffer = StringIO()
     writer = csv.DictWriter(buffer, fieldnames=fields)
     writer.writeheader()
+    from api.utils.csv_safety import sanitize_csv_dict
+
     for entry in review["entries"]:
-        writer.writerow({field: entry.get(field, "") for field in fields})
+        writer.writerow(sanitize_csv_dict({field: entry.get(field, "") for field in fields}))
     return buffer.getvalue()
 
 

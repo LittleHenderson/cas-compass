@@ -155,3 +155,40 @@ def require_role_in_account_mode(*roles: str) -> Callable[[Request], Optional[st
         return live_gate(request)
 
     return _dependency
+
+
+def require_verified_role(*roles: str) -> Callable[[Request], str]:
+    """Unconditional server-assigned role gate that NEVER bypasses in accounts-off mode.
+
+    Used on sensitive operational endpoints (e.g., private CRM leads and global support
+    queues) that must NEVER be reachable via a legacy shared-secret/accounts-off JWT:
+
+    * Unauthenticated request (neither server-set role nor authenticated user) -> **401**.
+    * Authenticated request lacking a server-verified role (e.g., legacy accounts-off JWT)
+      or holding a role outside ``roles`` -> **403 Forbidden**.
+    * Verified server-assigned role in ``roles`` -> returns the role.
+    """
+    allowed = tuple(dict.fromkeys(r for r in roles if r))
+    if not allowed:
+        raise ValueError("require_verified_role(...) needs at least one non-empty role")
+
+    def _dependency(request: Request) -> str:
+        role = _server_role(request)
+        if role is None:
+            if getattr(request.state, "user", None):
+                raise HTTPException(
+                    status_code=403,
+                    detail=(
+                        "Operator authorization required; this action requires one of: "
+                        f"{', '.join(allowed)}."
+                    ),
+                )
+            raise HTTPException(status_code=401, detail="Authentication required.")
+        if role not in allowed:
+            raise HTTPException(
+                status_code=403,
+                detail=f"This action requires one of: {', '.join(allowed)}.",
+            )
+        return role
+
+    return _dependency

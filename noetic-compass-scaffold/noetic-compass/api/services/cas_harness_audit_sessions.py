@@ -5,7 +5,9 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime, timedelta
 import hashlib
+import hmac
 import json
+import secrets
 from threading import Lock
 import uuid
 from typing import Any, Literal
@@ -83,6 +85,8 @@ class AuditSessionRecord:
     # control field, never part of the public audit-session response contract.
     owner_sub: str | None = None
     owner_api_key: str | None = None
+    owner_key: str | None = None
+    capability_token_sha256: str | None = None
     run_attempt_id: str | None = None
     run_lease_until: str | None = None
     run_fence: int = 0
@@ -108,10 +112,12 @@ class AuditSessionRecord:
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
         payload["lifecycle"] = [asdict(event) for event in self.lifecycle]
-        # Owner identity is an internal access-control field; never leak it in
-        # the public audit-session response payload.
+        # Owner identity and capability digests are internal access-control
+        # fields; never leak them in the public audit-session response payload.
         payload.pop("owner_sub", None)
         payload.pop("owner_api_key", None)
+        payload.pop("owner_key", None)
+        payload.pop("capability_token_sha256", None)
         payload.pop("run_attempt_id", None)
         payload.pop("run_lease_until", None)
         payload.pop("run_fence", None)
@@ -124,6 +130,10 @@ class AuditSessionRecord:
         return payload
 
 
+MAX_IN_MEMORY_SESSIONS = 256
+IN_MEMORY_SESSION_TTL_SECONDS = 3600
+MAX_IN_MEMORY_SESSION_BYTES = 16 * 1024 * 1024
+
 _SESSIONS: dict[str, AuditSessionRecord] = {}
 _LOCK = Lock()
 _DURABLE_STORE: StateStore | None = None
@@ -133,6 +143,11 @@ _MAX_DURABLE_RETRIES = 12
 
 class AuditSessionPersistenceUnavailable(RuntimeError):
     pass
+
+
+class AuditSessionCapacityExceeded(RuntimeError):
+    """Raised when the bounded in-memory audit session store is full."""
+
 
 class AuditRunInProgress(RuntimeError):
     pass
@@ -161,9 +176,9 @@ def configure_audit_session_store(store: StateStore | None) -> None:
 
 # Sentinel identity values. The JWT auth middleware defaults an unauthenticated
 # caller's ``sub``/``api_key`` to these strings, and other middleware mirrors the
-# same defaults. For ownership we treat them as "no real identity": a session
-# owned only by these (or by ``None``/empty) is anonymous-owned, and an
-# authenticated caller must never be able to see it, nor it them.
+# same defaults. For ownership we treat them as "no real identity": an
+# unauthenticated session receives a unique per-session owner key + high-entropy
+# capability token instead of a shared global bucket.
 _ANONYMOUS_SUB = "anonymous"
 _DEFAULT_API_KEY = "default"
 
@@ -178,21 +193,45 @@ def _normalize_identity(value: str | None) -> str | None:
     return stripped
 
 
-def _owner_key(owner_sub: str | None, owner_api_key: str | None) -> str:
-    """Build a stable owner key for tenant-scoping list/get.
+def _owner_key(owner_sub: str | None, owner_api_key: str | None) -> str | None:
+    """Build a stable owner key for authenticated callers, or ``None`` when unauthenticated.
 
-    Phase-1 identity-scope stopgap: the key is derived from the requesting
-    identity (``sub`` claim and/or ``api_key``). Callers with no real identity
-    collapse to a single dedicated ``anonymous`` bucket, so they can only ever
-    see other anonymous-owned sessions (own-only) and never an authenticated
-    caller's sessions. Upgrades to a real ``tenant_id`` when the account/tenant
-    model lands.
+    Absence of identity is never mapped to a shared principal bucket; anonymous
+    sessions receive a unique ``anon:<audit_id>`` owner key and capability token.
     """
     sub = _normalize_identity(owner_sub)
     api_key = _normalize_identity(owner_api_key)
     if sub is None and api_key is None:
-        return "anon"
+        return None
     return json.dumps({"sub": sub, "api_key": api_key}, sort_keys=True)
+
+
+def _hash_capability_token(raw_token: str) -> str:
+    return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+
+
+def _estimate_record_bytes(record: AuditSessionRecord) -> int:
+    return len(json.dumps(asdict(record), default=str, ensure_ascii=True).encode("utf-8"))
+
+
+def _evict_expired_sessions_locked(now: datetime | None = None) -> int:
+    """Remove expired in-memory sessions while holding ``_LOCK``."""
+    current = now or datetime.now(UTC)
+    cutoff = current - timedelta(seconds=IN_MEMORY_SESSION_TTL_SECONDS)
+    expired_ids: list[str] = []
+    for audit_id, record in _SESSIONS.items():
+        try:
+            created = datetime.fromisoformat(record.created_at)
+        except ValueError:
+            expired_ids.append(audit_id)
+            continue
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=UTC)
+        if created < cutoff:
+            expired_ids.append(audit_id)
+    for audit_id in expired_ids:
+        _SESSIONS.pop(audit_id, None)
+    return len(expired_ids)
 
 
 def reset_audit_sessions_for_tests() -> None:
@@ -202,31 +241,57 @@ def reset_audit_sessions_for_tests() -> None:
     configure_audit_session_store(None)
 
 
-def create_session(
+def create_session_with_token(
     payload: dict[str, Any],
     *,
     owner_sub: str | None = None,
     owner_api_key: str | None = None,
     tenant_id: str | None = None,
     account_id: str | None = None,
-) -> AuditSessionRecord:
-    # Phase-1 identity-scope stopgap: fold the owner key into the deterministic
-    # audit_id so two different callers submitting the same payload get distinct
-    # sessions (a record therefore always belongs to exactly one owner), while a
-    # single caller still dedups on identical payloads.
-    owner_key = _owner_key(owner_sub, owner_api_key)
-    audit_id = _audit_id_for(payload, owner_key=owner_key)
-    now = _utc_now()
+) -> tuple[AuditSessionRecord, str | None]:
+    """Create a session and return ``(record, raw_capability_token_or_none)``.
+
+    Anonymous sessions receive a unique random ``audit_id``, a unique owner key
+    ``anon:<audit_id>``, and a high-entropy capability token whose SHA-256 digest
+    is stored on the record while the raw token is returned once to the caller.
+    """
+    caller_owner_key = _owner_key(owner_sub, owner_api_key)
     durable = _durable_context(tenant_id, account_id)
+    raw_capability_token: str | None = None
+    capability_token_sha256: str | None = None
+
+    if durable:
+        # Durable account-mode sessions are scoped by tenant_id + account_id.
+        deterministic_key = caller_owner_key or f"account:{tenant_id}:{account_id}"
+        audit_id = _audit_id_for(payload, owner_key=deterministic_key)
+        record_owner_key: str | None = deterministic_key
+    elif caller_owner_key is None:
+        # Anonymous session: never share a bucket or collide across anonymous users.
+        audit_id = f"cas-audit-{secrets.token_hex(8)}"
+        raw_capability_token = secrets.token_urlsafe(32)
+        capability_token_sha256 = _hash_capability_token(raw_capability_token)
+        record_owner_key = f"anon:{audit_id}"
+    else:
+        audit_id = _audit_id_for(payload, owner_key=caller_owner_key)
+        record_owner_key = caller_owner_key
+
+    now = _utc_now()
     if durable:
         existing = _durable_get(audit_id, tenant_id, account_id)
         if existing is not None:
-            return existing
+            return existing, None
+
     with _LOCK:
         if not durable:
-            existing = _SESSIONS.get(audit_id)
-            if existing is not None:
-                return existing
+            _evict_expired_sessions_locked()
+            if caller_owner_key is not None:
+                existing = _SESSIONS.get(audit_id)
+                if existing is not None:
+                    return existing, None
+            if len(_SESSIONS) >= MAX_IN_MEMORY_SESSIONS:
+                raise AuditSessionCapacityExceeded(
+                    f"Audit session store capacity exceeded (max {MAX_IN_MEMORY_SESSIONS} active sessions)."
+                )
 
         record = AuditSessionRecord(
             audit_id=audit_id,
@@ -245,6 +310,8 @@ def create_session(
             updated_at=now,
             owner_sub=_normalize_identity(owner_sub),
             owner_api_key=_normalize_identity(owner_api_key),
+            owner_key=record_owner_key,
+            capability_token_sha256=capability_token_sha256,
             evidence_packet_trace_id=payload.get("evidence_packet_trace_id"),
             atlas_deep_link=_atlas_deep_link(payload.get("evidence_packet_trace_id")),
             verifier_decision=(
@@ -281,16 +348,50 @@ def create_session(
             except VersionConflict:
                 concurrent = _durable_get(audit_id, tenant_id, account_id)
                 if concurrent is not None:
-                    return concurrent
+                    return concurrent, None
                 raise
         else:
+            current_bytes = sum(_estimate_record_bytes(item) for item in _SESSIONS.values())
+            new_bytes = _estimate_record_bytes(record)
+            if current_bytes + new_bytes > MAX_IN_MEMORY_SESSION_BYTES:
+                raise AuditSessionCapacityExceeded(
+                    "Audit session store memory budget exceeded."
+                )
             _SESSIONS[audit_id] = record
-        return record
+        return record, raw_capability_token
 
 
-def _owns(record: AuditSessionRecord, owner_key: str) -> bool:
-    """True when ``record`` is owned by the caller identified by ``owner_key``."""
-    return _owner_key(record.owner_sub, record.owner_api_key) == owner_key
+def create_session(
+    payload: dict[str, Any],
+    *,
+    owner_sub: str | None = None,
+    owner_api_key: str | None = None,
+    tenant_id: str | None = None,
+    account_id: str | None = None,
+) -> AuditSessionRecord:
+    record, _token = create_session_with_token(
+        payload,
+        owner_sub=owner_sub,
+        owner_api_key=owner_api_key,
+        tenant_id=tenant_id,
+        account_id=account_id,
+    )
+    return record
+
+
+def _owns(record: AuditSessionRecord, owner_key: str | None) -> bool:
+    """True when ``record`` is owned by the authenticated caller ``owner_key``."""
+    if owner_key is None or record.capability_token_sha256 is not None:
+        return False
+    record_key = _owner_key(record.owner_sub, record.owner_api_key)
+    return record_key is not None and record_key == owner_key
+
+
+def _matches_capability(record: AuditSessionRecord, capability_token: str | None) -> bool:
+    if not record.capability_token_sha256 or not capability_token:
+        return False
+    presented_digest = _hash_capability_token(capability_token.strip())
+    return hmac.compare_digest(presented_digest, record.capability_token_sha256)
 
 
 def get_session(
@@ -298,22 +399,28 @@ def get_session(
     *,
     owner_sub: str | None = None,
     owner_api_key: str | None = None,
+    capability_token: str | None = None,
     tenant_id: str | None = None,
     account_id: str | None = None,
 ) -> AuditSessionRecord | None:
-    """Return a session only if the caller owns it.
+    """Return a session only if the caller owns it or presents its capability token.
 
-    Phase-1 identity-scope stopgap: fail CLOSED. A caller who does not own the
-    session (including a caller with no identity asking for an authenticated
-    caller's session) gets ``None`` — indistinguishable from "not found" — so a
-    cross-tenant read cannot enumerate or confirm another caller's sessions.
+    Fails CLOSED: a caller who does not own the session (or lacks the matching
+    per-session capability token for an anonymous session) gets ``None``.
     """
     if _durable_context(tenant_id, account_id):
         return _durable_get(audit_id, tenant_id, account_id)
     owner_key = _owner_key(owner_sub, owner_api_key)
     with _LOCK:
+        _evict_expired_sessions_locked()
         record = _SESSIONS.get(audit_id)
-        if record is None or not _owns(record, owner_key):
+        if record is None:
+            return None
+        if record.capability_token_sha256 is not None:
+            if not _matches_capability(record, capability_token):
+                return None
+            return record
+        if not _owns(record, owner_key):
             return None
         return record
 
@@ -325,16 +432,18 @@ def list_sessions(
     tenant_id: str | None = None,
     account_id: str | None = None,
 ) -> list[AuditSessionRecord]:
-    """List only the sessions owned by the requesting identity.
+    """List only the sessions owned by an authenticated requesting identity.
 
-    Phase-1 identity-scope stopgap: fail CLOSED. A caller only ever sees their
-    own sessions; a caller with no real identity sees only the anonymous-owned
-    bucket, never every process-wide session.
+    Identity-less callers always receive an empty list so anonymous sessions
+    cannot be enumerated across independent visitors.
     """
     if _durable_context(tenant_id, account_id):
         return _durable_list(tenant_id, account_id)
     owner_key = _owner_key(owner_sub, owner_api_key)
+    if owner_key is None:
+        return []
     with _LOCK:
+        _evict_expired_sessions_locked()
         owned = [record for record in _SESSIONS.values() if _owns(record, owner_key)]
     return sorted(owned, key=lambda session: session.created_at)
 

@@ -46,6 +46,12 @@ realmode_ok() {
   curl -fsS "http://127.0.0.1:${PORT}/health/realmode" 2>/dev/null | grep -q 'REAL_PYTHIA_WEIGHTS_LOADED'
 }
 
+if [ -z "${ATLAS_LIVE_WORKER_TOKEN:-}" ] || [ "${#ATLAS_LIVE_WORKER_TOKEN}" -lt 24 ]; then
+  printf '%s %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "ERROR: ATLAS_LIVE_WORKER_TOKEN must be set (>= 24 chars) before binding 0.0.0.0" >>"${BOOT_LOG}"
+  echo "ERROR: ATLAS_LIVE_WORKER_TOKEN must be set (>= 24 chars) before binding 0.0.0.0" >&2
+  exit 1
+fi
+
 if realmode_ok; then
   log "Atlas live worker already healthy on port ${PORT}."
   exit 0
@@ -84,7 +90,7 @@ fi
 
 log "Starting Atlas live worker from ${RUN_DIR} on port ${PORT}; fake mode forced off."
 cd "${RUN_DIR}" || exit 0
-LIVE_TRACE_USE_FAKE=0 PYTHONUNBUFFERED=1 setsid "${VENV_DIR}/bin/python" -m uvicorn app.main:app --host 0.0.0.0 --port "${PORT}" >>"${LOG_FILE}" 2>&1 &
+ATLAS_LIVE_WORKER_HOST=0.0.0.0 LIVE_TRACE_USE_FAKE=0 PYTHONUNBUFFERED=1 setsid "${VENV_DIR}/bin/python" -m uvicorn app.main:app --host 0.0.0.0 --port "${PORT}" >>"${LOG_FILE}" 2>&1 &
 WORKER_PID="$!"
 log "Started Atlas worker PID ${WORKER_PID}."
 

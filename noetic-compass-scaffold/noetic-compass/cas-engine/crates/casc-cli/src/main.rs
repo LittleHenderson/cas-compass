@@ -23,7 +23,10 @@ struct CasManifest {
 }
 
 fn print_json(value: &serde_json::Value) {
-    println!("{}", serde_json::to_string_pretty(value).unwrap());
+    match serde_json::to_string_pretty(value) {
+        Ok(rendered) => println!("{rendered}"),
+        Err(error) => eprintln!(r#"{{"valid":false,"error":"json serialization failed: {error}"}}"#),
+    }
 }
 
 const LOGO_FRAMES: [&str; 6] = [
@@ -134,7 +137,13 @@ fn run_frontend_mode(mode: &str, source: &str) -> i32 {
                 1
             }
         },
-        _ => unreachable!(),
+        _ => {
+            print_json(&serde_json::json!({
+                "valid": false,
+                "error": format!("unsupported frontend mode `{mode}`"),
+            }));
+            1
+        }
     }
 }
 
@@ -170,7 +179,9 @@ fn repl() -> i32 {
     println!("CAS REPL. Type :quit to exit, :grammar to print the grammar.");
     loop {
         print!("casc> ");
-        io::stdout().flush().unwrap();
+        if io::stdout().flush().is_err() {
+            return 1;
+        }
         let mut line = String::new();
         if io::stdin().read_line(&mut line).is_err() {
             return 1;

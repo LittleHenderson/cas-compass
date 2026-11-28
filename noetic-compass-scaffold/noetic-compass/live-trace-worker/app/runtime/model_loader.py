@@ -97,11 +97,17 @@ _LOAD_LOCK = threading.Lock()
 
 
 def _is_demo_mode_forced() -> bool:
-    """env LIVE_TRACE_DEMO_MODE=1 forces the demo stream even if torch is fine.
+    """Return True when fake/demo mode is forced via environment variables.
 
-    Used for local dev where you don't want the worker to download Pythia
-    weights, and for cheap integration tests on CI runners.
+    ``LIVE_TRACE_USE_FAKE=0`` explicitly disables demo/fake mode (production
+    real-model launch). ``LIVE_TRACE_USE_FAKE=1`` or ``LIVE_TRACE_DEMO_MODE=1``
+    forces the deterministic demo stream for local dev and CI.
     """
+    use_fake = os.environ.get("LIVE_TRACE_USE_FAKE", "").strip().lower()
+    if use_fake in {"0", "false", "no"}:
+        return False
+    if use_fake in {"1", "true", "yes"}:
+        return True
     return os.environ.get("LIVE_TRACE_DEMO_MODE", "0").strip().lower() in {"1", "true", "yes"}
 
 

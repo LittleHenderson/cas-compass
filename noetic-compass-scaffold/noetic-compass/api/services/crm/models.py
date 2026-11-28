@@ -111,6 +111,19 @@ def _now_iso() -> str:
     return datetime.now(UTC).isoformat()
 
 
+def _monotonic_updated_at(previous_iso: str) -> str:
+    """Return a UTC ISO timestamp never earlier than ``previous_iso``."""
+    now_iso = _now_iso()
+    try:
+        prev_dt = datetime.fromisoformat(previous_iso.replace("Z", "+00:00"))
+        curr_dt = datetime.fromisoformat(now_iso.replace("Z", "+00:00"))
+        if curr_dt < prev_dt:
+            return previous_iso
+    except ValueError:
+        pass
+    return now_iso
+
+
 def _verification_now_iso() -> str:
     """Canonical whole-second UTC timestamp used by external verification receipts."""
 
@@ -525,7 +538,7 @@ class Lead:
             email=self.email,
             lead_id=self.lead_id,
             created_at=self.created_at,
-            updated_at=_now_iso(),
+            updated_at=_monotonic_updated_at(self.updated_at),
             version=self.version + 1,
             source=self.source,
             trace_id=self.trace_id,
@@ -565,7 +578,7 @@ class Lead:
             email=self.email,
             lead_id=self.lead_id,
             created_at=self.created_at,
-            updated_at=_now_iso(),
+            updated_at=_monotonic_updated_at(self.updated_at),
             version=self.version + 1,
             source=self.source,
             trace_id=self.trace_id,

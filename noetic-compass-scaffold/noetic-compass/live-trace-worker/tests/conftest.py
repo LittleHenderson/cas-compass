@@ -17,16 +17,25 @@ os.environ.setdefault("LIVE_TRACE_DEMO_MODE", "1")
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
+from app.auth import WORKER_TOKEN_ENV, WORKER_TOKEN_HEADER  # noqa: E402
 from app.main import create_app  # noqa: E402
+from app.routes.live_trace import reset_sessions_for_test  # noqa: E402
 from app.runtime import reset_for_test  # noqa: E402
+
+TEST_WORKER_TOKEN = "test-live-worker-token-0123456789"
 
 
 @pytest.fixture(autouse=True)
 def _reset_loaded_model() -> None:
-    """Each test starts with no warm-loaded model in the singleton."""
+    """Each test starts with a clean model singleton and empty session store."""
     reset_for_test()
+    reset_sessions_for_test()
 
 
 @pytest.fixture()
-def client() -> TestClient:
-    return TestClient(create_app())
+def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
+    monkeypatch.setenv(WORKER_TOKEN_ENV, TEST_WORKER_TOKEN)
+    return TestClient(
+        create_app(),
+        headers={WORKER_TOKEN_HEADER: TEST_WORKER_TOKEN},
+    )

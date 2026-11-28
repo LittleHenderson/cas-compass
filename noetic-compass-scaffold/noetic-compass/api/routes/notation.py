@@ -6,13 +6,19 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from api.notation.compiler import (
-    CAS_GRAMMAR_BNF, CAS_LANGUAGE_NOTES, compile_expression,
+    CAS_GRAMMAR_BNF, CAS_LANGUAGE_NOTES, CompilerError, compile_expression,
     OPERATOR_NAMES, DOMAIN_NAMES, DRIVE_NAMES,
 )
 from api.pipeline.text_signal_analyzer import analyze_text_signals
 from api.pipeline.notation_synthesizer import synthesize_notation
 
 router = APIRouter(prefix="/notation", tags=["notation"])
+
+
+def _safe_compile_error(detail: str | None) -> str:
+    if not detail:
+        return "Compilation failed."
+    return detail
 
 
 class NotationCompileRequest(BaseModel):
@@ -30,9 +36,17 @@ def notation_grammar() -> dict:
 
 @router.post("/compile")
 def compile_notation(req: NotationCompileRequest) -> dict:
-    artifact = compile_expression(req.expression)
+    try:
+        artifact = compile_expression(req.expression, allow_imports=False)
+    except RecursionError:
+        raise HTTPException(
+            status_code=422,
+            detail="parsing: expression nesting exceeds maximum recursion depth",
+        ) from None
+    except (CompilerError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=_safe_compile_error(str(exc))) from None
     if not artifact.valid:
-        raise HTTPException(status_code=422, detail=artifact.error)
+        raise HTTPException(status_code=422, detail=_safe_compile_error(artifact.error))
     payload = artifact.to_dict()
     payload["diagram"] = artifact.diagram()
     return payload
@@ -180,18 +194,31 @@ def natural_language_pipeline(req: NaturalLanguageRequest) -> dict:
     # 3. Compilation (optional but default)
     compilation = None
     if req.compile and synth.source:
-        artifact = compile_expression(synth.source)
-        compilation = {
-            "valid": artifact.valid,
-            "error": artifact.error,
-            "engine": artifact.engine,
-            "tokens": len(artifact.tokens),
-            "bytecode": len(artifact.bytecode),
-            "warnings": artifact.warnings,
-            "ast": artifact.to_dict().get("ast") if artifact.valid else None,
-            "result": artifact.to_dict().get("result") if artifact.valid else None,
-            "diagram": artifact.diagram() if artifact.valid else None,
-        }
+        try:
+            artifact = compile_expression(synth.source, allow_imports=False)
+            compilation = {
+                "valid": artifact.valid,
+                "error": artifact.error,
+                "engine": artifact.engine,
+                "tokens": len(artifact.tokens),
+                "bytecode": len(artifact.bytecode),
+                "warnings": artifact.warnings,
+                "ast": artifact.to_dict().get("ast") if artifact.valid else None,
+                "result": artifact.to_dict().get("result") if artifact.valid else None,
+                "diagram": artifact.diagram() if artifact.valid else None,
+            }
+        except (CompilerError, ValueError, RecursionError) as exc:
+            compilation = {
+                "valid": False,
+                "error": _safe_compile_error(str(exc)),
+                "engine": "python",
+                "tokens": 0,
+                "bytecode": 0,
+                "warnings": [],
+                "ast": None,
+                "result": None,
+                "diagram": None,
+            }
 
     # 4. Interpretation
     interpretation = _build_interpretation(

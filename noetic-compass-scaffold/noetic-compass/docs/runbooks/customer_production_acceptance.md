@@ -603,11 +603,12 @@ protection proof. Run the collector from the exact checked-out protected
 
 ```powershell
 $env:GITHUB_TOKEN = gh auth token
+$subjectFile = "root-ci-protected-deploy-<short-sha>-<public-render-deploy-id>.json"
 python scripts/collect_root_ci_protected_deploy_facts.py `
   --expected-master-head <40-character-protected-master-sha> `
   --expected-deploy-id <public-render-deploy-id> `
   --deploy-wait-seconds 600 `
-  --output root-ci-protected-deploy.json
+  --output $subjectFile
 ```
 
 While waiting, the collector polls only
@@ -660,27 +661,61 @@ protected `master` SHA, and bind the receipt to the resulting live
 same-SHA `service_updated` successor: runtime and root-CI evidence must identify
 the same final deployment ID.
 
-Publish those exact bytes as the stable release asset
-`customer-production-evidence/root-ci-protected-deploy.json`. Then manually
-dispatch `Customer Production Evidence` from that same protected `master` SHA
-with the exact SHA and deploy ID. The protected `customer-production`
-environment workflow downloads the asset, hashes and strict-parses it, runs
-the hostile verifier/producer tests, binds the expected SHA and deploy ID, and
-signs a receipt with `CUSTOMER_PRODUCTION_SIGNING_KEY_PEM`. The private key is
-available only to the signing step and is never logged. The uploaded artifact
-contains the receipt, its exact SHA-256 pin, and the subject checksum; the
-checked-in manifest remains `OPEN`, and the workflow never dispatches final
-`ACCEPT`. The signed receipt expires, so candidate assembly must use the exact
-current receipt rather than recycling an older successful run. Root-CI
-receipts have an exact, fail-closed 120-minute TTL (not merely a default); both
-candidate assembly and the final workflow must finish before the receipt's
-exact `expires_at_utc`.
+Publish those exact bytes as a **new, immutable** release asset under the
+`customer-production-evidence` release using a unique per-commit/per-deploy
+filename (`root-ci-protected-deploy-<short-sha>-<deploy-id>.json`, appending a
+UTC timestamp suffix if a fresh observation is needed for the same deploy).
+**Never overwrite or replace an existing release asset** (mutable overwrites
+are forbidden). Compute the exact lowercase SHA-256 locally before upload,
+record the immutable numeric GitHub `release_asset_id` assigned by the upload,
+and manually dispatch `Customer Production Evidence` from that same protected
+`master` SHA with all four pinned inputs (`expected_master_head`,
+`expected_deploy_id`, `expected_subject_sha256`, and `release_asset_id`) so the
+protected `customer-production` environment reviewer verifies the exact
+immutable asset ID and SHA-256 digest before approval.
+
+The workflow splits verification from signing: an unprivileged
+`verify-immutable-subject` job downloads the asset by immutable numeric ID via
+the GitHub REST API, verifies release membership and the exact SHA-256 digest,
+and hands the verified subject artifact to the protected
+`customer-production` environment job. That protected job re-verifies the
+digest and metadata, runs the hostile verifier/producer tests, passes
+`--expected-subject-sha256` and `--release-asset-id` into
+`scripts/sign_root_ci_protected_deploy_receipt.py` (which verifies the exact
+digest with `hmac.compare_digest` before loading the signing key and binds
+`release_asset_id` into the signed receipt), and signs with
+`CUSTOMER_PRODUCTION_SIGNING_KEY_PEM`. The private key is available only to the
+signing step and is never logged. The uploaded artifact contains the receipt,
+its exact SHA-256 pin, the subject checksum, and the recorded immutable release
+asset metadata; the checked-in manifest remains `OPEN`, and the workflow never
+dispatches final `ACCEPT`. The signed receipt expires, so candidate assembly
+must use the exact current receipt rather than recycling an older successful
+run. Root-CI receipts have an exact, fail-closed 120-minute TTL (not merely a
+default); both candidate assembly and the final workflow must finish before the
+receipt's exact `expires_at_utc`.
 
 ```powershell
+# 1. Record the exact lowercase SHA-256 of the reviewed unsigned subject locally
+$subjectSha256 = (Get-FileHash $subjectFile -Algorithm SHA256).Hash.ToLowerInvariant()
+
+# 2. Upload as a new immutable per-commit/per-deploy release asset (never overwrite existing assets)
 gh release upload customer-production-evidence `
-  'root-ci-protected-deploy.json#Unsigned root CI protected deploy source facts' `
+  "$subjectFile#Unsigned root CI protected deploy source facts (<short-sha> / <public-render-deploy-id>)" `
+  --repo LittleHenderson/cas-compass
+
+# 3. Record the immutable numeric GitHub Release Asset ID assigned to that exact file
+$releaseId = gh api repos/LittleHenderson/cas-compass/releases/tags/customer-production-evidence --jq '.id'
+$releaseAssetId = gh api --paginate "repos/LittleHenderson/cas-compass/releases/$releaseId/assets?per_page=100" `
+  --jq ".[] | select(.name == \"$subjectFile\") | .id"
+
+# 4. Dispatch Customer Production Evidence with all four pinned inputs for reviewer approval
+gh workflow run customer-production-evidence.yml `
   --repo LittleHenderson/cas-compass `
-  --clobber
+  --ref master `
+  -f expected_master_head=<40-character-protected-master-sha> `
+  -f expected_deploy_id=<public-render-deploy-id> `
+  -f expected_subject_sha256=$subjectSha256 `
+  -f release_asset_id=$releaseAssetId
 ```
 
 ### Assemble the ephemeral final candidate

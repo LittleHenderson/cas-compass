@@ -647,6 +647,18 @@ def _auth_headers() -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
+@pytest.fixture
+def crm_operator_client(client):
+    """TestClient with an explicit operator-role override for testing private CRM sales views."""
+    from api.routes.crm import _crm_operator_gate
+
+    client.app.dependency_overrides[_crm_operator_gate] = lambda: "operator"
+    try:
+        yield client
+    finally:
+        client.app.dependency_overrides.pop(_crm_operator_gate, None)
+
+
 def _public_payload(email: str, **overrides: object) -> dict[str, object]:
     payload: dict[str, object] = {
         "email": email,
@@ -702,14 +714,14 @@ def test_public_capture_rejects_bad_email(client) -> None:
     ],
 )
 def test_public_capture_requires_explicit_consent_and_rejects_malformed_legacy_version(
-    client, payload: dict[str, object]
+    crm_operator_client, payload: dict[str, object]
 ) -> None:
-    before = client.get("/api/crm/leads", headers=_auth_headers()).json()["count"]
+    before = crm_operator_client.get("/api/crm/leads", headers=_auth_headers()).json()["count"]
 
-    response = client.post("/api/crm/public/leads", json=payload)
+    response = crm_operator_client.post("/api/crm/public/leads", json=payload)
 
     assert response.status_code == 422
-    after = client.get("/api/crm/leads", headers=_auth_headers()).json()["count"]
+    after = crm_operator_client.get("/api/crm/leads", headers=_auth_headers()).json()["count"]
     assert after == before
 
 
@@ -721,22 +733,22 @@ def test_public_capture_rejects_stale_legacy_notice_acknowledgement(client) -> N
     assert response.status_code == 409
 
 
-def test_public_capture_fails_closed_while_notice_is_open(client) -> None:
-    client.app.state.crm_privacy_notice_contract = CRMPrivacyNoticeContract(
+def test_public_capture_fails_closed_while_notice_is_open(crm_operator_client) -> None:
+    crm_operator_client.app.state.crm_privacy_notice_contract = CRMPrivacyNoticeContract(
         publication_status="OPEN",
         version=CRM_CURRENT_OPEN_DRAFT_VERSION,
         content_sha256=CRM_CURRENT_OPEN_DRAFT_CONTENT_SHA256,
     ).validated()
-    before = client.get("/api/crm/leads", headers=_auth_headers()).json()["count"]
+    before = crm_operator_client.get("/api/crm/leads", headers=_auth_headers()).json()["count"]
 
-    response = client.post(
+    response = crm_operator_client.post(
         "/api/crm/public/leads",
         json=_public_payload("privacy-open@example.com"),
     )
 
     assert response.status_code == 503
     assert "status is OPEN" in response.json()["detail"]
-    after = client.get("/api/crm/leads", headers=_auth_headers()).json()["count"]
+    after = crm_operator_client.get("/api/crm/leads", headers=_auth_headers()).json()["count"]
     assert after == before
 
 
@@ -776,10 +788,10 @@ def test_consent_evidence_is_immutable_across_sync_and_pipeline_versions() -> No
     ) == expected
 
 
-def test_public_capture_honeypot_rejects_before_capture(client) -> None:
+def test_public_capture_honeypot_rejects_before_capture(crm_operator_client) -> None:
     """Bots filling the hidden website field are rejected before any lead is persisted."""
     email = f"honeypot-{uuid4().hex}@example.com"
-    resp = client.post(
+    resp = crm_operator_client.post(
         "/api/crm/public/leads",
         json=_public_payload(
             email,
@@ -788,7 +800,7 @@ def test_public_capture_honeypot_rejects_before_capture(client) -> None:
         ),
     )
     assert resp.status_code == 400
-    listing = client.get("/api/crm/leads", headers=_auth_headers())
+    listing = crm_operator_client.get("/api/crm/leads", headers=_auth_headers())
     assert email not in {lead["email"] for lead in listing.json()["leads"]}
 
 
@@ -815,16 +827,16 @@ def test_public_capture_rate_limit_is_separate_from_api_key_limiter(client) -> N
     assert second.headers["Retry-After"] == "60"
 
 
-def test_public_capture_records_trace_id(client) -> None:
+def test_public_capture_records_trace_id(crm_operator_client) -> None:
     """The captured lead carries the request id as its trace_id — origin is recoverable."""
     email = f"trace-{uuid4().hex}@example.com"
-    resp = client.post(
+    resp = crm_operator_client.post(
         "/api/crm/public/leads",
         json=_public_payload(email),
         headers={"X-Request-ID": "req-traceable-1"},
     )
     lead_id = resp.json()["lead_id"]
-    fetched = client.get(f"/api/crm/leads/{lead_id}", headers=_auth_headers())
+    fetched = crm_operator_client.get(f"/api/crm/leads/{lead_id}", headers=_auth_headers())
     assert fetched.status_code == 200, fetched.text
     assert fetched.json()["trace_id"] == "req-traceable-1"
 
@@ -834,17 +846,37 @@ def test_sales_views_require_auth(client) -> None:
     assert client.get("/api/crm/leads/whatever").status_code == 401
 
 
-def test_authed_list_and_get_404(client) -> None:
+def test_sales_views_reject_legacy_jwt_without_operator_role(client) -> None:
+    created = client.post(
+        "/api/crm/public/leads",
+        json=_public_payload(f"legacy-denied-{uuid4().hex}@example.com"),
+    )
+    lead_id = created.json()["lead_id"]
+    legacy_headers = _auth_headers()
+
+    assert client.get("/api/crm/leads", headers=legacy_headers).status_code == 403
+    assert client.get(f"/api/crm/leads/{lead_id}", headers=legacy_headers).status_code == 403
+    assert (
+        client.patch(
+            f"/api/crm/leads/{lead_id}/pipeline-status",
+            json={"pipeline_status": "contacted"},
+            headers=legacy_headers,
+        ).status_code
+        == 403
+    )
+
+
+def test_authed_list_and_get_404(crm_operator_client) -> None:
     headers = _auth_headers()
     email = f"list-{uuid4().hex}@example.com"
-    created = client.post("/api/crm/public/leads", json=_public_payload(email))
+    created = crm_operator_client.post("/api/crm/public/leads", json=_public_payload(email))
     lead_id = created.json()["lead_id"]
 
-    listing = client.get("/api/crm/leads", headers=headers)
+    listing = crm_operator_client.get("/api/crm/leads", headers=headers)
     assert listing.status_code == 200
     assert lead_id in {lead["lead_id"] for lead in listing.json()["leads"]}
 
-    assert client.get(f"/api/crm/leads/{uuid4().hex}", headers=headers).status_code == 404
+    assert crm_operator_client.get(f"/api/crm/leads/{uuid4().hex}", headers=headers).status_code == 404
 
 
 def test_pipeline_status_update_requires_auth(client) -> None:
@@ -862,16 +894,16 @@ def test_pipeline_status_update_requires_auth(client) -> None:
     assert resp.status_code == 401
 
 
-def test_authed_pipeline_status_update_changes_only_sales_status(client) -> None:
+def test_authed_pipeline_status_update_changes_only_sales_status(crm_operator_client) -> None:
     headers = _auth_headers()
-    created = client.post(
+    created = crm_operator_client.post(
         "/api/crm/public/leads",
         json=_public_payload(f"pipeline-{uuid4().hex}@example.com"),
     )
     lead_id = created.json()["lead_id"]
 
-    before = client.get(f"/api/crm/leads/{lead_id}", headers=headers).json()
-    updated = client.patch(
+    before = crm_operator_client.get(f"/api/crm/leads/{lead_id}", headers=headers).json()
+    updated = crm_operator_client.patch(
         f"/api/crm/leads/{lead_id}/pipeline-status",
         json={"pipeline_status": "contacted"},
         headers=headers,
@@ -885,19 +917,19 @@ def test_authed_pipeline_status_update_changes_only_sales_status(client) -> None
     assert body["external_id"] == before["external_id"]
     assert body["version"] == before["version"] + 1
 
-    fetched = client.get(f"/api/crm/leads/{lead_id}", headers=headers)
+    fetched = crm_operator_client.get(f"/api/crm/leads/{lead_id}", headers=headers)
     assert fetched.json()["pipeline_status"] == "contacted"
 
 
-def test_pipeline_status_update_rejects_unknown_status(client) -> None:
+def test_pipeline_status_update_rejects_unknown_status(crm_operator_client) -> None:
     headers = _auth_headers()
-    created = client.post(
+    created = crm_operator_client.post(
         "/api/crm/public/leads",
         json=_public_payload(f"pipeline-invalid-{uuid4().hex}@example.com"),
     )
     lead_id = created.json()["lead_id"]
 
-    resp = client.patch(
+    resp = crm_operator_client.patch(
         f"/api/crm/leads/{lead_id}/pipeline-status",
         json={"pipeline_status": "demo_scheduled"},
         headers=headers,
@@ -907,15 +939,15 @@ def test_pipeline_status_update_rejects_unknown_status(client) -> None:
     assert "expected one of" in resp.json()["detail"]
 
 
-def test_pipeline_status_update_normalizes_human_label(client) -> None:
+def test_pipeline_status_update_normalizes_human_label(crm_operator_client) -> None:
     headers = _auth_headers()
-    created = client.post(
+    created = crm_operator_client.post(
         "/api/crm/public/leads",
         json=_public_payload(f"pipeline-label-{uuid4().hex}@example.com"),
     )
     lead_id = created.json()["lead_id"]
 
-    resp = client.patch(
+    resp = crm_operator_client.patch(
         f"/api/crm/leads/{lead_id}/pipeline-status",
         json={"pipeline_status": " Contacted "},
         headers=headers,
@@ -925,8 +957,8 @@ def test_pipeline_status_update_normalizes_human_label(client) -> None:
     assert resp.json()["pipeline_status"] == "contacted"
 
 
-def test_pipeline_status_update_returns_404_for_missing_lead(client) -> None:
-    resp = client.patch(
+def test_pipeline_status_update_returns_404_for_missing_lead(crm_operator_client) -> None:
+    resp = crm_operator_client.patch(
         f"/api/crm/leads/lead-missing-{uuid4().hex}/pipeline-status",
         json={"pipeline_status": "contacted"},
         headers=_auth_headers(),

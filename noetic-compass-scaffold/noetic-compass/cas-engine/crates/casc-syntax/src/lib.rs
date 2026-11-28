@@ -33,6 +33,13 @@ pub const CAS_GRAMMAR_BNF: &str = r#"<program>          ::= <statement> (";" <st
 <operator>         ::= "CO-" <digit> ;
 <drive_ref>        ::= "F" <drive_digit> ;"#;
 
+/// Maximum decimal digit count permitted for integer literals (covers full signed 64-bit range).
+pub const MAX_INT_DIGITS: usize = 20;
+/// Maximum decimal digit count permitted for small bounded indices (operators, drives, fractals).
+pub const MAX_SMALL_INDEX_DIGITS: usize = 3;
+/// Maximum nesting depth permitted during recursive parsing to prevent stack overflow.
+pub const MAX_PARSE_DEPTH: usize = 128;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Stage {
     Lexing,
@@ -59,6 +66,7 @@ impl Stage {
 pub struct LanguageError {
     stage: &'static str,
     position: String,
+    offset: Option<usize>,
     message: String,
 }
 
@@ -67,12 +75,17 @@ impl LanguageError {
         Self {
             stage: stage.as_str(),
             position: position.map(|p| format!("@{p}")).unwrap_or_default(),
+            offset: position,
             message: message.into(),
         }
     }
 
     pub fn stage_label(&self) -> &'static str {
         self.stage
+    }
+
+    pub fn position_offset(&self) -> Option<usize> {
+        self.offset
     }
 
     pub fn message(&self) -> &str {
@@ -275,21 +288,31 @@ pub enum AstNode {
     },
 }
 
-fn decode_string_literal(raw: &str) -> String {
-    let body = &raw[1..raw.len() - 1];
-    body.replace("\\\"", "\"")
-        .replace("\\\\", "\\")
-        .replace("\\n", "\n")
-        .replace("\\t", "\t")
-}
-
-fn decode_path_literal(raw: &str) -> String {
-    raw[1..raw.len() - 1]
+fn decode_string_literal(raw: &str, position: usize) -> Result<String, LanguageError> {
+    let body = raw
+        .strip_prefix('"')
+        .and_then(|s| s.strip_suffix('"'))
+        .ok_or_else(|| {
+            LanguageError::new(Stage::Parsing, "malformed string literal", Some(position))
+        })?;
+    Ok(body
         .replace("\\\"", "\"")
         .replace("\\\\", "\\")
+        .replace("\\n", "\n")
+        .replace("\\t", "\t"))
 }
 
-fn type_keyword_to_kind(name: &str) -> Result<TypeKind, LanguageError> {
+fn decode_path_literal(raw: &str, position: usize) -> Result<String, LanguageError> {
+    let body = raw
+        .strip_prefix('"')
+        .and_then(|s| s.strip_suffix('"'))
+        .ok_or_else(|| {
+            LanguageError::new(Stage::Parsing, "malformed path literal", Some(position))
+        })?;
+    Ok(body.replace("\\\"", "\"").replace("\\\\", "\\"))
+}
+
+fn type_keyword_to_kind(name: &str, position: usize) -> Result<TypeKind, LanguageError> {
     match name {
         "any" => Ok(TypeKind::Any),
         "state" => Ok(TypeKind::State),
@@ -306,7 +329,7 @@ fn type_keyword_to_kind(name: &str) -> Result<TypeKind, LanguageError> {
         _ => Err(LanguageError::new(
             Stage::Parsing,
             format!("unknown type {name}"),
-            None,
+            Some(position),
         )),
     }
 }
@@ -334,18 +357,184 @@ fn canonical_meta_set_name(name: &str) -> Option<&'static str> {
     }
 }
 
-fn parse_drive_token_value(value: &str) -> Result<u8, LanguageError> {
-    let body = value.strip_prefix("F_").or_else(|| value.strip_prefix('F'));
-    body.and_then(|digits| digits.parse::<u8>().ok())
-        .ok_or_else(|| LanguageError::new(Stage::Parsing, format!("invalid drive {value}"), None))
+fn truncate_token_preview(token: &str, max_chars: usize) -> String {
+    let mut chars = token.chars();
+    let preview: String = chars.by_ref().take(max_chars).collect();
+    if chars.next().is_some() {
+        format!("{preview}...")
+    } else {
+        preview
+    }
+}
+
+fn parse_operator_digits(
+    digits: &str,
+    token_display: &str,
+    position: usize,
+) -> Result<u8, LanguageError> {
+    let preview = truncate_token_preview(token_display, 24);
+    if digits.is_empty()
+        || digits.len() > MAX_SMALL_INDEX_DIGITS
+        || !digits.bytes().all(|b| b.is_ascii_digit())
+    {
+        return Err(LanguageError::new(
+            Stage::Parsing,
+            format!("invalid operator index in `{preview}`; allowed range is 0..=9"),
+            Some(position),
+        ));
+    }
+    let value = digits.parse::<u8>().map_err(|_| {
+        LanguageError::new(
+            Stage::Parsing,
+            format!("operator index in `{preview}` overflows u8; allowed range is 0..=9"),
+            Some(position),
+        )
+    })?;
+    if value > 9 {
+        return Err(LanguageError::new(
+            Stage::Parsing,
+            format!("operator index `{value}` in `{preview}` is out of range; allowed range is 0..=9"),
+            Some(position),
+        ));
+    }
+    Ok(value)
+}
+
+fn parse_co_operator(value: &str, position: usize) -> Result<u8, LanguageError> {
+    let digits = value.strip_prefix("CO-").ok_or_else(|| {
+        LanguageError::new(
+            Stage::Parsing,
+            format!(
+                "malformed operator token `{}`; allowed range is CO-0..=CO-9",
+                truncate_token_preview(value, 24)
+            ),
+            Some(position),
+        )
+    })?;
+    parse_operator_digits(digits, value, position)
+}
+
+fn parse_state_ref(value: &str, position: usize) -> Result<(String, u8), LanguageError> {
+    let mut chars = value.chars();
+    let Some(domain_ch) = chars.next() else {
+        return Err(LanguageError::new(
+            Stage::Parsing,
+            "malformed state reference token",
+            Some(position),
+        ));
+    };
+    if !matches!(domain_ch, 'P' | 'C' | 'E' | 'O') {
+        return Err(LanguageError::new(
+            Stage::Parsing,
+            format!("invalid state domain `{domain_ch}`; allowed domains are P, C, E, O"),
+            Some(position),
+        ));
+    }
+    let operator = parse_operator_digits(chars.as_str(), value, position)?;
+    Ok((domain_ch.to_string(), operator))
+}
+
+fn parse_fractal_element(digits: &str, position: usize) -> Result<u8, LanguageError> {
+    let preview = truncate_token_preview(digits, 24);
+    if digits.is_empty()
+        || digits.len() > MAX_SMALL_INDEX_DIGITS
+        || !digits.bytes().all(|b| b.is_ascii_digit())
+    {
+        return Err(LanguageError::new(
+            Stage::Parsing,
+            format!("invalid fractal operator index `{preview}`; allowed range is 0..=9"),
+            Some(position),
+        ));
+    }
+    let value = digits.parse::<u8>().map_err(|_| {
+        LanguageError::new(
+            Stage::Parsing,
+            format!("fractal operator index `{preview}` overflows u8; allowed range is 0..=9"),
+            Some(position),
+        )
+    })?;
+    if value > 9 {
+        return Err(LanguageError::new(
+            Stage::Parsing,
+            format!("fractal operator index `{value}` is out of range; allowed range is 0..=9"),
+            Some(position),
+        ));
+    }
+    Ok(value)
+}
+
+fn parse_drive_token_value(value: &str, position: usize) -> Result<u8, LanguageError> {
+    let preview = truncate_token_preview(value, 24);
+    let digits = value
+        .strip_prefix("F_")
+        .or_else(|| value.strip_prefix('F'))
+        .ok_or_else(|| {
+            LanguageError::new(
+                Stage::Parsing,
+                format!("invalid drive `{preview}`; allowed range is 1..=7"),
+                Some(position),
+            )
+        })?;
+    if digits.is_empty()
+        || digits.len() > MAX_SMALL_INDEX_DIGITS
+        || !digits.bytes().all(|b| b.is_ascii_digit())
+    {
+        return Err(LanguageError::new(
+            Stage::Parsing,
+            format!("invalid drive `{preview}`; allowed range is 1..=7"),
+            Some(position),
+        ));
+    }
+    let drive = digits.parse::<u8>().map_err(|_| {
+        LanguageError::new(
+            Stage::Parsing,
+            format!("drive `{preview}` overflows u8; allowed range is 1..=7"),
+            Some(position),
+        )
+    })?;
+    if !(1..=7).contains(&drive) {
+        return Err(LanguageError::new(
+            Stage::Parsing,
+            format!("drive `{preview}` is out of range; allowed range is 1..=7"),
+            Some(position),
+        ));
+    }
+    Ok(drive)
+}
+
+fn parse_number_i64(digits: &str, position: usize) -> Result<i64, LanguageError> {
+    let preview = truncate_token_preview(digits, 24);
+    if digits.is_empty() || digits.len() > MAX_INT_DIGITS {
+        return Err(LanguageError::new(
+            Stage::Parsing,
+            format!(
+                "integer literal `{preview}` exceeds maximum digit length ({MAX_INT_DIGITS}); allowed range is {}..={}",
+                i64::MIN,
+                i64::MAX
+            ),
+            Some(position),
+        ));
+    }
+    digits.parse::<i64>().map_err(|_| {
+        LanguageError::new(
+            Stage::Parsing,
+            format!(
+                "integer literal `{preview}` is out of range; allowed range is {}..={}",
+                i64::MIN,
+                i64::MAX
+            ),
+            Some(position),
+        )
+    })
 }
 
 pub fn lex(source: &str) -> Result<Vec<LexToken>, LanguageError> {
     let mut tokens = Vec::new();
     let mut index = 0usize;
-    while index < source.len() {
-        let rest = &source[index..];
-        let ch = rest.chars().next().unwrap();
+    while let Some(rest) = source.get(index..) {
+        let Some(ch) = rest.chars().next() else {
+            break;
+        };
         if ch == ' ' || ch == '\t' || ch == '\r' {
             index += ch.len_utf8();
             continue;
@@ -360,8 +549,11 @@ pub fn lex(source: &str) -> Result<Vec<LexToken>, LanguageError> {
             continue;
         }
         if ch == '#' || rest.starts_with("//") {
-            while index < source.len() && !source[index..].starts_with('\n') {
-                index += source[index..].chars().next().unwrap().len_utf8();
+            while let Some(next) = source.get(index..).and_then(|s| s.chars().next()) {
+                if next == '\n' {
+                    break;
+                }
+                index += next.len_utf8();
             }
             continue;
         }
@@ -440,8 +632,31 @@ pub fn lex(source: &str) -> Result<Vec<LexToken>, LanguageError> {
         if rest.starts_with("CO-") {
             let start = index;
             index += 3;
-            while index < source.len() && source[index..].chars().next().unwrap().is_ascii_digit() {
-                index += 1;
+            let digits_start = index;
+            while let Some(next) = source.get(index..).and_then(|s| s.chars().next()) {
+                if next.is_ascii_digit() {
+                    index += 1;
+                } else {
+                    break;
+                }
+            }
+            let digit_len = index - digits_start;
+            if digit_len == 0 {
+                return Err(LanguageError::new(
+                    Stage::Lexing,
+                    "operator token `CO-` requires an operator index in range 0..=9",
+                    Some(start),
+                ));
+            }
+            if digit_len > MAX_SMALL_INDEX_DIGITS {
+                let preview = truncate_token_preview(&source[start..index], 24);
+                return Err(LanguageError::new(
+                    Stage::Lexing,
+                    format!(
+                        "operator token `{preview}` exceeds maximum digit length ({MAX_SMALL_INDEX_DIGITS}); allowed range is 0..=9"
+                    ),
+                    Some(start),
+                ));
             }
             tokens.push(LexToken {
                 kind: TokenKind::Co,
@@ -450,28 +665,45 @@ pub fn lex(source: &str) -> Result<Vec<LexToken>, LanguageError> {
             });
             continue;
         }
-        if rest.starts_with("Phi")
-            && rest[3..]
+        if let Some(after_phi) = rest.strip_prefix("Phi") {
+            if after_phi
                 .chars()
                 .next()
-                .map(|ch| !ch.is_ascii_alphanumeric() && ch != '_')
+                .map(|next| !next.is_ascii_alphanumeric() && next != '_')
                 .unwrap_or(true)
-        {
-            tokens.push(LexToken {
-                kind: TokenKind::Phi,
-                value: "Phi".to_string(),
-                position: index,
-            });
-            index += 3;
-            continue;
+            {
+                tokens.push(LexToken {
+                    kind: TokenKind::Phi,
+                    value: "Phi".to_string(),
+                    position: index,
+                });
+                index += 3;
+                continue;
+            }
         }
         if matches!(ch, 'P' | 'C' | 'E' | 'O') {
             let start = index;
             index += 1;
-            while index < source.len() && source[index..].chars().next().unwrap().is_ascii_digit() {
-                index += 1;
+            let digits_start = index;
+            while let Some(next) = source.get(index..).and_then(|s| s.chars().next()) {
+                if next.is_ascii_digit() {
+                    index += 1;
+                } else {
+                    break;
+                }
             }
-            if index > start + 1 {
+            let digit_len = index - digits_start;
+            if digit_len > MAX_SMALL_INDEX_DIGITS {
+                let preview = truncate_token_preview(&source[start..index], 24);
+                return Err(LanguageError::new(
+                    Stage::Lexing,
+                    format!(
+                        "state reference `{preview}` exceeds maximum digit length ({MAX_SMALL_INDEX_DIGITS}); allowed operator range is 0..=9"
+                    ),
+                    Some(start),
+                ));
+            }
+            if digit_len > 0 {
                 tokens.push(LexToken {
                     kind: TokenKind::StateRef,
                     value: source[start..index].to_string(),
@@ -487,19 +719,49 @@ pub fn lex(source: &str) -> Result<Vec<LexToken>, LanguageError> {
             continue;
         }
         if ch == 'F'
-            && source[index + ch.len_utf8()..]
-                .chars()
-                .next()
+            && rest
+                .get(ch.len_utf8()..)
+                .and_then(|s| s.chars().next())
                 .map(|next| next.is_ascii_digit() || next == '_')
                 .unwrap_or(false)
         {
             let start = index;
             index += 1;
-            if source[index..].starts_with('_') {
+            if source
+                .get(index..)
+                .map(|s| s.starts_with('_'))
+                .unwrap_or(false)
+            {
                 index += 1;
             }
-            while index < source.len() && source[index..].chars().next().unwrap().is_ascii_digit() {
-                index += 1;
+            let digits_start = index;
+            while let Some(next) = source.get(index..).and_then(|s| s.chars().next()) {
+                if next.is_ascii_digit() {
+                    index += 1;
+                } else {
+                    break;
+                }
+            }
+            let digit_len = index - digits_start;
+            if digit_len == 0 {
+                return Err(LanguageError::new(
+                    Stage::Lexing,
+                    format!(
+                        "drive token `{}` requires a drive number in range 1..=7",
+                        &source[start..index]
+                    ),
+                    Some(start),
+                ));
+            }
+            if digit_len > MAX_SMALL_INDEX_DIGITS {
+                let preview = truncate_token_preview(&source[start..index], 24);
+                return Err(LanguageError::new(
+                    Stage::Lexing,
+                    format!(
+                        "drive token `{preview}` exceeds maximum digit length ({MAX_SMALL_INDEX_DIGITS}); allowed range is 1..=7"
+                    ),
+                    Some(start),
+                ));
             }
             tokens.push(LexToken {
                 kind: TokenKind::Drive,
@@ -512,8 +774,8 @@ pub fn lex(source: &str) -> Result<Vec<LexToken>, LanguageError> {
             let start = index;
             index += 1;
             let mut escaped = false;
-            while index < source.len() {
-                let next = source[index..].chars().next().unwrap();
+            let mut terminated = false;
+            while let Some(next) = source.get(index..).and_then(|s| s.chars().next()) {
                 index += next.len_utf8();
                 if escaped {
                     escaped = false;
@@ -522,10 +784,11 @@ pub fn lex(source: &str) -> Result<Vec<LexToken>, LanguageError> {
                 if next == '\\' {
                     escaped = true;
                 } else if next == '"' {
+                    terminated = true;
                     break;
                 }
             }
-            if !source[start..index].ends_with('"') {
+            if !terminated {
                 return Err(LanguageError::new(
                     Stage::Lexing,
                     "unterminated string literal",
@@ -560,8 +823,7 @@ pub fn lex(source: &str) -> Result<Vec<LexToken>, LanguageError> {
         if ch.is_ascii_alphabetic() {
             let start = index;
             index += 1;
-            while index < source.len() {
-                let next = source[index..].chars().next().unwrap();
+            while let Some(next) = source.get(index..).and_then(|s| s.chars().next()) {
                 if next.is_ascii_alphanumeric() || next == '_' {
                     index += 1;
                 } else {
@@ -589,8 +851,25 @@ pub fn lex(source: &str) -> Result<Vec<LexToken>, LanguageError> {
         if ch.is_ascii_digit() {
             let start = index;
             index += 1;
-            while index < source.len() && source[index..].chars().next().unwrap().is_ascii_digit() {
-                index += 1;
+            while let Some(next) = source.get(index..).and_then(|s| s.chars().next()) {
+                if next.is_ascii_digit() {
+                    index += 1;
+                } else {
+                    break;
+                }
+            }
+            let digit_len = index - start;
+            if digit_len > MAX_INT_DIGITS {
+                let preview = truncate_token_preview(&source[start..index], 24);
+                return Err(LanguageError::new(
+                    Stage::Lexing,
+                    format!(
+                        "integer literal `{preview}` exceeds maximum digit length ({MAX_INT_DIGITS}); allowed range is {}..={}",
+                        i64::MIN,
+                        i64::MAX
+                    ),
+                    Some(start),
+                ));
             }
             tokens.push(LexToken {
                 kind: TokenKind::Number,
@@ -645,20 +924,34 @@ pub fn lex(source: &str) -> Result<Vec<LexToken>, LanguageError> {
 struct Parser {
     tokens: Vec<LexToken>,
     index: usize,
+    depth: usize,
+    eof: LexToken,
 }
 
 impl Parser {
     fn new(tokens: Vec<LexToken>) -> Self {
-        Self { tokens, index: 0 }
+        let eof_pos = tokens.last().map(|t| t.position).unwrap_or(0);
+        Self {
+            tokens,
+            index: 0,
+            depth: 0,
+            eof: LexToken {
+                kind: TokenKind::Eof,
+                value: String::new(),
+                position: eof_pos,
+            },
+        }
     }
 
     fn current(&self) -> &LexToken {
-        &self.tokens[self.index]
+        self.tokens.get(self.index).unwrap_or(&self.eof)
     }
 
     fn advance(&mut self) -> LexToken {
         let token = self.current().clone();
-        self.index += 1;
+        if self.index < self.tokens.len() {
+            self.index += 1;
+        }
         token
     }
 
@@ -672,6 +965,24 @@ impl Parser {
             ));
         }
         Ok(self.advance())
+    }
+
+    fn with_depth<T>(
+        &mut self,
+        position: usize,
+        f: impl FnOnce(&mut Self) -> Result<T, LanguageError>,
+    ) -> Result<T, LanguageError> {
+        if self.depth >= MAX_PARSE_DEPTH {
+            return Err(LanguageError::new(
+                Stage::Parsing,
+                format!("maximum nesting depth ({MAX_PARSE_DEPTH}) exceeded"),
+                Some(position),
+            ));
+        }
+        self.depth += 1;
+        let result = f(self);
+        self.depth -= 1;
+        result
     }
 
     fn parse(mut self) -> Result<AstNode, LanguageError> {
@@ -696,10 +1007,11 @@ impl Parser {
     }
 
     fn parse_statement(&mut self) -> Result<AstNode, LanguageError> {
-        match self.current().kind {
+        let pos = self.current().position;
+        self.with_depth(pos, |parser| match parser.current().kind {
             TokenKind::Export => {
-                let token = self.advance();
-                let inner = self.parse_statement()?;
+                let token = parser.advance();
+                let inner = parser.parse_statement()?;
                 match inner {
                     AstNode::LetStatement(_) | AstNode::FunctionDef(_) => {
                         Ok(AstNode::ExportStatement(ExportStatement {
@@ -714,69 +1026,71 @@ impl Parser {
                 }
             }
             TokenKind::Let => {
-                self.advance();
-                let name = self.expect(TokenKind::Ident)?.value;
-                let annotation = if self.current().kind == TokenKind::Colon {
-                    self.advance();
-                    Some(self.parse_type()?)
+                parser.advance();
+                let name = parser.expect(TokenKind::Ident)?.value;
+                let annotation = if parser.current().kind == TokenKind::Colon {
+                    parser.advance();
+                    Some(parser.parse_type()?)
                 } else {
                     None
                 };
-                self.expect(TokenKind::Equals)?;
+                parser.expect(TokenKind::Equals)?;
                 Ok(AstNode::LetStatement(LetStatement {
                     name,
                     annotation,
-                    expr: Box::new(self.parse_expression()?),
+                    expr: Box::new(parser.parse_expression()?),
                 }))
             }
             TokenKind::Fn => {
-                self.advance();
-                let name = self.expect(TokenKind::Ident)?.value;
-                self.expect(TokenKind::LParen)?;
+                parser.advance();
+                let name = parser.expect(TokenKind::Ident)?.value;
+                parser.expect(TokenKind::LParen)?;
                 let mut params = Vec::new();
                 let mut param_types = Vec::new();
-                if self.current().kind != TokenKind::RParen {
+                if parser.current().kind != TokenKind::RParen {
                     loop {
-                        params.push(self.expect(TokenKind::Ident)?.value);
-                        if self.current().kind == TokenKind::Colon {
-                            self.advance();
-                            param_types.push(self.parse_type()?);
+                        params.push(parser.expect(TokenKind::Ident)?.value);
+                        if parser.current().kind == TokenKind::Colon {
+                            parser.advance();
+                            param_types.push(parser.parse_type()?);
                         } else {
                             param_types.push(TypeInfo::any());
                         }
-                        if self.current().kind != TokenKind::Comma {
+                        if parser.current().kind != TokenKind::Comma {
                             break;
                         }
-                        self.advance();
+                        parser.advance();
                     }
                 }
-                self.expect(TokenKind::RParen)?;
-                let return_type = if self.current().kind == TokenKind::Colon {
-                    self.advance();
-                    Some(self.parse_type()?)
+                parser.expect(TokenKind::RParen)?;
+                let return_type = if parser.current().kind == TokenKind::Colon {
+                    parser.advance();
+                    Some(parser.parse_type()?)
                 } else {
                     None
                 };
-                self.expect(TokenKind::Equals)?;
+                parser.expect(TokenKind::Equals)?;
                 Ok(AstNode::FunctionDef(FunctionDef {
                     name,
                     params,
                     param_types,
                     return_type,
-                    body: Box::new(self.parse_expression()?),
+                    body: Box::new(parser.parse_expression()?),
                 }))
             }
             TokenKind::Use => {
-                self.advance();
-                let path = decode_path_literal(&self.expect(TokenKind::String)?.value);
+                parser.advance();
+                let string_token = parser.expect(TokenKind::String)?;
+                let path = decode_path_literal(&string_token.value, string_token.position)?;
                 Ok(AstNode::UseStatement(UseStatement { path }))
             }
-            _ => self.parse_expression(),
-        }
+            _ => parser.parse_expression(),
+        })
     }
 
     fn parse_type(&mut self) -> Result<TypeInfo, LanguageError> {
-        let kind = type_keyword_to_kind(&self.expect(TokenKind::Ident)?.value)?;
+        let ident_token = self.expect(TokenKind::Ident)?;
+        let kind = type_keyword_to_kind(&ident_token.value, ident_token.position)?;
         let mut domains = Vec::new();
         if self.current().kind == TokenKind::LBracket {
             self.advance();
@@ -803,45 +1117,40 @@ impl Parser {
     }
 
     fn parse_expression(&mut self) -> Result<AstNode, LanguageError> {
-        let mut expr = self.parse_relation()?;
-        while matches!(
-            self.current().kind,
-            TokenKind::Member
-                | TokenKind::NotMember
-                | TokenKind::Subset
-                | TokenKind::SubsetEq
-                | TokenKind::Superset
-                | TokenKind::SupersetEq
-        ) {
-            let token = self.advance();
-            let rhs = self.parse_relation()?;
-            let op = match token.kind {
-                TokenKind::Member => MetaOp::Member,
-                TokenKind::NotMember => MetaOp::NotMember,
-                TokenKind::Subset => MetaOp::Subset,
-                TokenKind::SubsetEq => MetaOp::SubsetEq,
-                TokenKind::Superset => MetaOp::Superset,
-                TokenKind::SupersetEq => MetaOp::SupersetEq,
-                _ => unreachable!(),
-            };
-            expr = AstNode::MetaAssertion {
-                op,
-                left: Box::new(expr),
-                right: Box::new(rhs),
-            };
-        }
-        if self.current().kind == TokenKind::Equals
-            && matches!(expr, AstNode::CardinalityExpr { .. })
-        {
-            self.advance();
-            let rhs = self.parse_expression()?;
-            expr = AstNode::MetaAssertion {
-                op: MetaOp::Equals,
-                left: Box::new(expr),
-                right: Box::new(rhs),
-            };
-        }
-        Ok(expr)
+        let pos = self.current().position;
+        self.with_depth(pos, |parser| {
+            let mut expr = parser.parse_relation()?;
+            loop {
+                let op = match parser.current().kind {
+                    TokenKind::Member => MetaOp::Member,
+                    TokenKind::NotMember => MetaOp::NotMember,
+                    TokenKind::Subset => MetaOp::Subset,
+                    TokenKind::SubsetEq => MetaOp::SubsetEq,
+                    TokenKind::Superset => MetaOp::Superset,
+                    TokenKind::SupersetEq => MetaOp::SupersetEq,
+                    _ => break,
+                };
+                parser.advance();
+                let rhs = parser.parse_relation()?;
+                expr = AstNode::MetaAssertion {
+                    op,
+                    left: Box::new(expr),
+                    right: Box::new(rhs),
+                };
+            }
+            if parser.current().kind == TokenKind::Equals
+                && matches!(expr, AstNode::CardinalityExpr { .. })
+            {
+                parser.advance();
+                let rhs = parser.parse_expression()?;
+                expr = AstNode::MetaAssertion {
+                    op: MetaOp::Equals,
+                    left: Box::new(expr),
+                    right: Box::new(rhs),
+                };
+            }
+            Ok(expr)
+        })
     }
 
     fn parse_relation(&mut self) -> Result<AstNode, LanguageError> {
@@ -860,18 +1169,15 @@ impl Parser {
 
     fn parse_composition(&mut self) -> Result<AstNode, LanguageError> {
         let mut expr = self.parse_primary()?;
-        while matches!(
-            self.current().kind,
-            TokenKind::Times | TokenKind::Divide | TokenKind::Circ
-        ) {
-            let token = self.advance();
-            let rhs = self.parse_primary()?;
-            let op = match token.kind {
+        loop {
+            let op = match self.current().kind {
                 TokenKind::Times => BinaryOp::Times,
                 TokenKind::Divide => BinaryOp::Divide,
                 TokenKind::Circ => BinaryOp::Circ,
-                _ => unreachable!(),
+                _ => break,
             };
+            self.advance();
+            let rhs = self.parse_primary()?;
             expr = AstNode::BinaryExpr {
                 op,
                 left: Box::new(expr),
@@ -903,19 +1209,26 @@ impl Parser {
             TokenKind::Co => self.parse_state(),
             TokenKind::StateRef => {
                 let token = self.advance();
+                let (domain, operator) = parse_state_ref(&token.value, token.position)?;
                 Ok(AstNode::StateLiteral {
-                    operator: token.value[1..].parse::<u8>().unwrap(),
-                    domain: token.value[..1].to_string(),
+                    operator,
+                    domain,
                     drive: None,
                     domain_explicit: true,
                 })
             }
-            TokenKind::String => Ok(AstNode::StringLiteral {
-                value: decode_string_literal(&self.advance().value),
-            }),
-            TokenKind::Number => Ok(AstNode::NumberLiteral {
-                value: self.advance().value.parse::<i64>().unwrap(),
-            }),
+            TokenKind::String => {
+                let token = self.advance();
+                Ok(AstNode::StringLiteral {
+                    value: decode_string_literal(&token.value, token.position)?,
+                })
+            }
+            TokenKind::Number => {
+                let token = self.advance();
+                Ok(AstNode::NumberLiteral {
+                    value: parse_number_i64(&token.value, token.position)?,
+                })
+            }
             TokenKind::EmptySet => {
                 self.advance();
                 Ok(AstNode::EmptySetLiteral)
@@ -964,6 +1277,7 @@ impl Parser {
 
     fn parse_state(&mut self) -> Result<AstNode, LanguageError> {
         let token = self.expect(TokenKind::Co)?;
+        let operator = parse_co_operator(&token.value, token.position)?;
         let mut domain = "P".to_string();
         let mut domain_explicit = false;
         let mut drive = None;
@@ -975,13 +1289,15 @@ impl Parser {
         if self.current().kind == TokenKind::Underscore {
             self.advance();
             self.expect(TokenKind::LBrace)?;
+            let drive_token = self.expect(TokenKind::Drive)?;
             drive = Some(parse_drive_token_value(
-                &self.expect(TokenKind::Drive)?.value,
+                &drive_token.value,
+                drive_token.position,
             )?);
             self.expect(TokenKind::RBrace)?;
         }
         Ok(AstNode::StateLiteral {
-            operator: token.value[3..].parse::<u8>().unwrap(),
+            operator,
             domain,
             drive,
             domain_explicit,
@@ -990,7 +1306,7 @@ impl Parser {
 
     fn parse_drive_or_drive_register_symbol(&mut self) -> Result<AstNode, LanguageError> {
         let token = self.expect(TokenKind::Drive)?;
-        let drive = parse_drive_token_value(&token.value)?;
+        let drive = parse_drive_token_value(&token.value, token.position)?;
         if self.current().kind == TokenKind::Pipe {
             self.advance();
             let reg = self.expect(TokenKind::Ident)?.value;
@@ -1010,21 +1326,26 @@ impl Parser {
     }
 
     fn parse_cardinality(&mut self) -> Result<AstNode, LanguageError> {
-        self.expect(TokenKind::Pipe)?;
-        let collection = self.parse_relation()?;
-        self.expect(TokenKind::Pipe)?;
-        Ok(AstNode::CardinalityExpr {
-            collection: Box::new(collection),
+        let pos = self.current().position;
+        self.with_depth(pos, |parser| {
+            parser.expect(TokenKind::Pipe)?;
+            let collection = parser.parse_relation()?;
+            parser.expect(TokenKind::Pipe)?;
+            Ok(AstNode::CardinalityExpr {
+                collection: Box::new(collection),
+            })
         })
     }
 
     fn parse_fractal(&mut self) -> Result<AstNode, LanguageError> {
         self.expect(TokenKind::Phi)?;
         self.expect(TokenKind::LAngle)?;
-        let mut sequence = vec![self.expect(TokenKind::Number)?.value.parse::<u8>().unwrap()];
+        let first = self.expect(TokenKind::Number)?;
+        let mut sequence = vec![parse_fractal_element(&first.value, first.position)?];
         while self.current().kind == TokenKind::Colon {
             self.advance();
-            sequence.push(self.expect(TokenKind::Number)?.value.parse::<u8>().unwrap());
+            let next = self.expect(TokenKind::Number)?;
+            sequence.push(parse_fractal_element(&next.value, next.position)?);
         }
         self.expect(TokenKind::RAngle)?;
         Ok(AstNode::FractalLiteral { sequence })
@@ -1064,5 +1385,257 @@ mod tests {
     fn lexes_unicode_fractal_literal() {
         let tokens = lex("let motif = Φ⟨2:4:8⟩").unwrap();
         assert!(tokens.iter().any(|token| token.kind == TokenKind::Phi));
+    }
+
+    #[test]
+    fn rejects_oversized_and_out_of_range_numeric_tokens_without_panic() {
+        let cases = [
+            ("CO-256", "0..=9"),
+            ("CO-999999999999999999999999", "0..=9"),
+            ("CO-", "0..=9"),
+            ("CO-10", "0..=9"),
+            ("P256", "0..=9"),
+            ("C999999999999", "0..=9"),
+            ("E10", "0..=9"),
+            ("F999", "1..=7"),
+            ("F256", "1..=7"),
+            ("F0", "1..=7"),
+            ("F8", "1..=7"),
+            ("F_", "1..=7"),
+            ("F_99999999999", "1..=7"),
+            ("CO-2^C_{F999}", "1..=7"),
+            ("999999999999999999999999999999", "allowed range"),
+            ("9223372036854775808", "allowed range"),
+            ("Φ<256:999>", "0..=9"),
+            ("Phi<1:256>", "0..=9"),
+            ("Phi<10>", "0..=9"),
+            ("Phi<999999999999999999999999>", "allowed range"),
+        ];
+        for (input, expected_hint) in cases {
+            let err = parse_source(input)
+                .expect_err(&format!("expected error for adversarial input `{input}`"));
+            let rendered = err.to_string();
+            assert!(
+                rendered.contains('@'),
+                "error for `{input}` should include token position: {rendered}"
+            );
+            assert!(
+                rendered.contains(expected_hint),
+                "error for `{input}` should include `{expected_hint}`: {rendered}"
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_negative_oversized_integer_and_unterminated_quotes_without_panic() {
+        for input in [
+            "-999999999999999999999999999999",
+            "\"",
+            "\"\\",
+            "\"\\\"",
+            "use \"",
+            "use \"\\\"",
+        ] {
+            assert!(
+                parse_source(input).is_err(),
+                "expected clean error for `{input}`"
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_deeply_nested_inputs_without_stack_overflow() {
+        let deep_parens = format!("{}CO-2{}", "(".repeat(2_000), ")".repeat(2_000));
+        let err = parse_source(&deep_parens).expect_err("deep parens must fail cleanly");
+        assert!(
+            err.to_string().contains("maximum nesting depth"),
+            "unexpected error: {err}"
+        );
+
+        let deep_exports = format!("{}let x = CO-2", "export ".repeat(500));
+        let err = parse_source(&deep_exports).expect_err("deep exports must fail cleanly");
+        assert!(
+            err.to_string().contains("maximum nesting depth"),
+            "unexpected error: {err}"
+        );
+
+        let deep_pipes = format!("{}States{}", "|".repeat(500), "|".repeat(500));
+        let err = parse_source(&deep_pipes).expect_err("deep pipes must fail cleanly");
+        assert!(
+            err.to_string().contains("maximum nesting depth"),
+            "unexpected error: {err}"
+        );
+
+        let deep_calls = format!("{}CO-2{}", "f(".repeat(500), ")".repeat(500));
+        let err = parse_source(&deep_calls).expect_err("deep calls must fail cleanly");
+        assert!(
+            err.to_string().contains("maximum nesting depth"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn handles_malformed_synthetic_token_streams_without_panic() {
+        assert!(parse_tokens(Vec::new()).is_err());
+
+        let malformed_streams = [
+            vec![LexToken {
+                kind: TokenKind::StateRef,
+                value: String::new(),
+                position: 0,
+            }],
+            vec![LexToken {
+                kind: TokenKind::StateRef,
+                value: "Φ2".to_string(),
+                position: 0,
+            }],
+            vec![LexToken {
+                kind: TokenKind::StateRef,
+                value: "P999".to_string(),
+                position: 3,
+            }],
+            vec![LexToken {
+                kind: TokenKind::Co,
+                value: "X".to_string(),
+                position: 0,
+            }],
+            vec![LexToken {
+                kind: TokenKind::Co,
+                value: "CO-999".to_string(),
+                position: 2,
+            }],
+            vec![LexToken {
+                kind: TokenKind::String,
+                value: "\"".to_string(),
+                position: 0,
+            }],
+            vec![LexToken {
+                kind: TokenKind::String,
+                value: "🦀".to_string(),
+                position: 0,
+            }],
+            vec![LexToken {
+                kind: TokenKind::Number,
+                value: "99999999999999999999999999999".to_string(),
+                position: 1,
+            }],
+            vec![LexToken {
+                kind: TokenKind::Let,
+                value: "let".to_string(),
+                position: 0,
+            }],
+        ];
+
+        for tokens in malformed_streams {
+            assert!(parse_tokens(tokens).is_err());
+        }
+    }
+
+    #[test]
+    fn deterministic_adversarial_corpus_never_panics() {
+        // Deterministic xorshift64* PRNG for reproducible fuzz-style coverage.
+        let mut state: u64 = 0x5EED_CAFE_BEEF_1337;
+        let mut next_u64 = || {
+            state ^= state >> 12;
+            state ^= state << 25;
+            state ^= state >> 27;
+            state.wrapping_mul(0x2545_F491_4F6C_DD1D)
+        };
+
+        let fragments = [
+            "CO-",
+            "CO-256",
+            "CO-999999999999999999999",
+            "P",
+            "C",
+            "E",
+            "O",
+            "P256",
+            "C99999",
+            "F",
+            "F_",
+            "F0",
+            "F8",
+            "F999",
+            "F_99999999999",
+            "Phi",
+            "Φ",
+            "⟨",
+            "⟩",
+            "<",
+            ">",
+            ":",
+            "(",
+            ")",
+            "[",
+            "]",
+            "{",
+            "}",
+            "|",
+            "->",
+            "*",
+            "/",
+            "circ",
+            "=",
+            ";",
+            ",",
+            "^",
+            "_",
+            "\"",
+            "\\\"",
+            "let ",
+            "fn ",
+            "export ",
+            "use ",
+            "RPM",
+            "∅",
+            "∈",
+            "∉",
+            "⊂",
+            "⊆",
+            "⊃",
+            "⊇",
+            "999999999999999999999999999999",
+            "-999999999999999999999999999999",
+            "9223372036854775807",
+            "9223372036854775808",
+            "0",
+            "9",
+            "255",
+            "256",
+            " ",
+            "\n",
+            "\t",
+            "#comment\n",
+            "//comment\n",
+            "🦀",
+            "\u{0000}",
+            "\u{FEFF}",
+        ];
+
+        for _ in 0..600 {
+            let count = (next_u64() % 18) as usize + 1;
+            let mut sample = String::new();
+            for _ in 0..count {
+                let idx = (next_u64() as usize) % fragments.len();
+                sample.push_str(fragments[idx]);
+            }
+            let _ = lex(&sample);
+            let _ = parse_source(&sample);
+        }
+
+        // Arbitrary UTF-8 strings built from random Unicode scalar values.
+        for _ in 0..300 {
+            let len = (next_u64() % 48) as usize;
+            let mut sample = String::with_capacity(len);
+            for _ in 0..len {
+                let raw = (next_u64() % 0x110000) as u32;
+                if let Some(ch) = char::from_u32(raw) {
+                    sample.push(ch);
+                }
+            }
+            let _ = lex(&sample);
+            let _ = parse_source(&sample);
+        }
     }
 }

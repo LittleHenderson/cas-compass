@@ -101,11 +101,18 @@ def test_mutation_persists_across_store_reconfiguration(tmp_path) -> None:
 
 
 def test_missing_durable_store_fails_closed_but_dark_mode_stays_in_memory() -> None:
+    from api.services.cas_harness_audit_sessions import create_session_with_token
+
     with pytest.raises(AuditSessionPersistenceUnavailable):
         create_session(PAYLOAD, tenant_id="tenant-a", account_id="acct-a")
 
-    dark = create_session(PAYLOAD, owner_sub="anonymous")
-    assert get_session(dark.audit_id, owner_sub="anonymous") is not None
+    dark, token = create_session_with_token(PAYLOAD, owner_sub="anonymous")
+    assert token is not None
+    assert get_session(dark.audit_id, owner_sub="anonymous") is None
+    assert (
+        get_session(dark.audit_id, owner_sub="anonymous", capability_token=token)
+        is not None
+    )
 
 
 def test_two_claimers_get_one_fenced_attempt(tmp_path) -> None:

@@ -5,6 +5,7 @@ import { useHistoryStore } from '../stores/historyStore';
 import { CertBadge } from '../components/shared/CertBadge';
 import { Card } from '../components/shared/Card';
 import { ResearchPrototypeNotice } from '../components/shared/ResearchPrototypeNotice';
+import { serializeCsv } from '../lib/csvSafety';
 import type { AssessmentRecord, StageResult } from '../api/types';
 
 /** Flatten a record into the same column schema used by the API export. */
@@ -61,21 +62,9 @@ function exportCSV(records: AssessmentRecord[]) {
   if (rows.length === 0) return;
 
   const headers = Object.keys(rows[0]);
-  const csvLines = [
-    headers.join(','),
-    ...rows.map((row) =>
-      headers
-        .map((h) => {
-          const val = String(row[h as keyof typeof row] ?? '');
-          return val.includes(',') || val.includes('"') || val.includes('\n')
-            ? `"${val.replace(/"/g, '""')}"`
-            : val;
-        })
-        .join(','),
-    ),
-  ];
+  const csv = serializeCsv(headers, rows);
 
-  const blob = new Blob([csvLines.join('\n')], { type: 'text/csv' });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   saveAs(blob, `assessments-${Date.now()}.csv`);
 }
 

@@ -197,8 +197,13 @@ fn lock_package(path: impl AsRef<Path>) -> Result<serde_json::Value, String> {
         entry: entry.display().to_string(),
         files: entries,
     };
-    let lock_path = manifest_path.parent().unwrap().join("caspkg.lock.json");
-    fs::write(&lock_path, serde_json::to_string_pretty(&lock).unwrap())
+    let lock_path = manifest_path
+        .parent()
+        .ok_or_else(|| "manifest path had no parent directory".to_string())?
+        .join("caspkg.lock.json");
+    let encoded = serde_json::to_string_pretty(&lock)
+        .map_err(|error| format!("failed to serialize lockfile: {error}"))?;
+    fs::write(&lock_path, encoded)
         .map_err(|error| format!("failed to write {}: {error}", lock_path.display()))?;
     Ok(serde_json::json!({
         "wrote": lock_path.display().to_string(),
@@ -284,6 +289,21 @@ fn print_usage() {
     eprintln!("  caspm add [path-to-package-or-manifest] <dependency-name> <dependency-path>");
 }
 
+fn resolve_path_or_cwd(arg: Option<String>) -> Result<PathBuf, String> {
+    match arg {
+        Some(value) => Ok(PathBuf::from(value)),
+        None => std::env::current_dir()
+            .map_err(|error| format!("failed to determine current directory: {error}")),
+    }
+}
+
+fn print_json(value: &serde_json::Value) {
+    match serde_json::to_string_pretty(value) {
+        Ok(rendered) => println!("{rendered}"),
+        Err(error) => eprintln!("failed to serialize output JSON: {error}"),
+    }
+}
+
 fn main() -> ExitCode {
     let mut args = env::args().skip(1);
     let Some(command) = args.next() else {
@@ -297,10 +317,13 @@ fn main() -> ExitCode {
                 print_usage();
                 return ExitCode::from(2);
             };
-            let root = args
-                .next()
-                .map(PathBuf::from)
-                .unwrap_or_else(|| std::env::current_dir().unwrap());
+            let root = match resolve_path_or_cwd(args.next()) {
+                Ok(path) => path,
+                Err(error) => {
+                    eprintln!("{error}");
+                    return ExitCode::from(1);
+                }
+            };
             match create_package(root, &name) {
                 Ok(path) => {
                     println!("created CAS package at {}", path.display());
@@ -313,13 +336,16 @@ fn main() -> ExitCode {
             }
         }
         "check" | "run" => {
-            let path = args
-                .next()
-                .map(PathBuf::from)
-                .unwrap_or_else(|| std::env::current_dir().unwrap());
+            let path = match resolve_path_or_cwd(args.next()) {
+                Ok(path) => path,
+                Err(error) => {
+                    eprintln!("{error}");
+                    return ExitCode::from(1);
+                }
+            };
             match check_package(path) {
                 Ok(json) => {
-                    println!("{}", serde_json::to_string_pretty(&json).unwrap());
+                    print_json(&json);
                     if json["valid"].as_bool().unwrap_or(false) {
                         ExitCode::SUCCESS
                     } else {
@@ -333,13 +359,16 @@ fn main() -> ExitCode {
             }
         }
         "graph" => {
-            let path = args
-                .next()
-                .map(PathBuf::from)
-                .unwrap_or_else(|| std::env::current_dir().unwrap());
+            let path = match resolve_path_or_cwd(args.next()) {
+                Ok(path) => path,
+                Err(error) => {
+                    eprintln!("{error}");
+                    return ExitCode::from(1);
+                }
+            };
             match graph_package(path) {
                 Ok(json) => {
-                    println!("{}", serde_json::to_string_pretty(&json).unwrap());
+                    print_json(&json);
                     ExitCode::SUCCESS
                 }
                 Err(error) => {
@@ -349,13 +378,16 @@ fn main() -> ExitCode {
             }
         }
         "lock" => {
-            let path = args
-                .next()
-                .map(PathBuf::from)
-                .unwrap_or_else(|| std::env::current_dir().unwrap());
+            let path = match resolve_path_or_cwd(args.next()) {
+                Ok(path) => path,
+                Err(error) => {
+                    eprintln!("{error}");
+                    return ExitCode::from(1);
+                }
+            };
             match lock_package(path) {
                 Ok(json) => {
-                    println!("{}", serde_json::to_string_pretty(&json).unwrap());
+                    print_json(&json);
                     ExitCode::SUCCESS
                 }
                 Err(error) => {
@@ -365,10 +397,13 @@ fn main() -> ExitCode {
             }
         }
         "add" => {
-            let path = args
-                .next()
-                .map(PathBuf::from)
-                .unwrap_or_else(|| std::env::current_dir().unwrap());
+            let path = match resolve_path_or_cwd(args.next()) {
+                Ok(path) => path,
+                Err(error) => {
+                    eprintln!("{error}");
+                    return ExitCode::from(1);
+                }
+            };
             let Some(dependency_name) = args.next() else {
                 print_usage();
                 return ExitCode::from(2);
@@ -379,7 +414,7 @@ fn main() -> ExitCode {
             };
             match add_dependency(path, &dependency_name, PathBuf::from(dependency_path)) {
                 Ok(json) => {
-                    println!("{}", serde_json::to_string_pretty(&json).unwrap());
+                    print_json(&json);
                     ExitCode::SUCCESS
                 }
                 Err(error) => {
